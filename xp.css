@@ -56,6 +56,8 @@
 .admin-actions{align-items:end;display:flex;flex-wrap:wrap;gap:10px;min-width:240px}
 .admin-actions label{flex:1 0 100%}
 .admin-actions .button{border:0;cursor:pointer;padding:12px 14px}
+.admin-actions .button-ghost{appearance:none;background:var(--surface)!important;color:var(--text)!important;border:1px solid var(--line)!important}
+.admin-actions .button-ghost:hover{background:var(--surface-2)!important;border-color:var(--lime)!important;color:var(--lime)!important}
 .xp-empty{border:1px solid var(--line);color:var(--muted);padding:24px}
 @media(max-width:800px){.xp-rules,.level-list{grid-template-columns:1fr}.xp-challenge{display:block;padding:28px}.xp-challenge>div+div{margin-top:28px}}
 @media(max-width:800px){.xp-console,.xp-submit-panel{display:block}.xp-score-panel{margin-top:14px}.xp-submit-panel form{margin-top:28px}.admin-submission{align-items:flex-start;display:block}.admin-actions{margin-top:22px}}
