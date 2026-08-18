@@ -4,4 +4,9 @@
 .arena-online button:hover{border-color:var(--lime);color:var(--lime)}
 .arena-online button:disabled{cursor:not-allowed;opacity:.55}
 .arena-leaderboard-section .leaderboard-wrap{background:var(--surface);border:1px solid var(--line);padding:0 18px}
+.arena-leaderboard-section{padding-bottom:40px;padding-top:42px}
+.arena-howto-section{padding-bottom:48px;padding-top:48px}
+.arena-howto-section .split-section{gap:64px}
+.arena-howto-section .perk-list{margin-top:18px}
 @media(max-width:800px){.arena-online{align-items:flex-start;display:block}.arena-online button{margin-top:12px}}
+@media(max-width:800px){.arena-leaderboard-section{padding-bottom:34px;padding-top:34px}.arena-howto-section{padding-bottom:38px;padding-top:38px}.arena-howto-section .split-section{gap:28px}}
