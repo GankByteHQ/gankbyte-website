@@ -24,8 +24,8 @@
 .xp-account-panel p,.xp-submit-panel p{color:var(--muted);font-size:14px;line-height:1.65;max-width:540px}
 .xp-account-actions{align-items:center;display:flex;flex-wrap:wrap;gap:16px;margin-top:22px}
 .xp-account-actions .button{border:0;cursor:pointer}
-.xp-account-actions .button-ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
-.xp-account-actions .button-ghost:hover{border-color:var(--lime);color:var(--lime)}
+.xp-account-actions .button-ghost{appearance:none;background:var(--surface)!important;color:var(--text)!important;border:1px solid var(--line)!important}
+.xp-account-actions .button-ghost:hover{background:var(--surface-2)!important;border-color:var(--lime)!important;color:var(--lime)!important}
 .xp-account-actions .button:disabled{cursor:not-allowed;opacity:.55}
 .xp-score-panel{align-items:flex-start;display:flex;flex-direction:column;justify-content:center}
 .xp-score-panel small{color:#77787c;font-size:9px;letter-spacing:.16em}
