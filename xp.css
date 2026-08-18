@@ -1,0 +1,21 @@
+.xp-rules{display:grid;gap:14px;grid-template-columns:repeat(3,1fr)}
+.xp-card{background:var(--surface);border:1px solid var(--line);padding:26px;position:relative}
+.xp-card h3{font-size:25px;letter-spacing:-.05em;margin:22px 0 12px}
+.xp-card p{color:var(--muted);font-size:14px;line-height:1.65;margin-bottom:0;max-width:310px}
+.xp-points{color:var(--lime);font-size:34px;font-weight:800;letter-spacing:-.06em}
+.xp-card small{color:#77787c;display:block;font-size:9px;letter-spacing:.16em;text-transform:uppercase}
+.xp-challenge{background:var(--lime);color:#0a0b0f;display:grid;gap:60px;grid-template-columns:1fr 1fr;padding:42px}
+.xp-challenge h2{color:#0a0b0f;margin-bottom:18px}
+.xp-challenge h2 em{color:#6b3aff}
+.xp-challenge p{font-size:16px;line-height:1.6;max-width:470px}
+.xp-challenge .eyebrow{color:#4d661c}
+.challenge-steps{list-style:none;margin:0;padding:0}
+.challenge-steps li{border-top:1px solid rgba(10,11,15,.25);font-size:14px;line-height:1.5;padding:15px 0}
+.challenge-steps li:last-child{border-bottom:1px solid rgba(10,11,15,.25)}
+.challenge-steps strong{display:block;font-size:10px;letter-spacing:.14em;margin-bottom:5px;text-transform:uppercase}
+.level-list{display:grid;gap:10px;grid-template-columns:repeat(5,1fr)}
+.level-item{background:var(--surface);border:1px solid var(--line);padding:18px}
+.level-item strong{color:var(--lime);display:block;font-size:22px;letter-spacing:-.05em}
+.level-item span{color:var(--muted);display:block;font-size:11px;margin-top:6px}
+.xp-note{border-left:2px solid var(--purple);color:var(--muted);font-size:14px;line-height:1.65;margin:25px 0 0;padding-left:18px}
+@media(max-width:800px){.xp-rules,.level-list{grid-template-columns:1fr}.xp-challenge{display:block;padding:28px}.xp-challenge>div+div{margin-top:28px}}
