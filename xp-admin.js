@@ -52,7 +52,7 @@
   async function loadArenaScores() {
     const result = await client.from("arena_scores").select("id,user_id,score,wave,run_seconds,created_at").eq("status", "pending").order("score", { ascending: false });
     if (result.error) { message(result.error.message, true); return; }
-    if (!result.data.length) { arenaScoreList.innerHTML = '<div class="xp-empty">No pending arena scores.</div>'; return; }
+    if (!result.data.length) { arenaScoreList.innerHTML = '<div class="xp-empty">Arena scores are auto-published. No pending moderation.</div>'; return; }
     const ids = [...new Set(result.data.map((item) => item.user_id))];
     const profiles = await client.from("profiles").select("id,display_name").in("id", ids);
     const names = Object.fromEntries((profiles.data || []).map((item) => [item.id, item.display_name]));

@@ -88,7 +88,8 @@ async function submitLastRun() {
     return;
   }
   lastRun.submitted = true;
-  arenaAuthStatus.textContent = "Score submitted for review. Approved runs appear on the global leaderboard.";
+  arenaAuthStatus.textContent = "Score posted to the global leaderboard.";
+  await loadArenaLeaderboard();
 }
 
 async function loadArenaSession(session) {

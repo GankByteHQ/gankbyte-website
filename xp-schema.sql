@@ -49,11 +49,14 @@ create table if not exists public.arena_scores (
   score integer not null check (score between 0 and 1000000),
   wave integer not null check (wave between 1 and 4),
   run_seconds integer not null check (run_seconds between 0 and 600),
-  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  status text not null default 'approved' check (status in ('pending', 'approved', 'rejected')),
   reviewer_id uuid references public.profiles(id),
   created_at timestamptz not null default now(),
   reviewed_at timestamptz
 );
+
+-- Arena scores are published automatically for the launch leaderboard.
+update public.arena_scores set status = 'approved' where status = 'pending';
 
 insert into public.challenges (slug, title, base_xp, bonus_xp)
 values ('weekend-challenge-001', 'Weekend Challenge #001', 100, 500)
@@ -113,7 +116,7 @@ drop policy if exists "Approved XP is visible" on public.xp_ledger;
 create policy "Approved XP is visible" on public.xp_ledger for select using (approved = true or auth.uid() = user_id);
 
 drop policy if exists "Players submit their own arena scores" on public.arena_scores;
-create policy "Players submit their own arena scores" on public.arena_scores for insert to authenticated with check (auth.uid() = user_id);
+create policy "Players submit their own arena scores" on public.arena_scores for insert to authenticated with check (auth.uid() = user_id and status = 'approved');
 
 drop policy if exists "Players see their own arena scores" on public.arena_scores;
 create policy "Players see their own arena scores" on public.arena_scores for select to authenticated using (auth.uid() = user_id or exists (select 1 from public.profiles where id = auth.uid() and is_admin));
