@@ -69,7 +69,10 @@ function spawnPickup() {
 function spawnHazard() {
   const edge = Math.floor(random(0, 4));
   const position = edge === 0 ? { x: random(0, WIDTH), y: -25 } : edge === 1 ? { x: WIDTH + 25, y: random(0, HEIGHT) } : edge === 2 ? { x: random(0, WIDTH), y: HEIGHT + 25 } : { x: -25, y: random(0, HEIGHT) };
-  hazards.push({ ...position, radius: random(13, 19), speed: random(42, 65) + wave * 9, phase: random(0, 10) });
+  const roll = Math.random();
+  const type = wave >= 3 && roll < .18 ? "sprinter" : wave >= 2 && roll < .48 ? "flanker" : "chaser";
+  const baseSpeed = random(42, 65) + wave * 9;
+  hazards.push({ ...position, radius: random(13, 19), speed: baseSpeed, baseSpeed, type, side: Math.random() < .5 ? -1 : 1, phase: random(0, 10) });
 }
 
 function spawnBonus() {
@@ -181,9 +184,24 @@ function update(dt) {
   const targetHazards = 2 + wave * 2;
   if (hazards.length < targetHazards && Math.random() < dt * 1.4) spawnHazard();
   hazards.forEach((hazard) => {
-    const angle = Math.atan2(player.y - hazard.y, player.x - hazard.x);
-    hazard.x += Math.cos(angle) * hazard.speed * dt;
-    hazard.y += Math.sin(angle) * hazard.speed * dt;
+    const directAngle = Math.atan2(player.y - hazard.y, player.x - hazard.x);
+    const steeringAngle = hazard.type === "flanker" ? directAngle + hazard.side * (.55 + Math.sin(elapsed * 1.4 + hazard.phase) * .18) : directAngle;
+    const separation = hazards.reduce((result, other) => {
+      if (other === hazard) return result;
+      const gap = distance(hazard, other);
+      if (gap > 0 && gap < 82) {
+        result.x += (hazard.x - other.x) / gap * (1 - gap / 82);
+        result.y += (hazard.y - other.y) / gap * (1 - gap / 82);
+      }
+      return result;
+    }, { x: 0, y: 0 });
+    const steerX = Math.cos(steeringAngle) + separation.x * 1.9;
+    const steerY = Math.sin(steeringAngle) + separation.y * 1.9;
+    const steerLength = Math.hypot(steerX, steerY) || 1;
+    const burstSpeed = hazard.type === "sprinter" ? hazard.baseSpeed * (1 + Math.max(0, Math.sin(elapsed * 2.4 + hazard.phase)) * .7) : hazard.baseSpeed;
+    hazard.speed = burstSpeed;
+    hazard.x += steerX / steerLength * hazard.speed * dt;
+    hazard.y += steerY / steerLength * hazard.speed * dt;
     hazard.phase += dt * 5;
     if (distance(player, hazard) < player.radius + hazard.radius) {
       if (player.invulnerable <= 0) {
@@ -301,19 +319,33 @@ function drawPickup(pickup) {
 }
 
 function drawHazard(hazard) {
+  const styles = { chaser: { color: "#9a7bff", fill: "rgba(154,123,255,.18)" }, flanker: { color: "#55e8ff", fill: "rgba(85,232,255,.16)" }, sprinter: { color: "#ff855c", fill: "rgba(255,133,92,.16)" } };
+  const style = styles[hazard.type];
   ctx.save();
   ctx.translate(hazard.x, hazard.y);
   ctx.rotate(hazard.phase);
   ctx.shadowBlur = 22;
-  ctx.shadowColor = "#9a7bff";
-  ctx.strokeStyle = "#9a7bff";
-  ctx.fillStyle = "rgba(154,123,255,.18)";
+  ctx.shadowColor = style.color;
+  ctx.strokeStyle = style.color;
+  ctx.fillStyle = style.fill;
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(0, -hazard.radius);
-  ctx.lineTo(hazard.radius, 0);
-  ctx.lineTo(0, hazard.radius);
-  ctx.lineTo(-hazard.radius, 0);
+  if (hazard.type === "flanker") {
+    ctx.moveTo(0, -hazard.radius - 3);
+    ctx.lineTo(hazard.radius + 3, hazard.radius);
+    ctx.lineTo(-hazard.radius - 3, hazard.radius);
+  } else if (hazard.type === "sprinter") {
+    ctx.moveTo(0, -hazard.radius - 3);
+    ctx.lineTo(hazard.radius, -hazard.radius * .35);
+    ctx.lineTo(hazard.radius * .75, hazard.radius);
+    ctx.lineTo(-hazard.radius * .75, hazard.radius);
+    ctx.lineTo(-hazard.radius, -hazard.radius * .35);
+  } else {
+    ctx.moveTo(0, -hazard.radius);
+    ctx.lineTo(hazard.radius, 0);
+    ctx.lineTo(0, hazard.radius);
+    ctx.lineTo(-hazard.radius, 0);
+  }
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
