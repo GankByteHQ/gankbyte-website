@@ -15,6 +15,7 @@ const WIDTH = canvas.width;
 const HEIGHT = canvas.height;
 const keys = new Set();
 const touch = new Set();
+let pointerTarget = null;
 let running = false;
 let lastFrame = 0;
 let elapsed = 0;
@@ -122,6 +123,18 @@ function update(dt) {
     player.x = clamp(player.x + direction.x * player.speed * dt, player.radius, WIDTH - player.radius);
     player.y = clamp(player.y + direction.y * player.speed * dt, player.radius, HEIGHT - player.radius);
     player.angle = Math.atan2(direction.y, direction.x);
+    pointerTarget = null;
+  } else if (pointerTarget) {
+    const dx = pointerTarget.x - player.x;
+    const dy = pointerTarget.y - player.y;
+    const distanceToTarget = Math.hypot(dx, dy);
+    if (distanceToTarget < 8) {
+      pointerTarget = null;
+    } else {
+      player.x = clamp(player.x + (dx / distanceToTarget) * player.speed * dt, player.radius, WIDTH - player.radius);
+      player.y = clamp(player.y + (dy / distanceToTarget) * player.speed * dt, player.radius, HEIGHT - player.radius);
+      player.angle = Math.atan2(dy, dx);
+    }
   }
 
   const targetHazards = 2 + wave * 2;
@@ -302,6 +315,14 @@ window.addEventListener("keydown", (event) => {
   keys.add(event.key);
 });
 window.addEventListener("keyup", (event) => keys.delete(event.key));
+function setPointerTarget(event) {
+  if (!running) return;
+  const rect = canvas.getBoundingClientRect();
+  pointerTarget = { x: (event.clientX - rect.left) * WIDTH / rect.width, y: (event.clientY - rect.top) * HEIGHT / rect.height };
+}
+canvas.addEventListener("pointerdown", (event) => { setPointerTarget(event); canvas.setPointerCapture?.(event.pointerId); });
+canvas.addEventListener("pointermove", (event) => { if (event.buttons) setPointerTarget(event); });
+canvas.addEventListener("pointerup", () => { pointerTarget = null; });
 startButton.addEventListener("click", startGame);
 document.querySelectorAll("[data-dir]").forEach((button) => {
   const direction = button.dataset.dir;
