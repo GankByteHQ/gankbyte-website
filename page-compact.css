@@ -1,0 +1,19 @@
+.page-hero {
+  padding-bottom: 58px;
+  padding-top: 64px;
+}
+
+.page-hero h1 {
+  font-size: clamp(46px, 5.6vw, 76px);
+}
+
+@media (max-width: 800px) {
+  .page-hero {
+    padding-bottom: 48px;
+    padding-top: 50px;
+  }
+
+  .page-hero h1 {
+    font-size: clamp(46px, 13vw, 68px);
+  }
+}
