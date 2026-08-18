@@ -42,6 +42,7 @@ let particles = [];
 function random(min, max) { return Math.random() * (max - min) + min; }
 function distance(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
 function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+function wrap(value, size) { return (value + size) % size; }
 
 function updateHud() {
   scoreValue.textContent = score;
@@ -73,7 +74,7 @@ function spawnHazard() {
 
 function spawnBonus() {
   const position = openPosition();
-  const types = ["shield", "overdrive", "time"];
+  const types = ["shield", "overdrive", "time", "boost"];
   bonus = { ...position, anchorX: position.x, anchorY: position.y, pulse: random(0, Math.PI * 2), drift: random(1, 1.5), type: types[Math.floor(random(0, types.length))], expiresAt: elapsed + 11 };
 }
 
@@ -129,8 +130,8 @@ function dash() {
   const direction = moveVector();
   const x = direction.moving ? direction.x : Math.cos(player.angle);
   const y = direction.moving ? direction.y : Math.sin(player.angle);
-  player.x = clamp(player.x + x * 105, player.radius, WIDTH - player.radius);
-  player.y = clamp(player.y + y * 105, player.radius, HEIGHT - player.radius);
+  player.x = wrap(player.x + x * 105, WIDTH);
+  player.y = wrap(player.y + y * 105, HEIGHT);
   player.invulnerable = .55;
   boosts -= 1;
   burst(player.x, player.y, "#c6ff3d", 18);
@@ -160,8 +161,8 @@ function update(dt) {
 
   const direction = moveVector();
   if (direction.moving) {
-    player.x = clamp(player.x + direction.x * player.speed * dt, player.radius, WIDTH - player.radius);
-    player.y = clamp(player.y + direction.y * player.speed * dt, player.radius, HEIGHT - player.radius);
+    player.x = wrap(player.x + direction.x * player.speed * dt, WIDTH);
+    player.y = wrap(player.y + direction.y * player.speed * dt, HEIGHT);
     player.angle = Math.atan2(direction.y, direction.x);
     pointerTarget = null;
   } else if (pointerTarget) {
@@ -171,8 +172,8 @@ function update(dt) {
     if (distanceToTarget < 8) {
       pointerTarget = null;
     } else {
-      player.x = clamp(player.x + (dx / distanceToTarget) * player.speed * dt, player.radius, WIDTH - player.radius);
-      player.y = clamp(player.y + (dy / distanceToTarget) * player.speed * dt, player.radius, HEIGHT - player.radius);
+      player.x = wrap(player.x + (dx / distanceToTarget) * player.speed * dt, WIDTH);
+      player.y = wrap(player.y + (dy / distanceToTarget) * player.speed * dt, HEIGHT);
       player.angle = Math.atan2(dy, dx);
     }
   }
@@ -256,10 +257,15 @@ function collectBonus() {
     overdriveUntil = Math.max(overdriveUntil, elapsed) + 6;
     status.textContent = "Overdrive active: collection score doubled.";
     burst(collected.x, collected.y, "#ff855c", 28);
-  } else {
+  } else if (collected.type === "time") {
     runDuration += 8;
     status.textContent = "Time shard collected: +8 seconds.";
     burst(collected.x, collected.y, "#9a7bff", 28);
+  } else {
+    const before = boosts;
+    boosts = Math.min(5, boosts + 1);
+    status.textContent = boosts > before ? `Boost charge collected: ${boosts}/5.` : "Boost reserve already full.";
+    burst(collected.x, collected.y, "#f7d35b", 28);
   }
   updateHud();
 }
@@ -316,7 +322,7 @@ function drawHazard(hazard) {
 
 function drawBonus() {
   if (!bonus) return;
-  const styles = { shield: { color: "#55e8ff", label: "S" }, overdrive: { color: "#ff855c", label: "2X" }, time: { color: "#9a7bff", label: "+8" } };
+  const styles = { shield: { color: "#55e8ff", label: "S" }, overdrive: { color: "#ff855c", label: "2X" }, time: { color: "#9a7bff", label: "+8" }, boost: { color: "#f7d35b", label: "+B" } };
   const style = styles[bonus.type];
   ctx.save();
   ctx.translate(bonus.x, bonus.y);
