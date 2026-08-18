@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /xp-admin.html
 
 Sitemap: https://gankbyte.com/sitemap.xml

@@ -1,0 +1,128 @@
+-- GankByte XP v0.2
+-- Run this once in Supabase SQL Editor. Never put a service-role key in the website.
+
+create table if not exists public.profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  display_name text not null default 'GankByte Player',
+  avatar_url text,
+  is_admin boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.challenges (
+  slug text primary key,
+  title text not null,
+  base_xp integer not null check (base_xp > 0),
+  bonus_xp integer not null default 0 check (bonus_xp >= 0),
+  active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.challenge_submissions (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  challenge_slug text not null references public.challenges(slug),
+  proof_url text not null check (char_length(proof_url) between 8 and 2048),
+  note text check (note is null or char_length(note) <= 500),
+  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  reviewer_id uuid references public.profiles(id),
+  reviewer_note text,
+  created_at timestamptz not null default now(),
+  reviewed_at timestamptz
+);
+
+create table if not exists public.xp_ledger (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  amount integer not null check (amount > 0 and amount <= 5000),
+  reason text not null,
+  source_type text not null default 'manual',
+  source_id bigint,
+  approved boolean not null default true,
+  created_by uuid references public.profiles(id),
+  created_at timestamptz not null default now()
+);
+
+insert into public.challenges (slug, title, base_xp, bonus_xp)
+values ('weekend-challenge-001', 'Weekend Challenge #001', 100, 500)
+on conflict (slug) do update set title = excluded.title, base_xp = excluded.base_xp, bonus_xp = excluded.bonus_xp;
+
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.profiles (id, display_name, avatar_url)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data ->> 'global_name', new.raw_user_meta_data ->> 'full_name', new.raw_user_meta_data ->> 'name', 'GankByte Player'),
+    new.raw_user_meta_data ->> 'avatar_url'
+  )
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+after insert on auth.users
+for each row execute procedure public.handle_new_user();
+
+alter table public.profiles enable row level security;
+alter table public.challenges enable row level security;
+alter table public.challenge_submissions enable row level security;
+alter table public.xp_ledger enable row level security;
+
+drop policy if exists "Public profiles are visible" on public.profiles;
+create policy "Public profiles are visible" on public.profiles for select using (true);
+
+drop policy if exists "Active challenges are visible" on public.challenges;
+create policy "Active challenges are visible" on public.challenges for select using (active = true);
+
+drop policy if exists "Users submit their own challenges" on public.challenge_submissions;
+create policy "Users submit their own challenges" on public.challenge_submissions for insert to authenticated with check (auth.uid() = user_id);
+
+drop policy if exists "Users see their own submissions" on public.challenge_submissions;
+create policy "Users see their own submissions" on public.challenge_submissions for select to authenticated using (auth.uid() = user_id or exists (select 1 from public.profiles where id = auth.uid() and is_admin));
+
+drop policy if exists "Admins review submissions" on public.challenge_submissions;
+create policy "Admins review submissions" on public.challenge_submissions for update to authenticated using (exists (select 1 from public.profiles where id = auth.uid() and is_admin)) with check (exists (select 1 from public.profiles where id = auth.uid() and is_admin));
+
+drop policy if exists "Approved XP is visible" on public.xp_ledger;
+create policy "Approved XP is visible" on public.xp_ledger for select using (approved = true or auth.uid() = user_id);
+
+create or replace view public.xp_leaderboard as
+select p.id, p.display_name, p.avatar_url, coalesce(sum(x.amount) filter (where x.approved = true), 0)::integer as xp_total
+from public.profiles p
+left join public.xp_ledger x on x.user_id = p.id
+group by p.id, p.display_name, p.avatar_url;
+
+grant select on public.xp_leaderboard to anon, authenticated;
+
+create or replace function public.approve_submission(p_submission_id bigint, p_xp integer, p_reviewer_note text default null)
+returns void
+language plpgsql
+security definer set search_path = public
+as $$
+declare submission_row public.challenge_submissions;
+begin
+  if not exists (select 1 from public.profiles where id = auth.uid() and is_admin) then
+    raise exception 'Admin access required';
+  end if;
+  if p_xp < 1 or p_xp > 5000 then
+    raise exception 'XP amount is outside the allowed range';
+  end if;
+  select * into submission_row from public.challenge_submissions where id = p_submission_id and status = 'pending' for update;
+  if not found then
+    raise exception 'Pending submission not found';
+  end if;
+  update public.challenge_submissions
+  set status = 'approved', reviewer_id = auth.uid(), reviewer_note = p_reviewer_note, reviewed_at = now()
+  where id = p_submission_id;
+  insert into public.xp_ledger (user_id, amount, reason, source_type, source_id, created_by)
+  values (submission_row.user_id, p_xp, 'Approved: ' || submission_row.challenge_slug, 'challenge', submission_row.id, auth.uid());
+end;
+$$;
+
+grant execute on function public.approve_submission(bigint, integer, text) to authenticated;
