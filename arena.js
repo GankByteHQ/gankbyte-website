@@ -319,7 +319,7 @@ function drawPickup(pickup) {
 }
 
 function drawHazard(hazard) {
-  const styles = { chaser: { color: "#9a7bff", fill: "rgba(154,123,255,.18)" }, flanker: { color: "#55e8ff", fill: "rgba(85,232,255,.16)" }, sprinter: { color: "#ff855c", fill: "rgba(255,133,92,.16)" } };
+  const styles = { chaser: { color: "#9a7bff", fill: "rgba(154,123,255,.18)" }, flanker: { color: "#b28cff", fill: "rgba(178,140,255,.18)" }, sprinter: { color: "#7f5be8", fill: "rgba(127,91,232,.2)" } };
   const style = styles[hazard.type];
   ctx.save();
   ctx.translate(hazard.x, hazard.y);
@@ -354,7 +354,7 @@ function drawHazard(hazard) {
 
 function drawBonus() {
   if (!bonus) return;
-  const styles = { shield: { color: "#55e8ff", label: "S" }, overdrive: { color: "#ff855c", label: "2X" }, time: { color: "#9a7bff", label: "+8" }, boost: { color: "#f7d35b", label: "+B" } };
+  const styles = { shield: { color: "#55e8ff", label: "S" }, overdrive: { color: "#ff855c", label: "2X" }, time: { color: "#ff4f68", label: "+8" }, boost: { color: "#ffb347", label: "+B" } };
   const style = styles[bonus.type];
   ctx.save();
   ctx.translate(bonus.x, bonus.y);
