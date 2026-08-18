@@ -160,6 +160,7 @@ function update(dt) {
     }
   });
 
+  let collected = 0;
   pickups = pickups.filter((pickup) => {
     pickup.pulse += dt * 4;
     if (distance(player, pickup) < player.radius + 13) {
@@ -168,12 +169,13 @@ function update(dt) {
       xp += 10;
       burst(pickup.x, pickup.y, "#c6ff3d", 16);
       status.textContent = combo > 4 ? `Combo x${combo}.` : "Signal secured.";
-      spawnPickup();
+      collected += 1;
       updateHud();
       return false;
     }
     return true;
   });
+  for (let i = 0; i < collected; i += 1) spawnPickup();
 
   particles = particles.filter((particle) => {
     particle.x += particle.vx * dt;
