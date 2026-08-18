@@ -1,0 +1,16 @@
+.ticker-track {
+  animation: none;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+  padding: 14px 32px;
+  width: 100%;
+}
+
+@media (max-width: 800px) {
+  .ticker-track {
+    gap: 18px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
