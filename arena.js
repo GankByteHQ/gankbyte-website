@@ -62,7 +62,7 @@ function openPosition() {
 
 function spawnPickup() {
   const position = openPosition();
-  pickups.push({ ...position, anchorX: position.x, anchorY: position.y, pulse: random(0, Math.PI * 2), drift: random(1.2, 2.2), radius: random(15, 20) });
+  pickups.push({ ...position, pulse: random(0, Math.PI * 2) });
 }
 
 function spawnHazard() {
@@ -210,10 +210,6 @@ function update(dt) {
   let collected = 0;
   pickups = pickups.filter((pickup) => {
     pickup.pulse += dt * 4;
-    pickup.anchorX += Math.cos(pickup.pulse * .37) * dt * 4;
-    pickup.anchorY += Math.sin(pickup.pulse * .31) * dt * 4;
-    pickup.x = clamp(pickup.anchorX + Math.cos(pickup.pulse * pickup.drift) * 22, 28, WIDTH - 28);
-    pickup.y = clamp(pickup.anchorY + Math.sin(pickup.pulse * pickup.drift) * 22, 28, HEIGHT - 28);
     if (distance(player, pickup) < player.radius + 13) {
       combo += 1;
       const value = (50 + Math.min(combo * 10, 100)) * (overdriveUntil > elapsed ? 2 : 1);
@@ -286,17 +282,11 @@ function drawPickup(pickup) {
   const pulse = 1 + Math.sin(pickup.pulse) * .12;
   ctx.save();
   ctx.translate(pickup.x, pickup.y);
-  ctx.rotate(pickup.pulse * .45);
-  ctx.strokeStyle = "rgba(198,255,61,.34)";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(0, 0, 22 + Math.sin(pickup.pulse * 1.5) * 4, 0, Math.PI * 2);
-  ctx.stroke();
   ctx.rotate(Math.PI / 4);
   ctx.shadowBlur = 24;
   ctx.shadowColor = "#c6ff3d";
   ctx.fillStyle = "#c6ff3d";
-  ctx.fillRect(-pickup.radius * pulse, -pickup.radius * pulse, pickup.radius * 2 * pulse, pickup.radius * 2 * pulse);
+  ctx.fillRect(-10 * pulse, -10 * pulse, 20 * pulse, 20 * pulse);
   ctx.restore();
   ctx.fillStyle = "#0a0b0f";
   ctx.font = "bold 9px Arial";
