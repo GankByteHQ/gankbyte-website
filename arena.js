@@ -499,7 +499,7 @@ function draw() {
   ctx.fillStyle = "rgba(198,255,61,.7)";
   ctx.font = "10px Arial";
   ctx.textAlign = "left";
-  ctx.fillText(`BOOSTS ${boosts}/3`, 18, HEIGHT - 18);
+  ctx.fillText(`BOOSTS ${boosts}/5`, 18, HEIGHT - 18);
 }
 
 function finishGame() {
