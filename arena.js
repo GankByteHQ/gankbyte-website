@@ -101,7 +101,7 @@ async function loadArenaSession(session) {
     return;
   }
   const name = arenaUser.user_metadata?.global_name || arenaUser.user_metadata?.full_name || "Discord player";
-  arenaAuthStatus.textContent = `Signed in as ${name}. Runs require admin approval.`;
+  arenaAuthStatus.textContent = `Signed in as ${name}. Scores post automatically.`;
   arenaLogin.hidden = true;
   arenaLogout.hidden = false;
   await submitLastRun();
