@@ -74,6 +74,13 @@ alter table public.challenges enable row level security;
 alter table public.challenge_submissions enable row level security;
 alter table public.xp_ledger enable row level security;
 
+-- The project uses explicit Data API exposure, so grant only the access this site needs.
+grant usage on schema public to anon, authenticated;
+grant select on public.profiles to anon, authenticated;
+grant select on public.challenges to anon, authenticated;
+grant select, insert, update on public.challenge_submissions to authenticated;
+grant select on public.xp_ledger to anon, authenticated;
+
 drop policy if exists "Public profiles are visible" on public.profiles;
 create policy "Public profiles are visible" on public.profiles for select using (true);
 
