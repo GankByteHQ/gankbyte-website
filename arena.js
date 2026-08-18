@@ -52,9 +52,9 @@ function updateHud() {
   livesValue.textContent = lives;
   boostsValue.textContent = boosts;
   xpValue.textContent = xp;
-  if (shield) powerValue.innerHTML = "<strong>POWER:</strong> SHIELD READY";
-  else if (overdriveUntil > elapsed) powerValue.innerHTML = `<strong>POWER:</strong> OVERDRIVE ${Math.ceil(overdriveUntil - elapsed)}s`;
-  else powerValue.innerHTML = "<strong>POWER:</strong> NONE";
+  if (shield) powerValue.textContent = "SHIELD";
+  else if (overdriveUntil > elapsed) powerValue.textContent = `2X ${Math.ceil(overdriveUntil - elapsed)}S`;
+  else powerValue.textContent = "NONE";
 }
 
 function openPosition() {
