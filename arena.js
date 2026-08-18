@@ -219,8 +219,8 @@ function update(dt) {
           status.textContent = lives ? "Glitch impact. Keep moving." : "Signal lost.";
           if (!lives) finishGame();
         }
-        hazard.x += Math.cos(angle) * -75;
-        hazard.y += Math.sin(angle) * -75;
+        hazard.x += Math.cos(directAngle) * -75;
+        hazard.y += Math.sin(directAngle) * -75;
         updateHud();
       }
     }
