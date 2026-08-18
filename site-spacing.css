@@ -1,0 +1,23 @@
+.section {
+  padding-bottom: 82px;
+  padding-top: 82px;
+}
+
+.section-heading {
+  margin-bottom: 34px;
+}
+
+.roadmap-preview {
+  padding-bottom: 76px;
+}
+
+@media (max-width: 800px) {
+  .section {
+    padding-bottom: 60px;
+    padding-top: 60px;
+  }
+
+  .section-heading {
+    margin-bottom: 30px;
+  }
+}
