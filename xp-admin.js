@@ -11,6 +11,8 @@
   const logout = $("admin-logout");
   const submissions = $("admin-submissions");
   const list = $("submission-list");
+  const arenaScores = $("arena-admin-scores");
+  const arenaScoreList = $("arena-score-list");
   let client = null;
   let currentUser = null;
 
@@ -47,20 +49,48 @@
     await loadSubmissions();
   }
 
+  async function loadArenaScores() {
+    const result = await client.from("arena_scores").select("id,user_id,score,wave,run_seconds,created_at").eq("status", "pending").order("score", { ascending: false });
+    if (result.error) { message(result.error.message, true); return; }
+    if (!result.data.length) { arenaScoreList.innerHTML = '<div class="xp-empty">No pending arena scores.</div>'; return; }
+    const ids = [...new Set(result.data.map((item) => item.user_id))];
+    const profiles = await client.from("profiles").select("id,display_name").in("id", ids);
+    const names = Object.fromEntries((profiles.data || []).map((item) => [item.id, item.display_name]));
+    arenaScoreList.innerHTML = result.data.map((item) => '<article class="admin-submission arena-score-submission" data-id="' + item.id + '"><div><span class="status-badge">Pending</span><h3>' + escapeHtml(names[item.user_id] || "GankByte Player") + '</h3><p>' + Number(item.score).toLocaleString() + ' points // wave ' + Number(item.wave) + ' // ' + Number(item.run_seconds) + ' seconds</p></div><div class="admin-actions"><button class="button button-primary approve-score-button" type="button">Approve score</button><button class="button button-ghost reject-score-button" type="button">Reject</button></div></article>').join("");
+    document.querySelectorAll(".approve-score-button").forEach((button) => button.addEventListener("click", approveArenaScore));
+    document.querySelectorAll(".reject-score-button").forEach((button) => button.addEventListener("click", rejectArenaScore));
+  }
+
+  async function approveArenaScore(event) {
+    const card = event.target.closest(".arena-score-submission");
+    const result = await client.rpc("approve_arena_score", { p_score_id: Number(card.dataset.id) });
+    if (result.error) { message(result.error.message, true); return; }
+    message("Arena score approved and added to the leaderboard.");
+    await loadArenaScores();
+  }
+
+  async function rejectArenaScore(event) {
+    const card = event.target.closest(".arena-score-submission");
+    const result = await client.from("arena_scores").update({ status: "rejected", reviewer_id: currentUser.id, reviewed_at: new Date().toISOString() }).eq("id", Number(card.dataset.id)).eq("status", "pending");
+    if (result.error) { message(result.error.message, true); return; }
+    message("Arena score rejected.");
+    await loadArenaScores();
+  }
+
   async function loadSession(session) {
     currentUser = session ? session.user : null;
     if (!currentUser) {
       setBadge(ready ? "Discord login required" : "Backend setup needed", true);
       title.textContent = "XP admin";
       copy.textContent = ready ? "Sign in with Discord to continue." : "Add the Supabase project values before enabling admin access.";
-      login.hidden = false; logout.hidden = true; submissions.hidden = true;
+      login.hidden = false; logout.hidden = true; submissions.hidden = true; arenaScores.hidden = true;
       return;
     }
     const profile = await client.from("profiles").select("display_name,is_admin").eq("id", currentUser.id).maybeSingle();
     if (!profile.data || !profile.data.is_admin) {
-      setBadge("Access denied", true); title.textContent = "Not an admin"; copy.textContent = "This Discord account is not marked as a GankByte admin."; login.hidden = true; logout.hidden = false; submissions.hidden = true; return;
+      setBadge("Access denied", true); title.textContent = "Not an admin"; copy.textContent = "This Discord account is not marked as a GankByte admin."; login.hidden = true; logout.hidden = false; submissions.hidden = true; arenaScores.hidden = true; return;
     }
-    setBadge("Admin connected"); title.textContent = profile.data.display_name || "GankByte Admin"; copy.textContent = "Review pending submissions below."; login.hidden = true; logout.hidden = false; submissions.hidden = false; await loadSubmissions();
+    setBadge("Admin connected"); title.textContent = profile.data.display_name || "GankByte Admin"; copy.textContent = "Review pending submissions and arena scores below."; login.hidden = true; logout.hidden = false; submissions.hidden = false; arenaScores.hidden = false; await loadSubmissions(); await loadArenaScores();
   }
 
   if (!ready) {

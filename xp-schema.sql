@@ -43,6 +43,18 @@ create table if not exists public.xp_ledger (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.arena_scores (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  score integer not null check (score between 0 and 1000000),
+  wave integer not null check (wave between 1 and 4),
+  run_seconds integer not null check (run_seconds between 0 and 600),
+  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  reviewer_id uuid references public.profiles(id),
+  created_at timestamptz not null default now(),
+  reviewed_at timestamptz
+);
+
 insert into public.challenges (slug, title, base_xp, bonus_xp)
 values ('weekend-challenge-001', 'Weekend Challenge #001', 100, 500)
 on conflict (slug) do update set title = excluded.title, base_xp = excluded.base_xp, bonus_xp = excluded.bonus_xp;
@@ -80,6 +92,7 @@ grant select on public.profiles to anon, authenticated;
 grant select on public.challenges to anon, authenticated;
 grant select, insert, update on public.challenge_submissions to authenticated;
 grant select on public.xp_ledger to anon, authenticated;
+grant select, insert, update on public.arena_scores to authenticated;
 
 drop policy if exists "Public profiles are visible" on public.profiles;
 create policy "Public profiles are visible" on public.profiles for select using (true);
@@ -99,6 +112,15 @@ create policy "Admins review submissions" on public.challenge_submissions for up
 drop policy if exists "Approved XP is visible" on public.xp_ledger;
 create policy "Approved XP is visible" on public.xp_ledger for select using (approved = true or auth.uid() = user_id);
 
+drop policy if exists "Players submit their own arena scores" on public.arena_scores;
+create policy "Players submit their own arena scores" on public.arena_scores for insert to authenticated with check (auth.uid() = user_id);
+
+drop policy if exists "Players see their own arena scores" on public.arena_scores;
+create policy "Players see their own arena scores" on public.arena_scores for select to authenticated using (auth.uid() = user_id or exists (select 1 from public.profiles where id = auth.uid() and is_admin));
+
+drop policy if exists "Admins review arena scores" on public.arena_scores;
+create policy "Admins review arena scores" on public.arena_scores for update to authenticated using (exists (select 1 from public.profiles where id = auth.uid() and is_admin)) with check (exists (select 1 from public.profiles where id = auth.uid() and is_admin));
+
 create or replace view public.xp_leaderboard as
 select p.id, p.display_name, p.avatar_url, coalesce(sum(x.amount) filter (where x.approved = true), 0)::integer as xp_total
 from public.profiles p
@@ -106,6 +128,19 @@ left join public.xp_ledger x on x.user_id = p.id
 group by p.id, p.display_name, p.avatar_url;
 
 grant select on public.xp_leaderboard to anon, authenticated;
+
+create or replace view public.arena_leaderboard as
+select p.id, p.display_name, best.score as best_score, best.wave as best_wave, best.created_at as latest_run
+from public.profiles p
+join lateral (
+  select s.score, s.wave, s.created_at
+  from public.arena_scores s
+  where s.user_id = p.id and s.status = 'approved'
+  order by s.score desc, s.created_at desc
+  limit 1
+) best on true;
+
+grant select on public.arena_leaderboard to anon, authenticated;
 
 create or replace function public.approve_submission(p_submission_id bigint, p_xp integer, p_reviewer_note text default null)
 returns void
@@ -133,3 +168,23 @@ end;
 $$;
 
 grant execute on function public.approve_submission(bigint, integer, text) to authenticated;
+
+create or replace function public.approve_arena_score(p_score_id bigint)
+returns void
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  if not exists (select 1 from public.profiles where id = auth.uid() and is_admin) then
+    raise exception 'Admin access required';
+  end if;
+  update public.arena_scores
+  set status = 'approved', reviewer_id = auth.uid(), reviewed_at = now()
+  where id = p_score_id and status = 'pending';
+  if not found then
+    raise exception 'Pending arena score not found';
+  end if;
+end;
+$$;
+
+grant execute on function public.approve_arena_score(bigint) to authenticated;

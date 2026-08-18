@@ -12,6 +12,12 @@ const livesValue = document.querySelector("#lives");
 const boostsValue = document.querySelector("#boosts");
 const xpValue = document.querySelector("#xp");
 const powerValue = document.querySelector("#power-status");
+const arenaAuthStatus = document.querySelector("#arena-auth-status");
+const arenaLogin = document.querySelector("#arena-login");
+const arenaLogout = document.querySelector("#arena-logout");
+const arenaLeaderboardBody = document.querySelector("#arena-leaderboard-body");
+const xpConfig = window.GANKBYTE_XP_CONFIG || {};
+const arenaBestKey = "gankbyte-byte-rush-best";
 
 const WIDTH = canvas.width;
 const HEIGHT = canvas.height;
@@ -38,11 +44,82 @@ let player;
 let pickups = [];
 let hazards = [];
 let particles = [];
+let arenaClient = null;
+let arenaUser = null;
+let lastRun = null;
 
 function random(min, max) { return Math.random() * (max - min) + min; }
 function distance(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
 function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
 function wrap(value, size) { return (value + size) % size; }
+
+function localBestScore() { return Number(localStorage.getItem(arenaBestKey) || 0); }
+
+function escapeArenaHtml(value) {
+  return String(value || "").replace(/[&<>'"]/g, (character) => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[character]));
+}
+
+function renderArenaLeaderboard(rows) {
+  if (!rows || !rows.length) {
+    arenaLeaderboardBody.innerHTML = '<tr><td colspan="4">No approved runs yet. Be the first to submit.</td></tr>';
+    return;
+  }
+  arenaLeaderboardBody.innerHTML = rows.map((row, index) => '<tr><td>' + (index + 1) + '</td><td>' + escapeArenaHtml(row.display_name || "GankByte Player") + '</td><td>' + Number(row.best_score || 0).toLocaleString() + '</td><td>Wave ' + Number(row.best_wave || 1) + '</td></tr>').join("");
+}
+
+async function loadArenaLeaderboard() {
+  if (!arenaClient) {
+    arenaLeaderboardBody.innerHTML = '<tr><td colspan="4">Connect the XP backend to load global scores.</td></tr>';
+    return;
+  }
+  const result = await arenaClient.from("arena_leaderboard").select("display_name,best_score,best_wave").order("best_score", { ascending: false }).limit(25);
+  if (result.error) {
+    arenaLeaderboardBody.innerHTML = '<tr><td colspan="4">Global scores are not available yet.</td></tr>';
+    return;
+  }
+  renderArenaLeaderboard(result.data);
+}
+
+async function submitLastRun() {
+  if (!arenaClient || !arenaUser || !lastRun || lastRun.submitted) return;
+  const result = await arenaClient.from("arena_scores").insert({ user_id: arenaUser.id, score: lastRun.score, wave: lastRun.wave, run_seconds: lastRun.runSeconds });
+  if (result.error) {
+    arenaAuthStatus.textContent = "Score could not be submitted. Try again while signed in.";
+    return;
+  }
+  lastRun.submitted = true;
+  arenaAuthStatus.textContent = "Score submitted for review. Approved runs appear on the global leaderboard.";
+}
+
+async function loadArenaSession(session) {
+  arenaUser = session ? session.user : null;
+  if (!arenaUser) {
+    arenaAuthStatus.textContent = "Sign in with Discord to submit scores.";
+    arenaLogin.hidden = false;
+    arenaLogout.hidden = true;
+    return;
+  }
+  const name = arenaUser.user_metadata?.global_name || arenaUser.user_metadata?.full_name || "Discord player";
+  arenaAuthStatus.textContent = `Signed in as ${name}. Runs require admin approval.`;
+  arenaLogin.hidden = true;
+  arenaLogout.hidden = false;
+  await submitLastRun();
+}
+
+async function initArenaOnline() {
+  const configured = Boolean(xpConfig.supabaseUrl && xpConfig.supabasePublishableKey && window.supabase);
+  if (!configured) {
+    arenaAuthStatus.textContent = "Global scores need the XP backend connection.";
+    arenaLogin.disabled = true;
+    await loadArenaLeaderboard();
+    return;
+  }
+  arenaClient = window.supabase.createClient(xpConfig.supabaseUrl, xpConfig.supabasePublishableKey);
+  arenaClient.auth.onAuthStateChange((event, session) => window.setTimeout(() => loadArenaSession(session), 0));
+  const result = await arenaClient.auth.getSession();
+  await loadArenaSession(result.data.session);
+  await loadArenaLeaderboard();
+}
 
 function updateHud() {
   scoreValue.textContent = score;
@@ -428,13 +505,15 @@ function draw() {
 function finishGame() {
   if (!running) return;
   running = false;
-  const best = Number(localStorage.getItem("gankbyte-byte-rush-best") || 0);
+  const best = localBestScore();
   const newBest = score > best;
-  if (newBest) localStorage.setItem("gankbyte-byte-rush-best", String(score));
+  if (newBest) localStorage.setItem(arenaBestKey, String(score));
+  lastRun = { score, wave, runSeconds: Math.round(elapsed), submitted: false };
   message.hidden = false;
   message.innerHTML = `<strong>${lives ? "RUN COMPLETE" : "SIGNAL LOST"}</strong><span>${score} points // ${xp} XP // wave ${wave}</span>`;
   startButton.innerHTML = "Run it again  <span>&rarr;</span>";
   status.textContent = newBest ? `New best score: ${score}.` : `Best score on this device: ${Math.max(best, score)}.`;
+  submitLastRun();
 }
 
 function startGame() {
@@ -469,6 +548,14 @@ canvas.addEventListener("pointerdown", (event) => { setPointerTarget(event); can
 canvas.addEventListener("pointermove", (event) => { if (event.buttons) setPointerTarget(event); });
 canvas.addEventListener("pointerup", () => { pointerTarget = null; });
 startButton.addEventListener("click", startGame);
+arenaLogin.addEventListener("click", async () => {
+  if (!arenaClient) return;
+  const result = await arenaClient.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: window.location.origin + window.location.pathname } });
+  if (result.error) arenaAuthStatus.textContent = result.error.message;
+});
+arenaLogout.addEventListener("click", async () => {
+  if (arenaClient) await arenaClient.auth.signOut();
+});
 document.querySelectorAll("[data-dir]").forEach((button) => {
   const direction = button.dataset.dir;
   const press = (event) => { event.preventDefault(); if (direction === "dash") dashQueued = true; else touch.add(direction); };
@@ -480,4 +567,6 @@ document.querySelectorAll("[data-dir]").forEach((button) => {
 });
 
 resetGame();
+status.textContent = localBestScore() ? `Best score on this device: ${localBestScore()}.` : "No best score yet. Start a run.";
+initArenaOnline();
 requestAnimationFrame(frame);
