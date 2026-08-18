@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a0b0f" />
+    <meta name="description" content="Play Byte Rush, the first GankByte Arena challenge." />
+    <link rel="icon" href="gb-logo.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>Byte Rush &mdash; GankByte Arena</title>
+  </head>
+  <body>
+    <header class="site-header shell">
+      <a class="brand" href="index.html" aria-label="GankByte home"><span class="brand-mark">GB</span><span>GANKBYTE</span></a>
+      <nav class="site-nav" aria-label="Main navigation"><a href="games.html">Games</a><a href="developers.html">Developers</a><a href="community.html">Community</a><a href="roadmap.html">Roadmap</a></nav>
+      <a class="header-cta" href="https://discord.gg/CpWjZkjtjJ" target="_blank" rel="noreferrer">Join Discord <span>&nearr;</span></a>
+    </header>
+
+    <main>
+      <section class="page-hero shell arena-hero"><p class="page-label">GANKBYTE ARENA // V0.1</p><h1>Byte<br /><em>Rush.</em></h1><p class="hero-lede">Hit the good bytes. Avoid the glitches. Build a combo. You have 30 seconds.</p></section>
+      <section class="section shell"><div class="arena-wrap"><div class="arena-hud"><div><span class="hud-label">SCORE</span><strong id="score">0</strong></div><div><span class="hud-label">COMBO</span><strong id="combo">0</strong></div><div><span class="hud-label">TIME</span><strong id="time">30</strong></div><div><span class="hud-label">XP</span><strong id="xp">0</strong></div></div><div class="arena-board" id="arena-board" aria-label="Byte Rush game area"><div class="arena-message" id="arena-message"><strong>READY?</strong><span>Click start, then catch the green bytes.</span></div></div><div class="arena-controls"><button class="button button-primary" id="start-button" type="button">Start run <span>&rarr;</span></button><p id="game-status" aria-live="polite">Your best score is saved on this device.</p></div></div></section>
+      <section class="section section-dark"><div class="shell split-section"><div><p class="eyebrow">HOW TO PLAY</p><h2>Fast hands.<br /><em>Bad decisions.</em></h2></div><div><p class="section-intro">Green bytes add points and build your combo. Purple glitches cost points and reset your combo. When the clock hits zero, your score is done.</p><p class="section-copy">This is the first playable GankByte experiment. There is no account, no wallet, and no pretend global leaderboard yet.</p><a class="text-link" href="games.html">Back to GankByte Games <span>&nearr;</span></a></div></div></section>
+    </main>
+
+    <footer class="site-footer shell"><div class="footer-top"><a class="brand" href="index.html"><span class="brand-mark">GB</span><span>GANKBYTE</span></a><p>Gaming. Memes. Code.</p><p class="footer-motto">BUILD. PLAY. GANK.</p></div><div class="footer-bottom"><div class="social-links"><a href="https://x.com/GankByte" target="_blank" rel="noreferrer">X</a><a href="https://www.youtube.com/@GankByte" target="_blank" rel="noreferrer">YouTube</a><a href="https://www.tiktok.com/@GankByte" target="_blank" rel="noreferrer">TikTok</a><a href="https://www.instagram.com/GankByte" target="_blank" rel="noreferrer">Instagram</a><a href="https://www.reddit.com/user/GankByteHQ" target="_blank" rel="noreferrer">Reddit</a><a href="https://github.com/GankByteHQ" target="_blank" rel="noreferrer">GitHub</a></div><a href="mailto:contact@gankbyte.com">contact@gankbyte.com</a><span>&copy; 2026 GankByte</span></div></footer>
+    <script src="arena.js"></script>
+  </body>
+</html>
