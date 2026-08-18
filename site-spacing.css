@@ -3,6 +3,11 @@
   padding-top: 82px;
 }
 
+.section-dark {
+  border-bottom: 0;
+  border-top: 0;
+}
+
 .section-heading {
   margin-bottom: 34px;
 }
