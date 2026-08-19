@@ -255,6 +255,8 @@ document.querySelectorAll("[data-dash-dir]").forEach((button) => {
   button.addEventListener("pointerdown", (event) => { event.preventDefault(); if (button.dataset.dashDir === "up") dashMoveLane(-1); else if (button.dataset.dashDir === "down") dashMoveLane(1); else dashQueue(); });
 });
 dashStart.addEventListener("click", dashStartRun);
+dashMessage.addEventListener("click", dashStartRun);
+dashCanvas.addEventListener("click", () => { if (!dashRunning) dashStartRun(); });
 dashCanvas.addEventListener("pointerdown", () => dashCanvas.focus());
 dashLogin.addEventListener("click", async () => {
   if (!dashClient) return;
