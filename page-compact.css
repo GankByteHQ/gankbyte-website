@@ -21,6 +21,11 @@
   font-size: 15px;
 }
 
+.button {
+  gap: 14px;
+  padding: 13px 16px;
+}
+
 @media (max-width: 800px) {
   .page-hero {
     padding-bottom: 22px;
