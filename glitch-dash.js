@@ -7,6 +7,8 @@ const dashScoreValue = document.querySelector("#dash-score");
 const dashStreakValue = document.querySelector("#dash-streak");
 const dashTimeValue = document.querySelector("#dash-time");
 const dashLivesValue = document.querySelector("#dash-lives");
+const dashSpeedValue = document.querySelector("#dash-speed");
+const dashPowerValue = document.querySelector("#dash-power");
 const dashAuthStatus = document.querySelector("#dash-auth-status");
 const dashLogin = document.querySelector("#dash-login");
 const dashLogout = document.querySelector("#dash-logout");
@@ -23,17 +25,29 @@ let dashElapsed = 0;
 let dashScore = 0;
 let dashStreak = 0;
 let dashTimeLeft = 45;
+let dashTimeBonus = 0;
 let dashLives = 3;
 let dashLane = 1;
 let dashVisualLane = 1;
 let dashInvulnerableUntil = 0;
 let dashCooldown = 0;
 let dashNextGateAt = 0;
+let dashClearedGates = 0;
+let dashSpeedLevel = 1;
+let dashShieldCharges = 0;
+let dashOverdriveUntil = 0;
 let dashGates = [];
 let dashSparks = [];
 let dashClient = null;
 let dashUser = null;
 let dashLastRun = null;
+
+const DASH_POWERUPS = {
+  shield: { label: "SHIELD", color: "#7de7ff", short: "S" },
+  overdrive: { label: "OVERDRIVE", color: "#ffb45c", short: "2X" },
+  time: { label: "TIME", color: "#ff6b8a", short: "+" },
+  phase: { label: "PHASE", color: "#c6ff3d", short: "P" }
+};
 
 function dashRandom(min, max) { return Math.random() * (max - min) + min; }
 function dashLaneY(lane) {
@@ -44,6 +58,20 @@ function dashLaneY(lane) {
 }
 function dashBestScore() { return Number(localStorage.getItem(dashBestKey) || 0); }
 function dashMoveLane(amount) { dashLane = Math.max(0, Math.min(2, dashLane + amount)); }
+function dashPowerupInfo(type) { return DASH_POWERUPS[type] || null; }
+function dashRandomPowerup() {
+  const types = Object.keys(DASH_POWERUPS);
+  return types[Math.floor(Math.random() * types.length)];
+}
+function dashScoreMultiplier() { return dashOverdriveUntil > dashElapsed ? 2 : 1; }
+function dashCurrentSpeed() { return 300 + (dashSpeedLevel - 1) * 38 + dashElapsed * 2.6; }
+function dashPowerText() {
+  const active = [];
+  if (dashShieldCharges) active.push(`SHIELD ${dashShieldCharges}`);
+  if (dashOverdriveUntil > dashElapsed) active.push(`2X ${Math.ceil(dashOverdriveUntil - dashElapsed)}S`);
+  if (dashInvulnerableUntil > dashElapsed && dashCooldown <= 0) active.push("PHASE");
+  return active.join(" + ") || "NONE";
+}
 
 function escapeDashHtml(value) {
   return String(value || "").replace(/[&<>'"]/g, (character) => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[character]));
@@ -118,12 +146,17 @@ function dashReset() {
   dashScore = 0;
   dashStreak = 0;
   dashTimeLeft = 45;
+  dashTimeBonus = 0;
   dashLives = 3;
   dashLane = 1;
   dashVisualLane = 1;
   dashInvulnerableUntil = 0;
   dashCooldown = 0;
   dashNextGateAt = .5;
+  dashClearedGates = 0;
+  dashSpeedLevel = 1;
+  dashShieldCharges = 0;
+  dashOverdriveUntil = 0;
   dashGates = [];
   dashSparks = [];
   dashUpdateHud();
@@ -139,7 +172,7 @@ function dashQueue() {
 
 function dashSpawnGate() {
   const gapLane = Math.floor(dashRandom(0, 3));
-  dashGates.push({ x: DASH_WIDTH + 90, width: 48, gapLane, checked: false, hit: false, bonus: Math.random() < .3 });
+  dashGates.push({ x: DASH_WIDTH + 90, width: 48, gapLane, checked: false, hit: false, powerup: Math.random() < .24 ? dashRandomPowerup() : null });
 }
 
 function dashUpdateHud() {
@@ -147,38 +180,81 @@ function dashUpdateHud() {
   dashStreakValue.textContent = dashStreak;
   dashTimeValue.textContent = Math.ceil(dashTimeLeft);
   dashLivesValue.textContent = dashLives;
+  dashSpeedValue.textContent = dashSpeedLevel;
+  dashPowerValue.textContent = dashPowerText();
 }
 
 function dashBurst(x, y, color, amount = 12) {
   for (let index = 0; index < amount; index += 1) dashSparks.push({ x, y, vx: dashRandom(-100, 100), vy: dashRandom(-100, 100), color, life: .45, maxLife: .45 });
 }
 
+function dashCollectPowerup(type) {
+  const info = dashPowerupInfo(type);
+  if (!info) return;
+  if (type === "shield") {
+    dashShieldCharges = Math.min(2, dashShieldCharges + 1);
+    dashStatus.textContent = `Shield online: ${dashShieldCharges} hit${dashShieldCharges === 1 ? "" : "s"} buffered.`;
+  } else if (type === "overdrive") {
+    dashOverdriveUntil = Math.max(dashOverdriveUntil, dashElapsed) + 6;
+    dashStatus.textContent = "Overdrive online: double score for six seconds.";
+  } else if (type === "time") {
+    dashTimeBonus = Math.min(30, dashTimeBonus + 6);
+    dashStatus.textContent = "Time shard collected: six seconds added.";
+  } else if (type === "phase") {
+    dashCooldown = 0;
+    dashInvulnerableUntil = Math.max(dashInvulnerableUntil, dashElapsed) + 1.2;
+    dashStatus.textContent = "Phase online: Dash recharged and invulnerability active.";
+  }
+  dashBurst(165, dashLaneY(dashLane), info.color, 20);
+}
+
+function dashClearGate(gate) {
+  dashClearedGates += 1;
+  const nextLevel = 1 + Math.floor(dashClearedGates / 5);
+  if (nextLevel > dashSpeedLevel) {
+    dashSpeedLevel = nextLevel;
+    dashStatus.textContent = `Speed level ${dashSpeedLevel}: the signal is accelerating.`;
+    dashBurst(165, dashLaneY(dashLane), "#9a7bff", 24);
+  }
+  const baseScore = 100 + dashStreak * 15;
+  dashScore += Math.round(baseScore * dashScoreMultiplier());
+  dashStreak += 1;
+  dashBurst(165, dashLaneY(dashLane), "#c6ff3d", 14);
+  if (gate.powerup) dashCollectPowerup(gate.powerup);
+}
+
 function dashUpdate(dt) {
   dashElapsed += dt;
-  dashTimeLeft = Math.max(0, 45 - dashElapsed);
+  dashTimeLeft = Math.max(0, 45 + dashTimeBonus - dashElapsed);
   dashCooldown = Math.max(0, dashCooldown - dt);
   dashVisualLane += (dashLane - dashVisualLane) * Math.min(1, dt * 14);
   if (dashElapsed >= dashNextGateAt) {
     dashSpawnGate();
-    dashNextGateAt = dashElapsed + Math.max(.58, .98 - dashElapsed * .006);
+    dashNextGateAt = dashElapsed + Math.max(.48, .98 - dashElapsed * .005 - (dashSpeedLevel - 1) * .035);
   }
-  const speed = 310 + dashElapsed * 2.5;
+  const speed = dashCurrentSpeed();
   dashGates.forEach((gate) => { gate.x -= speed * dt; });
   dashGates.forEach((gate) => {
     const touching = gate.x < 184 && gate.x + gate.width > 142;
     if (touching && !gate.checked && !gate.hit && dashElapsed > .25) {
       gate.checked = true;
       if (dashLane === gate.gapLane || dashInvulnerableUntil > dashElapsed) {
-        dashScore += 100 + dashStreak * 15;
-        dashStreak += 1;
-        dashBurst(165, dashLaneY(dashLane), "#c6ff3d", 14);
-        if (gate.bonus) dashScore += 50;
+        dashClearGate(gate);
       } else {
-        gate.hit = true;
-        dashLives -= 1;
-        dashStreak = 0;
-        dashBurst(165, dashLaneY(dashLane), "#ff855c", 20);
-        if (dashLives <= 0) dashFinish();
+        if (dashShieldCharges > 0) {
+          dashShieldCharges -= 1;
+          dashStreak = 0;
+          dashScore += 25;
+          dashStatus.textContent = "Shield absorbed the hit. Find the next safe lane.";
+          dashBurst(165, dashLaneY(dashLane), "#7de7ff", 24);
+        } else {
+          gate.hit = true;
+          dashLives -= 1;
+          dashStreak = 0;
+          dashStatus.textContent = dashLives ? "Hit detected. Rebuild your streak." : "Signal lost. No lives remaining.";
+          dashBurst(165, dashLaneY(dashLane), "#ff855c", 20);
+          if (dashLives <= 0) dashFinish();
+        }
       }
     }
   });
@@ -201,12 +277,31 @@ function dashDraw() {
     }
     dashCtx.fillStyle = "rgba(198,255,61,.15)";
     dashCtx.fillRect(gate.x, dashLaneY(gate.gapLane) - 25, gate.width, 50);
-    if (gate.bonus) { dashCtx.fillStyle = "#7de7ff"; dashCtx.beginPath(); dashCtx.arc(gate.x + gate.width / 2, dashLaneY(gate.gapLane), 8, 0, Math.PI * 2); dashCtx.fill(); }
+    if (gate.powerup) {
+      const info = dashPowerupInfo(gate.powerup);
+      const powerX = gate.x + gate.width / 2;
+      const powerY = dashLaneY(gate.gapLane);
+      dashCtx.save();
+      dashCtx.shadowColor = info.color;
+      dashCtx.shadowBlur = 18;
+      dashCtx.fillStyle = info.color;
+      dashCtx.beginPath();
+      dashCtx.arc(powerX, powerY, 13, 0, Math.PI * 2);
+      dashCtx.fill();
+      dashCtx.shadowBlur = 0;
+      dashCtx.fillStyle = "#0a0b0f";
+      dashCtx.font = "bold 9px Arial";
+      dashCtx.textAlign = "center";
+      dashCtx.textBaseline = "middle";
+      dashCtx.fillText(info.short, powerX, powerY + 1);
+      dashCtx.restore();
+    }
   });
   dashSparks.forEach((spark) => { dashCtx.globalAlpha = Math.max(0, spark.life / spark.maxLife); dashCtx.fillStyle = spark.color || "#c6ff3d"; dashCtx.fillRect(spark.x, spark.y, 4, 4); });
   dashCtx.globalAlpha = 1;
   const playerY = dashLaneY(dashVisualLane);
   if (dashInvulnerableUntil > dashElapsed) { dashCtx.strokeStyle = "#7de7ff"; dashCtx.lineWidth = 4; dashCtx.beginPath(); dashCtx.arc(165, playerY, 31, 0, Math.PI * 2); dashCtx.stroke(); }
+  if (dashShieldCharges) { dashCtx.strokeStyle = "rgba(125,231,255,.8)"; dashCtx.lineWidth = 2; dashCtx.beginPath(); dashCtx.arc(165, playerY, 25, 0, Math.PI * 2); dashCtx.stroke(); }
   dashCtx.save();
   dashCtx.translate(165, playerY);
   dashCtx.rotate(Math.PI / 4);
@@ -216,7 +311,9 @@ function dashDraw() {
   dashCtx.fillStyle = "rgba(198,255,61,.7)";
   dashCtx.font = "10px Arial";
   dashCtx.textAlign = "left";
-  dashCtx.fillText(dashCooldown > 0 ? `DASH ${dashCooldown.toFixed(1)}S` : "DASH READY", 18, DASH_HEIGHT - 18);
+  dashCtx.fillText(`SPEED ${Math.round(dashCurrentSpeed())}`, 18, 18);
+  dashCtx.textAlign = "right";
+  dashCtx.fillText(dashCooldown > 0 ? `DASH ${dashCooldown.toFixed(1)}S` : "DASH READY", DASH_WIDTH - 18, DASH_HEIGHT - 18);
 }
 
 function dashFinish() {
