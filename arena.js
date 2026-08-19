@@ -16,6 +16,7 @@ const arenaAuthStatus = document.querySelector("#arena-auth-status");
 const arenaLogin = document.querySelector("#arena-login");
 const arenaLogout = document.querySelector("#arena-logout");
 const arenaLeaderboardBody = document.querySelector("#arena-leaderboard-body");
+const arenaScopeButtons = document.querySelectorAll("[data-arena-scope]");
 const xpConfig = window.GANKBYTE_XP_CONFIG || {};
 const arenaBestKey = "gankbyte-byte-rush-best";
 
@@ -47,6 +48,7 @@ let particles = [];
 let arenaClient = null;
 let arenaUser = null;
 let lastRun = null;
+let arenaLeaderboardScope = "all";
 
 function random(min, max) { return Math.random() * (max - min) + min; }
 function distance(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
@@ -67,12 +69,13 @@ function renderArenaLeaderboard(rows) {
   arenaLeaderboardBody.innerHTML = rows.map((row, index) => '<tr><td>' + (index + 1) + '</td><td>' + escapeArenaHtml(row.display_name || "GankByte Player") + '</td><td>' + Number(row.best_score || 0).toLocaleString() + '</td><td>Wave ' + Number(row.best_wave || 1) + '</td></tr>').join("");
 }
 
-async function loadArenaLeaderboard() {
+async function loadArenaLeaderboard(scope = "all") {
   if (!arenaClient) {
     arenaLeaderboardBody.innerHTML = '<tr><td colspan="4">Connect the XP backend to load global scores.</td></tr>';
     return;
   }
-  const result = await arenaClient.from("arena_leaderboard").select("display_name,best_score,best_wave").order("best_score", { ascending: false }).limit(25);
+  const view = scope === "week" ? "arena_weekly_leaderboard" : "arena_leaderboard";
+  const result = await arenaClient.from(view).select("display_name,best_score,best_wave").order("best_score", { ascending: false }).limit(25);
   if (result.error) {
     arenaLeaderboardBody.innerHTML = '<tr><td colspan="4">Global scores are not available yet.</td></tr>';
     return;
@@ -89,7 +92,7 @@ async function submitLastRun() {
   }
   lastRun.submitted = true;
   arenaAuthStatus.textContent = "Score posted to the global leaderboard.";
-  await loadArenaLeaderboard();
+  await loadArenaLeaderboard(arenaLeaderboardScope);
 }
 
 async function loadArenaSession(session) {
@@ -119,7 +122,7 @@ async function initArenaOnline() {
   arenaClient.auth.onAuthStateChange((event, session) => window.setTimeout(() => loadArenaSession(session), 0));
   const result = await arenaClient.auth.getSession();
   await loadArenaSession(result.data.session);
-  await loadArenaLeaderboard();
+  await loadArenaLeaderboard(arenaLeaderboardScope);
 }
 
 function updateHud() {
@@ -570,4 +573,11 @@ document.querySelectorAll("[data-dir]").forEach((button) => {
 resetGame();
 status.textContent = localBestScore() ? `Best score on this device: ${localBestScore()}.` : "No best score yet. Start a run.";
 initArenaOnline();
+arenaScopeButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+  arenaScopeButtons.forEach((item) => { item.classList.toggle("is-active", item === button); item.setAttribute("aria-selected", item === button ? "true" : "false"); });
+    arenaLeaderboardScope = button.dataset.arenaScope;
+    loadArenaLeaderboard(arenaLeaderboardScope);
+  });
+});
 requestAnimationFrame(frame);

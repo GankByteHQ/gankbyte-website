@@ -5,6 +5,7 @@
 .arena-online [hidden]{display:none!important}
 .arena-online button:disabled{cursor:not-allowed;opacity:.55}
 .arena-leaderboard-section .leaderboard-wrap{background:var(--surface);border:1px solid var(--line);padding:0 18px}
+.leaderboard-tabs{display:flex;gap:8px;margin-top:18px}.leaderboard-tabs .button{font-size:10px;padding:10px 14px}.leaderboard-tabs .button.is-active{border-color:var(--lime);color:var(--lime)}
 .arena-leaderboard-section{padding-bottom:66px;padding-top:6px}
 .arena-howto-section{padding-bottom:66px;padding-top:6px}
 .arena-howto-section .split-section{gap:64px}

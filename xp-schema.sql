@@ -67,6 +67,18 @@ create table if not exists public.glitch_dash_scores (
   reviewed_at timestamptz
 );
 
+create table if not exists public.arena_events (
+  slug text primary key,
+  title text not null,
+  game text not null,
+  description text not null,
+  rules_url text,
+  status text not null default 'upcoming' check (status in ('upcoming', 'live', 'closed')),
+  starts_at timestamptz,
+  ends_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
 -- Arena scores are published automatically for the launch leaderboard.
 update public.arena_scores set status = 'approved' where status = 'pending';
 update public.glitch_dash_scores set status = 'approved' where status = 'pending';
@@ -74,6 +86,10 @@ update public.glitch_dash_scores set status = 'approved' where status = 'pending
 insert into public.challenges (slug, title, base_xp, bonus_xp)
 values ('weekend-challenge-001', 'Weekend Challenge #001', 100, 500)
 on conflict (slug) do update set title = excluded.title, base_xp = excluded.base_xp, bonus_xp = excluded.bonus_xp;
+
+insert into public.arena_events (slug, title, game, description, rules_url, status)
+values ('weekend-challenge-001', 'Weekend Challenge #001', 'Byte Rush', 'Chase the highest Byte Rush score, share proof, and help test the first Arena event.', 'https://gankbyte.com/community.html', 'live')
+on conflict (slug) do update set title = excluded.title, game = excluded.game, description = excluded.description, rules_url = excluded.rules_url, status = excluded.status;
 
 create or replace function public.handle_new_user()
 returns trigger
@@ -103,6 +119,7 @@ alter table public.challenge_submissions enable row level security;
 alter table public.xp_ledger enable row level security;
 alter table public.arena_scores enable row level security;
 alter table public.glitch_dash_scores enable row level security;
+alter table public.arena_events enable row level security;
 
 -- The project uses explicit Data API exposure, so grant only the access this site needs.
 grant usage on schema public to anon, authenticated;
@@ -112,6 +129,7 @@ grant select, insert, update on public.challenge_submissions to authenticated;
 grant select on public.xp_ledger to anon, authenticated;
 grant select, insert, update on public.arena_scores to authenticated;
 grant select, insert, update on public.glitch_dash_scores to authenticated;
+grant select on public.arena_events to anon, authenticated;
 
 drop policy if exists "Public profiles are visible" on public.profiles;
 create policy "Public profiles are visible" on public.profiles for select using (true);
@@ -182,6 +200,35 @@ join lateral (
 ) best on true;
 
 grant select on public.glitch_dash_leaderboard to anon, authenticated;
+
+create or replace view public.arena_weekly_leaderboard as
+select p.id, p.display_name, best.score as best_score, best.wave as best_wave, best.created_at as latest_run
+from public.profiles p
+join lateral (
+  select s.score, s.wave, s.created_at
+  from public.arena_scores s
+  where s.user_id = p.id and s.status = 'approved' and s.created_at >= now() - interval '7 days'
+  order by s.score desc, s.created_at desc
+  limit 1
+) best on true;
+
+grant select on public.arena_weekly_leaderboard to anon, authenticated;
+
+create or replace view public.glitch_dash_weekly_leaderboard as
+select p.id, p.display_name, best.score as best_score, best.streak as best_streak, best.created_at as latest_run
+from public.profiles p
+join lateral (
+  select s.score, s.streak, s.created_at
+  from public.glitch_dash_scores s
+  where s.user_id = p.id and s.status = 'approved' and s.created_at >= now() - interval '7 days'
+  order by s.score desc, s.created_at desc
+  limit 1
+) best on true;
+
+grant select on public.glitch_dash_weekly_leaderboard to anon, authenticated;
+
+drop policy if exists "Arena events are public" on public.arena_events;
+create policy "Arena events are public" on public.arena_events for select using (true);
 
 create or replace function public.approve_submission(p_submission_id bigint, p_xp integer, p_reviewer_note text default null)
 returns void
