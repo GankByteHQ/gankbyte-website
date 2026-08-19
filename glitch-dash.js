@@ -36,7 +36,12 @@ let dashUser = null;
 let dashLastRun = null;
 
 function dashRandom(min, max) { return Math.random() * (max - min) + min; }
-function dashLaneY(lane) { return DASH_LANES[Math.max(0, Math.min(2, lane))]; }
+function dashLaneY(lane) {
+  const clamped = Math.max(0, Math.min(2, lane));
+  const lower = Math.floor(clamped);
+  const upper = Math.ceil(clamped);
+  return DASH_LANES[lower] + (DASH_LANES[upper] - DASH_LANES[lower]) * (clamped - lower);
+}
 function dashBestScore() { return Number(localStorage.getItem(dashBestKey) || 0); }
 function dashMoveLane(amount) { dashLane = Math.max(0, Math.min(2, dashLane + amount)); }
 
