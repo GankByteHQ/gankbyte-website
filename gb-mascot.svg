@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-labelledby="title desc">
+  <title id="title">GankByte glitch goblin mascot</title>
+  <desc id="desc">An original lime-eyed gamer developer goblin wearing a headset and hoodie.</desc>
+  <defs><linearGradient id="hood" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#20242b"/><stop offset="1" stop-color="#0d0f14"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="12" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+  <path d="M118 687c8-143 85-213 182-231h200c97 18 174 88 182 231H118Z" fill="url(#hood)" stroke="#f4f2ea" stroke-opacity=".18" stroke-width="8"/>
+  <path d="M184 471c-28-61-28-157 18-229 52-82 131-120 198-120s146 38 198 120c46 72 46 168 18 229-30 65-96 112-216 112s-186-47-216-112Z" fill="#15191f" stroke="#c6ff3d" stroke-width="10"/>
+  <path d="m194 225-91-76 37 132m526-56 91-76-37 132" fill="#9a7bff" stroke="#c6ff3d" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M178 291c31-111 124-169 222-169s191 58 222 169c-49-29-92-43-136-43H314c-44 0-87 14-136 43Z" fill="#242933"/>
+  <path d="M202 294h396c27 0 49 22 49 49v92c0 27-22 49-49 49H202c-27 0-49-22-49-49v-92c0-27 22-49 49-49Z" fill="#0a0b0f" stroke="#ff855c" stroke-width="12"/>
+  <circle cx="295" cy="386" r="36" fill="#c6ff3d" filter="url(#glow)"/><circle cx="505" cy="386" r="36" fill="#c6ff3d" filter="url(#glow)"/><circle cx="295" cy="386" r="11" fill="#0a0b0f"/><circle cx="505" cy="386" r="11" fill="#0a0b0f"/>
+  <path d="M315 472c49 28 121 28 170 0" fill="none" stroke="#f4f2ea" stroke-width="10" stroke-linecap="round"/>
+  <path d="M172 321c-47 11-68 48-55 91 12 39 45 57 89 49m422-140c47 11 68 48 55 91-12 39-45 57-89 49" fill="none" stroke="#9a7bff" stroke-width="20" stroke-linecap="round"/>
+  <path d="M214 545c72 37 300 37 372 0l70 142H144l70-142Z" fill="#191d24" stroke="#f4f2ea" stroke-opacity=".16" stroke-width="8"/>
+  <path d="M274 624h252v74H274z" fill="#0a0b0f" stroke="#c6ff3d" stroke-width="7"/><path d="M296 648h20m20 0h20m20 0h20m20 0h20m20 0h20m20 0h20m-140 24h20m20 0h20m20 0h20m20 0h20m20 0h20" stroke="#9a7bff" stroke-width="7" stroke-linecap="round"/>
+  <path d="M594 588c43 10 73 37 91 80-26 21-61 25-99 8l-24-48Z" fill="#ff855c" stroke="#f4f2ea" stroke-opacity=".2" stroke-width="7"/><path d="M601 616h46" stroke="#0a0b0f" stroke-width="7"/>
+</svg>
