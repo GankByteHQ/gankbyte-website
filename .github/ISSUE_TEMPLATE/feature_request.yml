@@ -1,0 +1,26 @@
+name: Feature request
+description: Suggest a focused improvement for a GankByte project.
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: input
+    id: project
+    attributes:
+      label: Project or page
+      placeholder: Arena, Byte Rush, XP, website
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What should the first version do?
+      description: Keep the first version small and testable.
+    validations:
+      required: true

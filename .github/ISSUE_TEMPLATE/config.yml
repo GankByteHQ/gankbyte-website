@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: GankByte Discord
+    url: https://discord.gg/CpWjZkjtjJ
+    about: Discuss ideas, testing, and community projects.
+  - name: Contact GankByte
+    url: mailto:contact@gankbyte.com
+    about: Use email for privacy, moderation, or private matters.
