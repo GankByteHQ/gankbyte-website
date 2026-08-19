@@ -9,5 +9,6 @@
 .arena-howto-section{padding-bottom:66px;padding-top:6px}
 .arena-howto-section .split-section{gap:64px}
 .arena-howto-section .perk-list{margin-top:18px}
+.arena-game-switcher{border:1px solid var(--line);margin-top:30px;padding:20px}.arena-game-switcher .eyebrow{margin-bottom:12px}.arena-game-switcher p:not(.eyebrow){color:var(--muted);font-size:13px;line-height:1.55;margin-bottom:16px}.arena-game-switcher .button{margin-top:0}
 @media(max-width:800px){.arena-online{align-items:flex-start;display:block}.arena-online button{margin-top:12px}}
 @media(max-width:800px){.arena-leaderboard-section{padding-bottom:34px;padding-top:6px}.arena-howto-section{padding-bottom:34px;padding-top:6px}.arena-howto-section .split-section{gap:28px}}

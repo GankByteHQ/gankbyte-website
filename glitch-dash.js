@@ -255,6 +255,7 @@ document.querySelectorAll("[data-dash-dir]").forEach((button) => {
   button.addEventListener("pointerdown", (event) => { event.preventDefault(); if (button.dataset.dashDir === "up") dashMoveLane(-1); else if (button.dataset.dashDir === "down") dashMoveLane(1); else dashQueue(); });
 });
 dashStart.addEventListener("click", dashStartRun);
+dashCanvas.addEventListener("pointerdown", () => dashCanvas.focus());
 dashLogin.addEventListener("click", async () => {
   if (!dashClient) return;
   const result = await dashClient.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: window.location.origin + window.location.pathname } });
@@ -265,5 +266,8 @@ dashLogout.addEventListener("click", async () => {
 });
 dashReset();
 dashStatus.textContent = dashBestScore() ? `Best score on this device: ${dashBestScore().toLocaleString()}.` : "No best score yet. Start a run.";
-initDashOnline();
+initDashOnline().catch(() => {
+  dashAuthStatus.textContent = "Online scores are unavailable, but local play is still ready.";
+  dashLogin.disabled = true;
+});
 requestAnimationFrame(dashFrame);
