@@ -55,8 +55,21 @@ create table if not exists public.arena_scores (
   reviewed_at timestamptz
 );
 
+create table if not exists public.glitch_dash_scores (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  score integer not null check (score between 0 and 1000000),
+  streak integer not null check (streak between 0 and 10000),
+  run_seconds integer not null check (run_seconds between 0 and 600),
+  status text not null default 'approved' check (status in ('pending', 'approved', 'rejected')),
+  reviewer_id uuid references public.profiles(id),
+  created_at timestamptz not null default now(),
+  reviewed_at timestamptz
+);
+
 -- Arena scores are published automatically for the launch leaderboard.
 update public.arena_scores set status = 'approved' where status = 'pending';
+update public.glitch_dash_scores set status = 'approved' where status = 'pending';
 
 insert into public.challenges (slug, title, base_xp, bonus_xp)
 values ('weekend-challenge-001', 'Weekend Challenge #001', 100, 500)
@@ -88,6 +101,8 @@ alter table public.profiles enable row level security;
 alter table public.challenges enable row level security;
 alter table public.challenge_submissions enable row level security;
 alter table public.xp_ledger enable row level security;
+alter table public.arena_scores enable row level security;
+alter table public.glitch_dash_scores enable row level security;
 
 -- The project uses explicit Data API exposure, so grant only the access this site needs.
 grant usage on schema public to anon, authenticated;
@@ -96,6 +111,7 @@ grant select on public.challenges to anon, authenticated;
 grant select, insert, update on public.challenge_submissions to authenticated;
 grant select on public.xp_ledger to anon, authenticated;
 grant select, insert, update on public.arena_scores to authenticated;
+grant select, insert, update on public.glitch_dash_scores to authenticated;
 
 drop policy if exists "Public profiles are visible" on public.profiles;
 create policy "Public profiles are visible" on public.profiles for select using (true);
@@ -124,6 +140,15 @@ create policy "Players see their own arena scores" on public.arena_scores for se
 drop policy if exists "Admins review arena scores" on public.arena_scores;
 create policy "Admins review arena scores" on public.arena_scores for update to authenticated using (exists (select 1 from public.profiles where id = auth.uid() and is_admin)) with check (exists (select 1 from public.profiles where id = auth.uid() and is_admin));
 
+drop policy if exists "Players submit their own Glitch Dash scores" on public.glitch_dash_scores;
+create policy "Players submit their own Glitch Dash scores" on public.glitch_dash_scores for insert to authenticated with check (auth.uid() = user_id and status = 'approved');
+
+drop policy if exists "Players see their own Glitch Dash scores" on public.glitch_dash_scores;
+create policy "Players see their own Glitch Dash scores" on public.glitch_dash_scores for select to authenticated using (auth.uid() = user_id or exists (select 1 from public.profiles where id = auth.uid() and is_admin));
+
+drop policy if exists "Admins review Glitch Dash scores" on public.glitch_dash_scores;
+create policy "Admins review Glitch Dash scores" on public.glitch_dash_scores for update to authenticated using (exists (select 1 from public.profiles where id = auth.uid() and is_admin)) with check (exists (select 1 from public.profiles where id = auth.uid() and is_admin));
+
 create or replace view public.xp_leaderboard as
 select p.id, p.display_name, p.avatar_url, coalesce(sum(x.amount) filter (where x.approved = true), 0)::integer as xp_total
 from public.profiles p
@@ -144,6 +169,19 @@ join lateral (
 ) best on true;
 
 grant select on public.arena_leaderboard to anon, authenticated;
+
+create or replace view public.glitch_dash_leaderboard as
+select p.id, p.display_name, best.score as best_score, best.streak as best_streak, best.created_at as latest_run
+from public.profiles p
+join lateral (
+  select s.score, s.streak, s.created_at
+  from public.glitch_dash_scores s
+  where s.user_id = p.id and s.status = 'approved'
+  order by s.score desc, s.created_at desc
+  limit 1
+) best on true;
+
+grant select on public.glitch_dash_leaderboard to anon, authenticated;
 
 create or replace function public.approve_submission(p_submission_id bigint, p_xp integer, p_reviewer_note text default null)
 returns void

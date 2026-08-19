@@ -17,4 +17,6 @@ set is_admin = true
 where id = 'YOUR_AUTH_USER_ID';
 ```
 
+When the schema changes, rerun the complete `xp-schema.sql` file. It is written to be safely rerunnable and now includes the Glitch Dash score table and leaderboard view.
+
 Never put a Supabase service-role key in the website. The browser only needs the public project URL and publishable/anon key.

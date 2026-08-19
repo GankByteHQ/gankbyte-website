@@ -7,6 +7,11 @@ const dashScoreValue = document.querySelector("#dash-score");
 const dashStreakValue = document.querySelector("#dash-streak");
 const dashTimeValue = document.querySelector("#dash-time");
 const dashLivesValue = document.querySelector("#dash-lives");
+const dashAuthStatus = document.querySelector("#dash-auth-status");
+const dashLogin = document.querySelector("#dash-login");
+const dashLogout = document.querySelector("#dash-logout");
+const dashLeaderboardBody = document.querySelector("#dash-leaderboard-body");
+const dashConfig = window.GANKBYTE_XP_CONFIG || {};
 const dashBestKey = "gankbyte-glitch-dash-best";
 const DASH_WIDTH = dashCanvas.width;
 const DASH_HEIGHT = dashCanvas.height;
@@ -26,11 +31,81 @@ let dashCooldown = 0;
 let dashNextGateAt = 0;
 let dashGates = [];
 let dashSparks = [];
+let dashClient = null;
+let dashUser = null;
+let dashLastRun = null;
 
 function dashRandom(min, max) { return Math.random() * (max - min) + min; }
 function dashLaneY(lane) { return DASH_LANES[Math.max(0, Math.min(2, lane))]; }
 function dashBestScore() { return Number(localStorage.getItem(dashBestKey) || 0); }
 function dashMoveLane(amount) { dashLane = Math.max(0, Math.min(2, dashLane + amount)); }
+
+function escapeDashHtml(value) {
+  return String(value || "").replace(/[&<>'"]/g, (character) => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[character]));
+}
+
+function renderDashLeaderboard(rows) {
+  if (!rows || !rows.length) {
+    dashLeaderboardBody.innerHTML = '<tr><td colspan="4">No scores yet. Be the first to submit.</td></tr>';
+    return;
+  }
+  dashLeaderboardBody.innerHTML = rows.map((row, index) => '<tr><td>' + (index + 1) + '</td><td>' + escapeDashHtml(row.display_name || "GankByte Player") + '</td><td>' + Number(row.best_score || 0).toLocaleString() + '</td><td>' + Number(row.best_streak || 0) + '</td></tr>').join("");
+}
+
+async function loadDashLeaderboard() {
+  if (!dashClient) {
+    dashLeaderboardBody.innerHTML = '<tr><td colspan="4">Global scores need the XP backend connection.</td></tr>';
+    return;
+  }
+  const result = await dashClient.from("glitch_dash_leaderboard").select("display_name,best_score,best_streak").order("best_score", { ascending: false }).limit(25);
+  if (result.error) {
+    dashLeaderboardBody.innerHTML = '<tr><td colspan="4">Global scores are not available yet.</td></tr>';
+    return;
+  }
+  renderDashLeaderboard(result.data);
+}
+
+async function submitDashRun() {
+  if (!dashClient || !dashUser || !dashLastRun || dashLastRun.submitted) return;
+  const result = await dashClient.from("glitch_dash_scores").insert({ user_id: dashUser.id, score: dashLastRun.score, streak: dashLastRun.streak, run_seconds: dashLastRun.runSeconds });
+  if (result.error) {
+    dashAuthStatus.textContent = "Score could not be submitted. Try again while signed in.";
+    return;
+  }
+  dashLastRun.submitted = true;
+  dashAuthStatus.textContent = "Score posted to the global leaderboard.";
+  await loadDashLeaderboard();
+}
+
+async function loadDashSession(session) {
+  dashUser = session ? session.user : null;
+  if (!dashUser) {
+    dashAuthStatus.textContent = "Sign in with Discord to submit scores.";
+    dashLogin.hidden = false;
+    dashLogout.hidden = true;
+    return;
+  }
+  const name = dashUser.user_metadata?.global_name || dashUser.user_metadata?.full_name || "Discord player";
+  dashAuthStatus.textContent = `Signed in as ${name}. Scores post automatically.`;
+  dashLogin.hidden = true;
+  dashLogout.hidden = false;
+  await submitDashRun();
+}
+
+async function initDashOnline() {
+  const configured = Boolean(dashConfig.supabaseUrl && dashConfig.supabasePublishableKey && window.supabase);
+  if (!configured) {
+    dashAuthStatus.textContent = "Global scores need the XP backend connection.";
+    dashLogin.disabled = true;
+    await loadDashLeaderboard();
+    return;
+  }
+  dashClient = window.supabase.createClient(dashConfig.supabaseUrl, dashConfig.supabasePublishableKey);
+  dashClient.auth.onAuthStateChange((event, session) => window.setTimeout(() => loadDashSession(session), 0));
+  const result = await dashClient.auth.getSession();
+  await loadDashSession(result.data.session);
+  await loadDashLeaderboard();
+}
 
 function dashReset() {
   dashRunning = false;
@@ -145,10 +220,12 @@ function dashFinish() {
   const best = dashBestScore();
   const newBest = dashScore > best;
   if (newBest) localStorage.setItem(dashBestKey, String(dashScore));
+  dashLastRun = { score: dashScore, streak: dashStreak, runSeconds: Math.round(dashElapsed), submitted: false };
   dashMessage.hidden = false;
   dashMessage.innerHTML = `<strong>${dashLives ? "RUN COMPLETE" : "SIGNAL LOST"}</strong><span>${dashScore.toLocaleString()} points // streak ${dashStreak}</span>`;
   dashStart.innerHTML = "Run it again  <span>&rarr;</span>";
   dashStatus.textContent = newBest ? `New best score: ${dashScore.toLocaleString()}.` : `Best score on this device: ${Math.max(best, dashScore).toLocaleString()}.`;
+  submitDashRun();
 }
 
 function dashStartRun() {
@@ -178,6 +255,15 @@ document.querySelectorAll("[data-dash-dir]").forEach((button) => {
   button.addEventListener("pointerdown", (event) => { event.preventDefault(); if (button.dataset.dashDir === "up") dashMoveLane(-1); else if (button.dataset.dashDir === "down") dashMoveLane(1); else dashQueue(); });
 });
 dashStart.addEventListener("click", dashStartRun);
+dashLogin.addEventListener("click", async () => {
+  if (!dashClient) return;
+  const result = await dashClient.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: window.location.origin + window.location.pathname } });
+  if (result.error) dashAuthStatus.textContent = result.error.message;
+});
+dashLogout.addEventListener("click", async () => {
+  if (dashClient) await dashClient.auth.signOut();
+});
 dashReset();
 dashStatus.textContent = dashBestScore() ? `Best score on this device: ${dashBestScore().toLocaleString()}.` : "No best score yet. Start a run.";
+initDashOnline();
 requestAnimationFrame(dashFrame);
