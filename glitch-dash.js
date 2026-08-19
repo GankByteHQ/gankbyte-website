@@ -13,6 +13,7 @@ const dashAuthStatus = document.querySelector("#dash-auth-status");
 const dashLogin = document.querySelector("#dash-login");
 const dashLogout = document.querySelector("#dash-logout");
 const dashLeaderboardBody = document.querySelector("#dash-leaderboard-body");
+const dashScopeButtons = document.querySelectorAll("[data-dash-scope]");
 const dashConfig = window.GANKBYTE_XP_CONFIG || {};
 const dashBestKey = "gankbyte-glitch-dash-best";
 const DASH_WIDTH = dashCanvas.width;
@@ -41,6 +42,7 @@ let dashSparks = [];
 let dashClient = null;
 let dashUser = null;
 let dashLastRun = null;
+let dashLeaderboardScope = "all";
 
 const DASH_POWERUPS = {
   shield: { label: "SHIELD", color: "#7de7ff", short: "S" },
@@ -85,12 +87,13 @@ function renderDashLeaderboard(rows) {
   dashLeaderboardBody.innerHTML = rows.map((row, index) => '<tr><td>' + (index + 1) + '</td><td>' + escapeDashHtml(row.display_name || "GankByte Player") + '</td><td>' + Number(row.best_score || 0).toLocaleString() + '</td><td>' + Number(row.best_streak || 0) + '</td></tr>').join("");
 }
 
-async function loadDashLeaderboard() {
+async function loadDashLeaderboard(scope = "all") {
   if (!dashClient) {
     dashLeaderboardBody.innerHTML = '<tr><td colspan="4">Global scores need the XP backend connection.</td></tr>';
     return;
   }
-  const result = await dashClient.from("glitch_dash_leaderboard").select("display_name,best_score,best_streak").order("best_score", { ascending: false }).limit(25);
+  const view = scope === "week" ? "glitch_dash_weekly_leaderboard" : "glitch_dash_leaderboard";
+  const result = await dashClient.from(view).select("display_name,best_score,best_streak").order("best_score", { ascending: false }).limit(25);
   if (result.error) {
     dashLeaderboardBody.innerHTML = '<tr><td colspan="4">Global scores are not available yet.</td></tr>';
     return;
@@ -107,7 +110,7 @@ async function submitDashRun() {
   }
   dashLastRun.submitted = true;
   dashAuthStatus.textContent = "Score posted to the global leaderboard.";
-  await loadDashLeaderboard();
+  await loadDashLeaderboard(dashLeaderboardScope);
 }
 
 async function loadDashSession(session) {
@@ -137,7 +140,7 @@ async function initDashOnline() {
   dashClient.auth.onAuthStateChange((event, session) => window.setTimeout(() => loadDashSession(session), 0));
   const result = await dashClient.auth.getSession();
   await loadDashSession(result.data.session);
-  await loadDashLeaderboard();
+  await loadDashLeaderboard(dashLeaderboardScope);
 }
 
 function dashReset() {
@@ -375,3 +378,10 @@ initDashOnline().catch(() => {
   dashLogin.disabled = true;
 });
 requestAnimationFrame(dashFrame);
+dashScopeButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    dashScopeButtons.forEach((item) => { item.classList.toggle("is-active", item === button); item.setAttribute("aria-selected", item === button ? "true" : "false"); });
+    dashLeaderboardScope = button.dataset.dashScope;
+    loadDashLeaderboard(dashLeaderboardScope);
+  });
+});
