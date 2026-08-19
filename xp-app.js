@@ -59,9 +59,9 @@
   async function loadAccount(user) {
     currentUser = user;
     if (!user) {
-      setBadge("Discord login required", "planned");
+      setBadge("Discord login required");
       accountTitle.textContent = "GankByte XP account";
-      accountCopy.textContent = "Sign in with Discord to submit challenges and track approved XP.";
+      accountCopy.textContent = "Sign in with Discord to submit contributions and track approved XP.";
       loginButton.hidden = false;
       logoutButton.hidden = true;
       submitPanel.hidden = true;
@@ -92,7 +92,7 @@
     if (!configured || !window.supabase) {
       setBadge("Backend setup needed", "planned");
       accountTitle.textContent = "XP is ready to connect";
-      accountCopy.textContent = "The launch system is built. Add the Supabase project values to activate Discord login, submissions, and the leaderboard.";
+      accountCopy.textContent = "Discord login, submissions, and the leaderboard need the Supabase connection to load here.";
       loginButton.disabled = true;
       leaderboardBody.innerHTML = '<tr><td colspan="4">Backend setup is required before the leaderboard can load.</td></tr>';
       return;
