@@ -200,6 +200,35 @@ group by p.id, p.display_name, p.avatar_url;
 
 grant select on public.xp_leaderboard to anon, authenticated;
 
+create or replace function public.update_display_name(p_display_name text)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare cleaned_name text := btrim(coalesce(p_display_name, ''));
+declare saved_name text;
+begin
+  if auth.uid() is null then
+    raise exception 'Authentication required';
+  end if;
+  if char_length(cleaned_name) < 2 or char_length(cleaned_name) > 32 then
+    raise exception 'Display name must be between 2 and 32 characters';
+  end if;
+  update public.profiles
+  set display_name = cleaned_name
+  where id = auth.uid()
+  returning display_name into saved_name;
+  if saved_name is null then
+    raise exception 'Profile not found';
+  end if;
+  return saved_name;
+end;
+$$;
+
+revoke execute on function public.update_display_name(text) from public;
+grant execute on function public.update_display_name(text) to authenticated;
+
 create or replace view public.arena_leaderboard as
 select p.id, p.display_name, best.score as best_score, best.wave as best_wave, best.created_at as latest_run
 from public.profiles p

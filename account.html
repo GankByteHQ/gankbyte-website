@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a0b0f" />
+    <meta name="description" content="Manage your private GankByte account details and Discord connection." />
+    <link rel="icon" href="gb-logo.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="site-spacing.css" />
+    <link rel="stylesheet" href="page-compact.css" />
+    <link rel="stylesheet" href="auth-controls.css" />
+    <link rel="stylesheet" href="site-auth.css?v=1" data-site-auth-style="true" />
+    <title>Account &mdash; GankByte</title>
+  </head>
+  <body>
+    <header class="site-header shell"><a class="brand" href="index.html" aria-label="GankByte home"><span class="brand-mark">GB</span><span>GANKBYTE</span></a><nav class="site-nav" aria-label="Main navigation"><a href="games.html">Games</a><a href="arena-hub.html">Arena</a><a href="developers.html">Developers</a><a href="community.html">Community</a><a href="xp.html">XP</a><a href="roadmap.html">Roadmap</a></nav><a class="header-cta" href="https://discord.gg/CpWjZkjtjJ" target="_blank" rel="noreferrer">Join Discord <span>&nearr;</span></a></header>
+    <main>
+      <section class="page-hero shell"><p class="page-label">GANKBYTE // ACCOUNT</p><h1>Your account.<br /><em>Your controls.</em></h1><p class="hero-lede">Manage your GankByte display name and review the Discord connection used for sign-in. Your Discord password stays with Discord.</p></section>
+      <section class="section shell"><div class="content-grid"><article class="content-card"><span class="status-badge" id="account-badge">Checking account</span><h3 id="account-title">GankByte account</h3><p id="account-copy">Sign in with Discord to view your account details.</p><div class="hero-actions"><button class="button button-primary" id="account-login" type="button">Sign in with Discord <span>&nearr;</span></button><button class="button button-ghost" id="account-logout" type="button" hidden>Sign out</button><a class="button button-ghost" href="profile.html">Open profile <span>&nearr;</span></a></div><dl class="account-details" id="account-details" hidden><div class="account-detail"><dt>Discord username</dt><dd id="account-discord">Not provided</dd></div><div class="account-detail"><dt>Email</dt><dd id="account-email">Not provided</dd></div><div class="account-detail"><dt>Authentication</dt><dd id="account-provider">Discord</dd></div><div class="account-detail"><dt>Account created</dt><dd id="account-created">Not available</dd></div></dl><form class="account-form" id="account-display-form" hidden><label for="account-display-name">GankByte display name</label><input id="account-display-name" name="display_name" minlength="2" maxlength="32" autocomplete="nickname" required /><small>This is the name shown on your profile and public leaderboards. It does not change your Discord account.</small><button class="button button-primary" type="submit">Save display name <span>&rarr;</span></button><p class="account-status" id="account-status" aria-live="polite"></p></form></article><article class="content-card account-security-card"><span class="status-badge">Security</span><h3>Discord handles sign-in.</h3><p>GankByte uses Discord OAuth. We do not see or store your Discord password, and there is no GankByte password to change here.</p><p>If Discord does not provide an email address, it will appear as unavailable. Change Discord-managed information through Discord itself.</p><a class="text-link" href="privacy.html">Read the privacy notice <span>&nearr;</span></a></article></div></section>
+      <section class="section section-dark"><div class="shell split-section"><div><p class="eyebrow">DATA CONTROL</p><h2>Need something<br /><em>removed?</em></h2></div><div><p class="section-intro">For account deletion, correction requests, or privacy questions, contact GankByte directly.</p><a class="button button-primary" href="mailto:contact@gankbyte.com?subject=GankByte%20account%20request">Contact GankByte <span>&nearr;</span></a></div></div></section>
+    </main>
+    <footer class="site-footer shell"><div class="footer-top"><a class="brand" href="index.html"><span class="brand-mark">GB</span><span>Gaming. Memes. Code.</span></a><p class="footer-motto">BUILD. PLAY. GANK.</p></div><div class="footer-bottom"><div class="social-links"><a href="https://x.com/GankByte" target="_blank" rel="noreferrer">X</a><a href="https://github.com/GankByteHQ" target="_blank" rel="noreferrer">GitHub</a></div><a href="mailto:contact@gankbyte.com">contact@gankbyte.com</a><span>&copy; 2026 GankByte</span></div></footer>
+    <script src="footer-nav.js"></script>
+  </body>
+</html>

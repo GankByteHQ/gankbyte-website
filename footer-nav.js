@@ -49,6 +49,7 @@
 
   const links = [
     ["profile.html", "Profile"],
+    ["account.html", "Account"],
     ["challenges.html", "Challenges"],
     ["brand.html", "Brand"],
     ["contact.html", "Contact"],
@@ -67,4 +68,18 @@
     nav.append(link);
   }
   footer.append(nav);
+
+  if (!document.querySelector('link[data-site-auth-style]')) {
+    const style = document.createElement("link");
+    style.rel = "stylesheet";
+    style.href = "site-auth.css?v=1";
+    style.dataset.siteAuthStyle = "true";
+    document.head.append(style);
+  }
+  if (!document.querySelector('script[data-site-auth]')) {
+    const script = document.createElement("script");
+    script.src = "site-auth.js?v=1";
+    script.dataset.siteAuth = "true";
+    document.body.append(script);
+  }
 })();
