@@ -9,7 +9,7 @@
   if (!document.querySelector("style[data-gankbyte-account-style]")) {
     const style = document.createElement("style");
     style.dataset.gankbyteAccountStyle = "true";
-    style.textContent = ".site-account-trigger{appearance:none!important;background:#0a0b0f!important;border:1px solid rgba(244,242,234,.14)!important;box-shadow:none!important;color:#f4f2ea!important;cursor:pointer!important}.site-account-trigger:hover{background:#191b20!important;border-color:#c6ff3d!important;color:#c6ff3d!important}";
+    style.textContent = ".site-account-trigger{appearance:none!important;background:#0a0b0f!important;border:1px solid rgba(244,242,234,.14)!important;box-shadow:none!important;color:#f4f2ea!important;cursor:pointer!important;font:700 10px/normal Arial,Helvetica,sans-serif!important;letter-spacing:.1em!important;padding:12px 14px!important;text-transform:uppercase!important}.site-account-trigger:hover{background:#191b20!important;border-color:#c6ff3d!important;color:#c6ff3d!important}";
     document.head.append(style);
   }
 
