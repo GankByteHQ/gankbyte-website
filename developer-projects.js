@@ -4,7 +4,7 @@
     "Byte Rush": ["https://github.com/GankByteHQ/byte-rush/issues/new/choose", "Report a bug", "https://github.com/GankByteHQ/byte-rush/blob/main/LICENSE", "View licence"],
     "Glitch Dash": ["https://github.com/GankByteHQ/gankbyte-website/issues/new/choose", "Report a bug", "https://github.com/GankByteHQ/gankbyte-website/blob/main/PROJECT_RULES.md", "Project rules"],
     "GankByte Lua Kit": ["https://github.com/GankByteHQ/gankbyte-lua-kit/issues/new/choose", "Report a bug", "https://github.com/GankByteHQ/gankbyte-lua-kit/blob/main/LICENSE", "View licence"],
-    "Signal Forge": ["https://github.com/GankByteHQ/gankbyte-website/issues/new?template=bug_report.yml", "Report a bug", "https://github.com/GankByteHQ/gankbyte-website/blob/main/PROJECT_RULES.md", "Project rules"]
+    "Signal Forge": ["https://github.com/GankByteHQ/signal-forge/issues/new", "Report a bug", "https://github.com/GankByteHQ/signal-forge", "View source"]
   };
   document.querySelectorAll("main .content-card").forEach((card) => {
     const title = card.querySelector("h3")?.textContent.trim();

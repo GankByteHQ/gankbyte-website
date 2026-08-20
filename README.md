@@ -18,6 +18,7 @@ This repository contains the public GankByte landing page. The site is a lightwe
 - `arena.html` — Byte Rush
 - `glitch-dash.html` — Glitch Dash
 - `signal-forge.html` — seedable micro-game mutation lab and Lua starter
+- Signal Forge source: `https://github.com/GankByteHQ/signal-forge`
 - `profile.html` — personal runs, XP history, challenges, and moderation notes
 - `xp.html` — XP submission and public XP leaderboard
 - `developers.html` / `contributing.html` — project and contribution routes
