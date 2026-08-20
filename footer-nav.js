@@ -17,6 +17,7 @@
 
   const socialLinks = [
     ["https://x.com/GankByte", "X"],
+    ["https://discord.gg/CpWjZkjtjJ", "Discord"],
     ["https://www.youtube.com/@GankByte", "YouTube"],
     ["https://www.tiktok.com/@GankByte", "TikTok"],
     ["https://www.instagram.com/GankByte", "Instagram"],
@@ -48,6 +49,7 @@
 
   const links = [
     ["profile.html", "Profile"],
+    ["challenges.html", "Challenges"],
     ["brand.html", "Brand"],
     ["contact.html", "Contact"],
     ["rules.html", "Rules"],

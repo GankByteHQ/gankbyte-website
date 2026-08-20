@@ -13,6 +13,8 @@
   const list = $("submission-list");
   const arenaScores = $("arena-admin-scores");
   const arenaScoreList = $("arena-score-list");
+  const glitchScores = $("glitch-admin-scores");
+  const glitchScoreList = $("glitch-score-list");
   let client = null;
   let currentUser = null;
 
@@ -77,20 +79,48 @@
     await loadArenaScores();
   }
 
+  async function loadGlitchScores() {
+    const result = await client.from("glitch_dash_scores").select("id,user_id,score,streak,run_seconds,created_at").eq("status", "pending").order("score", { ascending: false });
+    if (result.error) { message(result.error.message, true); return; }
+    if (!result.data.length) { glitchScoreList.innerHTML = '<div class="xp-empty">Glitch Dash scores are auto-published. No pending moderation.</div>'; return; }
+    const ids = [...new Set(result.data.map((item) => item.user_id))];
+    const profiles = await client.from("profiles").select("id,display_name").in("id", ids);
+    const names = Object.fromEntries((profiles.data || []).map((item) => [item.id, item.display_name]));
+    glitchScoreList.innerHTML = result.data.map((item) => '<article class="admin-submission glitch-score-submission" data-id="' + item.id + '"><div><span class="status-badge">Pending</span><h3>' + escapeHtml(names[item.user_id] || "GankByte Player") + '</h3><p>' + Number(item.score).toLocaleString() + ' points // streak ' + Number(item.streak) + ' // ' + Number(item.run_seconds) + ' seconds</p></div><div class="admin-actions"><button class="button button-primary approve-glitch-score-button" type="button">Approve score</button><button class="button button-ghost reject-glitch-score-button" type="button">Reject</button></div></article>').join("");
+    document.querySelectorAll(".approve-glitch-score-button").forEach((button) => button.addEventListener("click", approveGlitchScore));
+    document.querySelectorAll(".reject-glitch-score-button").forEach((button) => button.addEventListener("click", rejectGlitchScore));
+  }
+
+  async function approveGlitchScore(event) {
+    const card = event.target.closest(".glitch-score-submission");
+    const result = await client.from("glitch_dash_scores").update({ status: "approved", reviewer_id: currentUser.id, reviewed_at: new Date().toISOString() }).eq("id", Number(card.dataset.id)).eq("status", "pending");
+    if (result.error) { message(result.error.message, true); return; }
+    message("Glitch Dash score approved and added to the leaderboard.");
+    await loadGlitchScores();
+  }
+
+  async function rejectGlitchScore(event) {
+    const card = event.target.closest(".glitch-score-submission");
+    const result = await client.from("glitch_dash_scores").update({ status: "rejected", reviewer_id: currentUser.id, reviewed_at: new Date().toISOString() }).eq("id", Number(card.dataset.id)).eq("status", "pending");
+    if (result.error) { message(result.error.message, true); return; }
+    message("Glitch Dash score rejected.");
+    await loadGlitchScores();
+  }
+
   async function loadSession(session) {
     currentUser = session ? session.user : null;
     if (!currentUser) {
       setBadge(ready ? "Discord login required" : "Backend setup needed", true);
       title.textContent = "XP admin";
       copy.textContent = ready ? "Sign in with Discord to continue." : "Add the Supabase project values before enabling admin access.";
-      login.hidden = false; logout.hidden = true; submissions.hidden = true; arenaScores.hidden = true;
+      login.hidden = false; logout.hidden = true; submissions.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true;
       return;
     }
     const profile = await client.from("profiles").select("display_name,is_admin").eq("id", currentUser.id).maybeSingle();
     if (!profile.data || !profile.data.is_admin) {
-      setBadge("Access denied", true); title.textContent = "Not an admin"; copy.textContent = "This Discord account is not marked as a GankByte admin."; login.hidden = true; logout.hidden = false; submissions.hidden = true; arenaScores.hidden = true; return;
+      setBadge("Access denied", true); title.textContent = "Not an admin"; copy.textContent = "This Discord account is not marked as a GankByte admin."; login.hidden = true; logout.hidden = false; submissions.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; return;
     }
-    setBadge("Admin connected"); title.textContent = profile.data.display_name || "GankByte Admin"; copy.textContent = "Review pending submissions and arena scores below."; login.hidden = true; logout.hidden = false; submissions.hidden = false; arenaScores.hidden = false; await loadSubmissions(); await loadArenaScores();
+    setBadge("Admin connected"); title.textContent = profile.data.display_name || "GankByte Admin"; copy.textContent = "Review pending submissions and game scores below."; login.hidden = true; logout.hidden = false; submissions.hidden = false; arenaScores.hidden = false; glitchScores.hidden = false; await loadSubmissions(); await loadArenaScores(); await loadGlitchScores();
   }
 
   if (!ready) {
