@@ -78,7 +78,7 @@
   }
   if (!document.querySelector('script[data-site-auth]')) {
     const script = document.createElement("script");
-    script.src = "site-auth.js?v=2";
+    script.src = "site-auth.js?v=3";
     script.dataset.siteAuth = "true";
     document.body.append(script);
   }
