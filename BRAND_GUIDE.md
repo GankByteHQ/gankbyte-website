@@ -34,6 +34,10 @@ The original GankByte Glitch Goblin is stored as `gb-mascot.svg`. It can appear 
 
 - `gankbyte-og.png` — 1200x675 Open Graph and X preview image.
 - `gankbyte-social-banner-v2.png` — 1600x900 social banner for X, Discord, YouTube, and community posts.
+- `gankbyte-x-banner.png` — 1500x500 X header export.
+- `gankbyte-discord-banner.png` — 1920x1080 Discord/community export.
+- `gankbyte-youtube-banner.png` — 2560x1440 YouTube channel export.
+- `gankbyte-instagram-square.png` — 1080x1080 Instagram square export.
 - `gankbyte-social-card.svg` — lightweight vector fallback for contexts that do not accept PNG previews.
 - `byte-rush-thumb.svg` and `glitch-dash-thumb.svg` — original game artwork thumbnails, not captured gameplay screenshots.
 
