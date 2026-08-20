@@ -127,7 +127,7 @@
     if (!client || !currentUser) return;
     const proof = $("xp-proof").value.trim();
     const note = $("xp-note-input").value.trim();
-    const result = await client.from("challenge_submissions").insert({ user_id: currentUser.id, challenge_slug: "weekend-challenge-001", proof_url: proof, note: note || null });
+    const result = await client.from("challenge_submissions").insert({ user_id: currentUser.id, challenge_slug: "community-contribution", proof_url: proof, note: note || null });
     if (result.error) {
       setStatus(result.error.message, true);
       return;
