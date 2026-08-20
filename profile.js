@@ -128,6 +128,8 @@ async function loadProfile(session) {
     profileClient.from("xp_ledger").select("amount,reason,source_type,approved,created_at").eq("user_id", profileUser.id).order("created_at", { ascending: false }).limit(50),
     profileClient.from("challenges").select("slug,title,base_xp,bonus_xp").eq("active", true).order("created_at", { ascending: true })
   ]);
+  const dataError = [profileResult, xpResult, arenaResult, glitchResult, submissionResult, dismissalResult, xpHistoryResult, challengesResult].find((result) => result?.error);
+  if (dataError) profileStatus.textContent = "Some profile data is temporarily unavailable. Try refreshing shortly.";
   if (profileResult.data?.display_name) profileTitle.textContent = profileResult.data.display_name;
   if (profileAvatar) profileAvatar.textContent = profileInitials(profileTitle.textContent);
   const xpTotal = Number(xpResult.data?.xp_total || 0);
@@ -148,7 +150,7 @@ async function loadProfile(session) {
   renderChallenges(challengesResult.data || [], submissionResult.data || []);
   const dismissalRows = dismissalResult.error ? profileLocalDismissals(profileUser.id).map((key) => { const [notice_type, notice_id] = String(key).split(":"); return { notice_type, notice_id: Number(notice_id) }; }) : (dismissalResult.data || []);
   renderRejections(submissionResult.data || [], arenaRows, glitchRows, dismissalRows);
-  profileStatus.textContent = "Profile updated.";
+  if (!dataError) profileStatus.textContent = "Profile updated.";
 }
 
 async function initProfile() {

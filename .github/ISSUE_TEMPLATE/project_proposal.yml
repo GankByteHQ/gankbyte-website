@@ -32,3 +32,17 @@ body:
       description: Explain what you own, what third-party licences apply, and how the project can be shared.
     validations:
       required: true
+  - type: textarea
+    id: technology
+    attributes:
+      label: Technology, dependencies, and help needed
+      description: List the planned stack, important dependencies, and what support you are asking from GankByte.
+    validations:
+      required: true
+  - type: textarea
+    id: proof
+    attributes:
+      label: Proof or first test
+      description: Link a build, example, screenshot, or explain how someone can reproduce the first test. Write "not available yet" if this is still an idea.
+    validations:
+      required: true

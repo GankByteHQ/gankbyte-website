@@ -21,6 +21,11 @@ This repository contains the public GankByte landing page. The site is a lightwe
 - `xp.html` — XP submission and public XP leaderboard
 - `developers.html` / `contributing.html` — project and contribution routes
 
+## Developer workflow
+
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — pull request and issue guidance
+- [`DEVELOPER_WORKFLOW.md`](DEVELOPER_WORKFLOW.md) — proposal stages and showcase requirements
+
 ## Local test
 
 Run the site from a local web server so OAuth redirects and module-free browser scripts behave like production:

@@ -21,12 +21,19 @@
   Object.entries(cards).forEach(async ([name, card]) => {
     const target = document.querySelector(`[data-game-stat="${name}"]`);
     if (!target) return;
-    const result = await client.from(card.view).select("best_score").order("best_score", { ascending: false }).limit(1);
-    if (!result.error && result.data?.[0]) target.textContent += ` // Global best: ${format(result.data[0].best_score)}`;
-    if (user) {
-      const table = name === "byte" ? "arena_scores" : "glitch_dash_scores";
-      const own = await client.from(table).select("score,status").eq("user_id", user.id).neq("status", "rejected").order("score", { ascending: false }).limit(1);
-      if (!own.error && own.data?.[0]) target.textContent += ` // Your account best: ${format(own.data[0].score)}`;
+    try {
+      const result = await client.from(card.view).select("best_score").order("best_score", { ascending: false }).limit(1);
+      if (result.error) throw result.error;
+      if (result.data?.[0]) target.textContent += ` // Global best: ${format(result.data[0].best_score)}`;
+      else target.textContent += " // Global board: no runs yet";
+      if (user) {
+        const table = name === "byte" ? "arena_scores" : "glitch_dash_scores";
+        const own = await client.from(table).select("score,status").eq("user_id", user.id).neq("status", "rejected").order("score", { ascending: false }).limit(1);
+        if (own.error) throw own.error;
+        if (own.data?.[0]) target.textContent += ` // Your account best: ${format(own.data[0].score)}`;
+      }
+    } catch {
+      target.textContent += " // Global scores temporarily unavailable";
     }
   });
 })();

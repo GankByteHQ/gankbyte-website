@@ -21,6 +21,9 @@
       client.from("glitch_dash_leaderboard").select("best_score,display_name").order("best_score", { ascending: false }).limit(1),
       user ? client.from("xp_leaderboard").select("xp_total").eq("id", user.id).maybeSingle() : Promise.resolve({ data: null })
     ]);
+    if (byte.error || glitch.error || (user && xp.error)) {
+      status.textContent = "Some Arena data is temporarily unavailable. You can still play both games.";
+    }
     $("hub-byte-best").textContent = byte.data?.[0] ? format(byte.data[0].best_score) : "No runs yet";
     $("hub-byte-detail").textContent = byte.data?.[0] ? `Top score by ${byte.data[0].display_name || "GankByte Player"}` : "Be the first on the board";
     $("hub-glitch-best").textContent = glitch.data?.[0] ? format(glitch.data[0].best_score) : "No runs yet";
@@ -42,7 +45,7 @@
       ...(dash.data || []).map((row) => ({ game: "Glitch Dash", score: row.score, result: `Streak ${row.streak}`, created_at: row.created_at }))
     ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 8);
     recent.innerHTML = rows.length ? rows.map((row) => `<tr><td>${row.game}</td><td>${format(row.score)}</td><td>${row.result}</td><td>${date(row.created_at)}</td></tr>`).join("") : '<tr><td colspan="4">No runs yet. Play a game to create your first result.</td></tr>';
-    status.textContent = "Arena snapshot updated.";
+    if (!byte.error && !glitch.error && (!user || !xp.error)) status.textContent = "Arena snapshot updated.";
   }
   client.auth.onAuthStateChange(() => window.setTimeout(load, 0));
   load().catch(() => { status.textContent = "Arena snapshot is temporarily unavailable."; });
