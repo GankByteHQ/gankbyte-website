@@ -19,6 +19,7 @@
   let client = null;
   let currentUser = null;
   let historyPanel = null;
+  let challengePanel = null;
 
   function setStatus(message, error) {
     status.textContent = message || "";
@@ -69,6 +70,32 @@
     }).join("");
   }
 
+  function ensureChallengePanel() {
+    if (challengePanel) return challengePanel;
+    challengePanel = document.createElement("section");
+    challengePanel.className = "xp-challenge-progress content-card";
+    challengePanel.innerHTML = '<div class="section-heading"><div><p class="eyebrow">CHALLENGE PROGRESS</p><h3>Targets and status.</h3></div><p class="section-intro">Your active challenge state is based on your latest submission.</p></div><div class="content-grid" id="xp-challenge-progress-grid"></div>';
+    const panel = ensureHistoryPanel();
+    panel.parentElement.insertBefore(challengePanel, panel);
+    return challengePanel;
+  }
+
+  function renderChallengeProgress(challenges, submissions) {
+    const panel = ensureChallengePanel();
+    const grid = panel.querySelector("#xp-challenge-progress-grid");
+    if (!challenges?.length) { grid.innerHTML = '<article class="content-card"><span class="status-badge">No active challenges</span><h3>Check back soon.</h3><p>New challenge formats will appear here when they are active.</p></article>'; return; }
+    const latest = new Map();
+    (submissions || []).forEach((row) => { if (!latest.has(row.challenge_slug)) latest.set(row.challenge_slug, row); });
+    grid.innerHTML = challenges.map((challenge) => {
+      const row = latest.get(challenge.slug);
+      const state = row?.status || "not started";
+      const badge = state === "approved" ? "Approved" : state === "pending" ? "Pending" : state === "rejected" ? "Needs update" : "Not started";
+      const className = state === "rejected" ? "status-badge planned" : "status-badge";
+      const detail = state === "approved" ? "Your latest proof was accepted." : state === "pending" ? "Your proof is waiting for review." : state === "rejected" ? (row.reviewer_note || "See moderation feedback on your profile.") : `Base award: ${Number(challenge.base_xp || 0).toLocaleString()} XP.`;
+      return `<article class="content-card"><span class="${className}">${badge}</span><h3>${escapeHtml(challenge.title)}</h3><p>${escapeHtml(detail)}</p></article>`;
+    }).join("");
+  }
+
   async function loadLeaderboard() {
     const result = await client.from("xp_leaderboard").select("display_name,xp_total").order("xp_total", { ascending: false }).limit(25);
     if (result.error) {
@@ -89,6 +116,7 @@
       submitPanel.hidden = true;
       adminLink.hidden = true;
       if (historyPanel) historyPanel.hidden = true;
+      if (challengePanel) challengePanel.hidden = true;
       total.textContent = "0";
       level.textContent = "Level 01";
       return;
@@ -97,9 +125,10 @@
     const profileResult = await client.from("profiles").select("display_name,is_admin").eq("id", user.id).maybeSingle();
     const profile = profileResult.data || {};
     const displayName = profile.display_name || user.user_metadata?.global_name || user.user_metadata?.full_name || "GankByte Player";
-    const [ledgerResult, submissionsResult] = await Promise.all([
+    const [ledgerResult, submissionsResult, challengesResult] = await Promise.all([
       client.from("xp_ledger").select("amount").eq("user_id", user.id),
-      client.from("challenge_submissions").select("challenge_slug,status,reviewer_note,created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(25)
+      client.from("challenge_submissions").select("challenge_slug,status,reviewer_note,created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(25),
+      client.from("challenges").select("slug,title,base_xp,bonus_xp").eq("active", true).order("created_at", { ascending: true })
     ]);
     const xp = (ledgerResult.data || []).reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
@@ -111,9 +140,11 @@
     submitPanel.hidden = false;
     adminLink.hidden = !profile.is_admin;
     ensureHistoryPanel().hidden = false;
+    ensureChallengePanel().hidden = false;
     total.textContent = xp.toLocaleString();
     level.textContent = "Level " + levelForXp(xp);
     renderSubmissionHistory(submissionsResult.data || []);
+    renderChallengeProgress(challengesResult.data || [], submissionsResult.data || []);
     if (window.location.hash === "#xp-submit-panel" || sessionStorage.getItem("gankbyte-xp-submit") === "1") {
       sessionStorage.removeItem("gankbyte-xp-submit");
       window.setTimeout(function () { submitPanel.scrollIntoView({ behavior: "smooth", block: "start" }); }, 100);

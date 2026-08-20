@@ -1,4 +1,4 @@
-(() => {
+ (async () => {
   "use strict";
   const config = window.GANKBYTE_XP_CONFIG || {};
   const cards = {
@@ -16,10 +16,17 @@
   });
   if (!config.supabaseUrl || !config.supabasePublishableKey || !window.supabase) return;
   const client = window.supabase.createClient(config.supabaseUrl, config.supabasePublishableKey);
+  const sessionResult = await client.auth.getSession();
+  const user = sessionResult.data?.session?.user || null;
   Object.entries(cards).forEach(async ([name, card]) => {
     const target = document.querySelector(`[data-game-stat="${name}"]`);
     if (!target) return;
     const result = await client.from(card.view).select("best_score").order("best_score", { ascending: false }).limit(1);
     if (!result.error && result.data?.[0]) target.textContent += ` // Global best: ${format(result.data[0].best_score)}`;
+    if (user) {
+      const table = name === "byte" ? "arena_scores" : "glitch_dash_scores";
+      const own = await client.from(table).select("score,status").eq("user_id", user.id).neq("status", "rejected").order("score", { ascending: false }).limit(1);
+      if (!own.error && own.data?.[0]) target.textContent += ` // Your account best: ${format(own.data[0].score)}`;
+    }
   });
 })();

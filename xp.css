@@ -66,3 +66,4 @@
 @media(max-width:800px){.xp-rules,.level-list{grid-template-columns:1fr}}
 @media(max-width:800px){.xp-console,.xp-submit-panel{display:block}.xp-score-panel{margin-top:14px}.xp-submit-panel form{margin-top:28px}.admin-submission{align-items:flex-start;display:block}.admin-actions{margin-top:22px}}
 .xp-submission-history{margin-top:14px}.xp-submission-history .section-heading{align-items:start;margin-bottom:22px}.xp-submission-history .section-heading h3{font-size:28px;letter-spacing:-.05em;margin:0}.xp-submission-history .section-intro{font-size:13px;max-width:420px}.xp-submission-history .leaderboard{min-width:680px}
+.xp-challenge-progress{margin-top:14px}.xp-challenge-progress .section-heading{align-items:start;margin-bottom:22px}.xp-challenge-progress .section-heading h3{font-size:28px;letter-spacing:-.05em;margin:0}.xp-challenge-progress .section-intro{font-size:13px;max-width:420px}.xp-challenge-progress .content-grid{margin-top:0}

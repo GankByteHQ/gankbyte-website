@@ -338,10 +338,10 @@ function dashFinish() {
   const best = dashBestScore();
   const newBest = dashScore > best;
   if (newBest) localStorage.setItem(dashBestKey, String(dashScore));
-  dashLastRun = { score: dashScore, streak: dashStreak, runSeconds: Math.round(dashElapsed), submitted: false };
+  dashLastRun = { score: dashScore, streak: dashStreak, speedLevel: dashSpeedLevel, runSeconds: Math.round(dashElapsed), submitted: false };
   localStorage.setItem("gankbyte-glitch-dash-last-played", new Date().toISOString());
   dashMessage.hidden = false;
-  dashMessage.innerHTML = `<strong>${dashLives ? "RUN COMPLETE" : "SIGNAL LOST"}</strong><span>${dashScore.toLocaleString()} points // streak ${dashStreak}</span>`;
+  dashMessage.innerHTML = `<strong>${dashLives ? "RUN COMPLETE" : "SIGNAL LOST"}</strong><span>${dashScore.toLocaleString()} points // streak ${dashStreak} // speed level ${dashSpeedLevel}</span>`;
   dashStart.innerHTML = "Run it again  <span>&rarr;</span>";
   dashSubmit.hidden = false;
   if (dashResultActions) dashResultActions.hidden = false;
