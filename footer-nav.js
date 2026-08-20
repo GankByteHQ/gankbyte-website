@@ -2,6 +2,62 @@
   const footer = document.querySelector(".footer-bottom");
   if (!footer) return;
 
+  if (!document.querySelector('link[data-site-shell-style]')) {
+    const style = document.createElement("link");
+    style.rel = "stylesheet";
+    style.href = "site-shell.css?v=1";
+    style.dataset.siteShellStyle = "true";
+    document.head.append(style);
+  }
+
+  const main = document.querySelector("main");
+  if (main && !main.id) main.id = "main-content";
+  if (main && !document.querySelector(".skip-link")) {
+    const skip = document.createElement("a");
+    skip.className = "skip-link";
+    skip.href = "#main-content";
+    skip.textContent = "Skip to content";
+    document.body.prepend(skip);
+  }
+
+  const header = document.querySelector(".site-header");
+  const mainNav = header?.querySelector(".site-nav");
+  if (header && mainNav && !header.querySelector(".mobile-nav-toggle")) {
+    const page = window.location.pathname.split("/").pop() || "index.html";
+    const activePage = page === "arena.html" || page === "glitch-dash.html" || page === "arena-hub.html" ? "arena-hub.html"
+      : page === "projects.html" || page === "contributing.html" ? "developers.html"
+      : page === "challenges.html" ? "community.html"
+      : page === "xp-admin.html" ? "xp.html"
+      : page;
+    mainNav.querySelectorAll("a").forEach((link) => {
+      if (link.getAttribute("href") === activePage) link.setAttribute("aria-current", "page");
+    });
+    [["profile.html", "Profile"], ["account.html", "Account"], ["challenges.html", "Challenges"]].forEach(([href, label]) => {
+      if (mainNav.querySelector(`a[href="${href}"]`)) return;
+      const link = document.createElement("a");
+      link.className = "mobile-nav-extra";
+      link.href = href;
+      link.textContent = label;
+      mainNav.append(link);
+    });
+    const toggle = document.createElement("button");
+    toggle.className = "mobile-nav-toggle";
+    toggle.type = "button";
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute("aria-controls", "site-mobile-nav");
+    toggle.innerHTML = '<span class="mobile-nav-icon" aria-hidden="true"><i></i><i></i><i></i></span><span>Menu</span>';
+    mainNav.id = "site-mobile-nav";
+    header.insertBefore(toggle, header.querySelector(".site-account, .header-cta"));
+    const close = () => { mainNav.classList.remove("is-open"); toggle.setAttribute("aria-expanded", "false"); };
+    toggle.addEventListener("click", () => {
+      const open = mainNav.classList.toggle("is-open");
+      toggle.setAttribute("aria-expanded", String(open));
+    });
+    mainNav.addEventListener("click", (event) => { if (event.target.closest("a")) close(); });
+    document.addEventListener("click", (event) => { if (!header.contains(event.target)) close(); });
+    document.addEventListener("keydown", (event) => { if (event.key === "Escape") close(); });
+  }
+
   const siteFooter = footer.closest(".site-footer");
   const footerTop = siteFooter?.querySelector(".footer-top");
   const footerBrand = footerTop?.querySelector(":scope > .brand");
