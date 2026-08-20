@@ -29,6 +29,7 @@ let dashLastFrame = 0;
 let dashElapsed = 0;
 let dashScore = 0;
 let dashStreak = 0;
+let dashBestStreak = 0;
 let dashRunTime = 0;
 let dashLives = 3;
 let dashLane = 1;
@@ -166,6 +167,7 @@ function dashReset() {
   dashElapsed = 0;
   dashScore = 0;
   dashStreak = 0;
+  dashBestStreak = 0;
   dashRunTime = 0;
   dashLives = 3;
   dashLane = 1;
@@ -236,6 +238,7 @@ function dashClearGate(gate) {
   const baseScore = 100 + dashStreak * 15;
   dashScore += Math.round(baseScore * dashScoreMultiplier());
   dashStreak += 1;
+  dashBestStreak = Math.max(dashBestStreak, dashStreak);
   dashBurst(165, dashLaneY(dashLane), "#c6ff3d", 14);
   if (gate.powerup) dashCollectPowerup(gate.powerup);
 }
@@ -338,10 +341,10 @@ function dashFinish() {
   const best = dashBestScore();
   const newBest = dashScore > best;
   if (newBest) localStorage.setItem(dashBestKey, String(dashScore));
-  dashLastRun = { score: dashScore, streak: dashStreak, speedLevel: dashSpeedLevel, runSeconds: Math.round(dashElapsed), submitted: false };
+  dashLastRun = { score: dashScore, streak: dashBestStreak, speedLevel: dashSpeedLevel, runSeconds: Math.round(dashElapsed), submitted: false };
   localStorage.setItem("gankbyte-glitch-dash-last-played", new Date().toISOString());
   dashMessage.hidden = false;
-  dashMessage.innerHTML = `<strong>${dashLives ? "RUN COMPLETE" : "SIGNAL LOST"}</strong><span>${dashScore.toLocaleString()} points // streak ${dashStreak} // speed level ${dashSpeedLevel}</span>`;
+  dashMessage.innerHTML = `<strong>${dashLives ? "RUN COMPLETE" : "SIGNAL LOST"}</strong><span>${dashScore.toLocaleString()} points // best streak ${dashBestStreak} // speed level ${dashSpeedLevel}</span>`;
   dashStart.innerHTML = "Run it again  <span>&rarr;</span>";
   dashSubmit.hidden = false;
   if (dashResultActions) dashResultActions.hidden = false;
