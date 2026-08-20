@@ -42,7 +42,11 @@
 .game-result-actions[hidden]{display:none!important}
 .game-result-actions .button{font-size:10px;padding:12px 14px}
 .page-status{border-left:2px solid var(--lime);color:var(--muted);font-size:13px;line-height:1.6;margin:22px 0 0;padding-left:16px}
+.profile-avatar{align-items:center;background:var(--lime);color:#0a0b0f;display:flex;font-size:18px;font-weight:800;height:48px;justify-content:center;letter-spacing:-.08em;margin-bottom:16px;transform:skew(-9deg);width:48px}
 .site-footer a:focus-visible,.button:focus-visible,.text-link:focus-visible,.social-list a:focus-visible{outline:2px solid var(--lime);outline-offset:4px}
+button.button{appearance:none;border-radius:0;cursor:pointer;font:inherit}
+button.button-ghost{background:var(--surface);border:1px solid var(--line);color:var(--text)}
+button.button-ghost:hover{background:var(--surface-2);border-color:var(--lime);color:var(--lime)}
 @media(max-width:800px){
   .shell{padding-left:18px;padding-right:18px}
   .page-hero{padding-bottom:42px;padding-top:42px}

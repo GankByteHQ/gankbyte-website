@@ -154,7 +154,7 @@
   } else {
     client = window.supabase.createClient(config.supabaseUrl, config.supabasePublishableKey);
     client.auth.onAuthStateChange((event, session) => window.setTimeout(() => loadSession(session), 0));
-    client.auth.getSession().then((result) => loadSession(result.data.session));
+    client.auth.getSession().then((result) => loadSession(result.data.session)).catch(() => message("Admin services are temporarily unavailable.", true));
   }
 
   login.addEventListener("click", async () => { if (!client) return; const result = await client.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: window.location.origin + window.location.pathname } }); if (result.error) message(result.error.message, true); });

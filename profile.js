@@ -5,6 +5,7 @@ const profileBadge = document.querySelector("#profile-badge");
 const profileTitle = document.querySelector("#profile-title");
 const profileCopy = document.querySelector("#profile-copy");
 const profileStatus = document.querySelector("#profile-status");
+const profileAvatar = document.querySelector("#profile-avatar");
 const profileXp = document.querySelector("#profile-xp");
 const profileLevel = document.querySelector("#profile-level");
 const profileByteBest = document.querySelector("#profile-byte-best");
@@ -18,6 +19,7 @@ let profileUser = null;
 
 function profileEscape(value) { return String(value || "").replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", "\"": "&quot;" }[character])); }
 function profileLevelFor(xp) { return String(Math.max(1, Math.floor(Number(xp || 0) / 250) + 1)).padStart(2, "0"); }
+function profileInitials(value) { return String(value || "GB").split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "GB"; }
 function profileDate(value) { return value ? new Date(value).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" }) : "—"; }
 function profileNoticeKey(type, id) { return `${type}:${id}`; }
 function profileLocalDismissals(userId) {
@@ -73,12 +75,14 @@ async function loadProfile(session) {
     profileTitle.textContent = "Sign in to load your profile";
     profileCopy.textContent = "Play locally without an account, or sign in with Discord to save scores and see your history.";
     profileLogin.hidden = false; profileLogout.hidden = true;
+    if (profileAvatar) profileAvatar.textContent = "GB";
     profileRejections.innerHTML = '<article class="content-card"><span class="status-badge">Private</span><h3>Sign in to view notices.</h3><p>Moderation feedback is visible only to the player who submitted it.</p></article>';
     return;
   }
   const name = profileUser.user_metadata?.global_name || profileUser.user_metadata?.full_name || "Discord player";
   profileBadge.textContent = "Signed in";
   profileTitle.textContent = name;
+  if (profileAvatar) profileAvatar.textContent = profileInitials(name);
   profileCopy.textContent = "Your scores, XP, recent Arena activity, and moderation feedback are connected to this Discord account.";
   profileLogin.hidden = true; profileLogout.hidden = false;
   profileStatus.textContent = "Loading profile data...";
@@ -91,6 +95,7 @@ async function loadProfile(session) {
     profileClient.from("moderation_notice_dismissals").select("notice_type,notice_id").eq("user_id", profileUser.id)
   ]);
   if (profileResult.data?.display_name) profileTitle.textContent = profileResult.data.display_name;
+  if (profileAvatar) profileAvatar.textContent = profileInitials(profileTitle.textContent);
   const xpTotal = Number(xpResult.data?.xp_total || 0);
   profileXp.textContent = `${xpTotal.toLocaleString()} XP`;
   profileLevel.textContent = `Level ${profileLevelFor(xpTotal)}`;

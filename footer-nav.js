@@ -5,7 +5,7 @@
   if (!document.querySelector('link[data-site-shell-style]')) {
     const style = document.createElement("link");
     style.rel = "stylesheet";
-    style.href = "site-shell.css?v=2";
+    style.href = "site-shell.css?v=3";
     style.dataset.siteShellStyle = "true";
     document.head.append(style);
   }

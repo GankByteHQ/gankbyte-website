@@ -143,5 +143,9 @@
     setStatus("Submitted. An admin will review it before XP is added.");
   });
 
-  init();
+  init().catch(function () {
+    setBadge("Offline", "planned");
+    setStatus("XP is temporarily unavailable. You can still play locally and try again later.", true);
+    leaderboardBody.innerHTML = '<tr><td colspan="4">XP services are temporarily unavailable.</td></tr>';
+  });
 }());
