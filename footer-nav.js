@@ -72,7 +72,7 @@
   if (!document.querySelector('link[data-site-auth-style]')) {
     const style = document.createElement("link");
     style.rel = "stylesheet";
-    style.href = "site-auth.css?v=3";
+    style.href = "site-auth.css?v=4";
     style.dataset.siteAuthStyle = "true";
     document.head.append(style);
   }
