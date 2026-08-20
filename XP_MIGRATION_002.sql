@@ -41,8 +41,9 @@ language plpgsql
 security definer
 set search_path = public
 as $$
-declare cleaned_name text := btrim(coalesce(p_display_name, ''));
-declare saved_name text;
+declare
+  cleaned_name text := btrim(coalesce(p_display_name, ''));
+  saved_name text;
 begin
   if auth.uid() is null then
     raise exception 'Authentication required';
