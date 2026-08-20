@@ -5,7 +5,7 @@ const dashMessage = document.querySelector("#dash-message");
 const dashStatus = document.querySelector("#dash-status");
 const dashScoreValue = document.querySelector("#dash-score");
 const dashStreakValue = document.querySelector("#dash-streak");
-const dashTimeValue = document.querySelector("#dash-time");
+const dashRunTimeValue = document.querySelector("#dash-run-time");
 const dashLivesValue = document.querySelector("#dash-lives");
 const dashSpeedValue = document.querySelector("#dash-speed");
 const dashPowerValue = document.querySelector("#dash-power");
@@ -25,8 +25,7 @@ let dashLastFrame = 0;
 let dashElapsed = 0;
 let dashScore = 0;
 let dashStreak = 0;
-let dashTimeLeft = 45;
-let dashTimeBonus = 0;
+let dashRunTime = 0;
 let dashLives = 3;
 let dashLane = 1;
 let dashVisualLane = 1;
@@ -47,7 +46,6 @@ let dashLeaderboardScope = "all";
 const DASH_POWERUPS = {
   shield: { label: "SHIELD", color: "#7de7ff", short: "S" },
   overdrive: { label: "OVERDRIVE", color: "#ffb45c", short: "2X" },
-  time: { label: "TIME", color: "#ff6b8a", short: "+" },
   phase: { label: "PHASE", color: "#c6ff3d", short: "P" }
 };
 
@@ -148,8 +146,7 @@ function dashReset() {
   dashElapsed = 0;
   dashScore = 0;
   dashStreak = 0;
-  dashTimeLeft = 45;
-  dashTimeBonus = 0;
+  dashRunTime = 0;
   dashLives = 3;
   dashLane = 1;
   dashVisualLane = 1;
@@ -181,7 +178,7 @@ function dashSpawnGate() {
 function dashUpdateHud() {
   dashScoreValue.textContent = dashScore.toLocaleString();
   dashStreakValue.textContent = dashStreak;
-  dashTimeValue.textContent = Math.ceil(dashTimeLeft);
+  dashRunTimeValue.textContent = `${Math.floor(dashRunTime)}s`;
   dashLivesValue.textContent = dashLives;
   dashSpeedValue.textContent = dashSpeedLevel;
   dashPowerValue.textContent = dashPowerText();
@@ -200,9 +197,6 @@ function dashCollectPowerup(type) {
   } else if (type === "overdrive") {
     dashOverdriveUntil = Math.max(dashOverdriveUntil, dashElapsed) + 6;
     dashStatus.textContent = "Overdrive online: double score for six seconds.";
-  } else if (type === "time") {
-    dashTimeBonus = Math.min(30, dashTimeBonus + 6);
-    dashStatus.textContent = "Time shard collected: six seconds added.";
   } else if (type === "phase") {
     dashCooldown = 0;
     dashInvulnerableUntil = Math.max(dashInvulnerableUntil, dashElapsed) + 1.2;
@@ -228,7 +222,7 @@ function dashClearGate(gate) {
 
 function dashUpdate(dt) {
   dashElapsed += dt;
-  dashTimeLeft = Math.max(0, 45 + dashTimeBonus - dashElapsed);
+  dashRunTime = dashElapsed;
   dashCooldown = Math.max(0, dashCooldown - dt);
   dashVisualLane += (dashLane - dashVisualLane) * Math.min(1, dt * 14);
   if (dashElapsed >= dashNextGateAt) {
@@ -265,7 +259,6 @@ function dashUpdate(dt) {
   dashSparks.forEach((spark) => { spark.x += (spark.vx || 0) * dt; spark.y += (spark.vy || 0) * dt; spark.life -= dt; });
   dashSparks = dashSparks.filter((spark) => spark.life > 0);
   dashUpdateHud();
-  if (dashTimeLeft <= 0) dashFinish();
 }
 
 function dashDraw() {
