@@ -10,3 +10,23 @@ This repository contains the public GankByte landing page. The site is a lightwe
 
 - Website: https://gankbyte.com
 - GitHub: https://github.com/GankByteHQ
+
+## Public routes
+
+- `games.html` — live game library with personal and global bests
+- `arena-hub.html` — Arena dashboard and recent player results
+- `arena.html` — Byte Rush
+- `glitch-dash.html` — Glitch Dash
+- `profile.html` — personal runs, XP history, challenges, and moderation notes
+- `xp.html` — XP submission and public XP leaderboard
+- `developers.html` / `contributing.html` — project and contribution routes
+
+## Local test
+
+Run the site from a local web server so OAuth redirects and module-free browser scripts behave like production:
+
+```powershell
+py -m http.server 8000
+```
+
+Then open `http://localhost:8000`. A complete manual check should cover both games, mobile touch controls, Discord sign-in, score submission, XP submission, profile history, and admin review.

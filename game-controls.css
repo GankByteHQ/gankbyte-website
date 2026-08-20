@@ -6,3 +6,15 @@
 .glitch-dash-controls .game-submit-button {
   border: 1px solid var(--line);
 }
+
+.touch-hint{color:var(--muted);display:none;font-size:12px;line-height:1.55;margin:12px 0 0;text-align:center}
+.game-rank{color:var(--lime);font-size:11px;letter-spacing:.08em;line-height:1.45;text-transform:uppercase}
+.game-result-actions{align-items:center}
+.touch-controls button,.dash-touch-controls button{touch-action:manipulation}
+@media (pointer: coarse){
+  .touch-hint{display:block}
+  .touch-controls button{font-size:16px;min-height:58px;min-width:64px;padding:10px}
+  .touch-controls button[data-dir="dash"]{font-size:11px;min-width:90px}
+  .dash-touch-controls button{font-size:12px;min-height:58px;min-width:92px;padding:12px}
+  .arena-board,.glitch-dash-board{overscroll-behavior:contain}
+}

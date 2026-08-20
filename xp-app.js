@@ -18,6 +18,7 @@
   const contributionChallengeSlug = "community-contribution";
   let client = null;
   let currentUser = null;
+  let historyPanel = null;
 
   function setStatus(message, error) {
     status.textContent = message || "";
@@ -48,6 +49,26 @@
     leaderboardBody.innerHTML = rows.map((row, index) => '<tr><td>' + (index + 1) + '</td><td>' + escapeHtml(row.display_name || "GankByte Player") + '</td><td>Level ' + levelForXp(row.xp_total || 0) + '</td><td>' + Number(row.xp_total || 0).toLocaleString() + '</td></tr>').join("");
   }
 
+  function ensureHistoryPanel() {
+    if (historyPanel) return historyPanel;
+    historyPanel = document.createElement("section");
+    historyPanel.className = "xp-submission-history content-card";
+    historyPanel.innerHTML = '<div class="section-heading"><div><p class="eyebrow">YOUR SUBMISSIONS</p><h3>Proof and status.</h3></div><p class="section-intro">Pending, approved, and rejected contributions stay visible here so you always know what needs attention.</p></div><div class="leaderboard-wrap"><table class="leaderboard"><thead><tr><th>Challenge</th><th>Status</th><th>Reason</th><th>Date</th></tr></thead><tbody id="xp-submission-history-body"><tr><td colspan="4">Loading submissions...</td></tr></tbody></table></div>';
+    submitPanel.parentElement.insertBefore(historyPanel, submitPanel.nextElementSibling);
+    return historyPanel;
+  }
+
+  function renderSubmissionHistory(rows) {
+    const panel = ensureHistoryPanel();
+    const body = panel.querySelector("#xp-submission-history-body");
+    if (!rows?.length) { body.innerHTML = '<tr><td colspan="4">No submissions yet. Your first useful contribution can start the record.</td></tr>'; return; }
+    body.innerHTML = rows.map((row) => {
+      const statusText = row.status === "approved" ? "Approved" : row.status === "rejected" ? "Rejected" : "Pending";
+      const reason = row.reviewer_note || (row.status === "pending" ? "Waiting for review" : row.status === "approved" ? "Added to XP" : "See moderation notes on your profile");
+      return `<tr><td>${escapeHtml(row.challenge_slug === contributionChallengeSlug ? "Community contribution" : row.challenge_slug)}</td><td>${statusText}</td><td>${escapeHtml(reason)}</td><td>${new Date(row.created_at).toLocaleDateString(undefined, { day: "2-digit", month: "short" })}</td></tr>`;
+    }).join("");
+  }
+
   async function loadLeaderboard() {
     const result = await client.from("xp_leaderboard").select("display_name,xp_total").order("xp_total", { ascending: false }).limit(25);
     if (result.error) {
@@ -67,6 +88,7 @@
       logoutButton.hidden = true;
       submitPanel.hidden = true;
       adminLink.hidden = true;
+      if (historyPanel) historyPanel.hidden = true;
       total.textContent = "0";
       level.textContent = "Level 01";
       return;
@@ -75,7 +97,10 @@
     const profileResult = await client.from("profiles").select("display_name,is_admin").eq("id", user.id).maybeSingle();
     const profile = profileResult.data || {};
     const displayName = profile.display_name || user.user_metadata?.global_name || user.user_metadata?.full_name || "GankByte Player";
-    const ledgerResult = await client.from("xp_ledger").select("amount").eq("user_id", user.id);
+    const [ledgerResult, submissionsResult] = await Promise.all([
+      client.from("xp_ledger").select("amount").eq("user_id", user.id),
+      client.from("challenge_submissions").select("challenge_slug,status,reviewer_note,created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(25)
+    ]);
     const xp = (ledgerResult.data || []).reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
     setBadge("Discord connected");
@@ -85,8 +110,10 @@
     logoutButton.hidden = false;
     submitPanel.hidden = false;
     adminLink.hidden = !profile.is_admin;
+    ensureHistoryPanel().hidden = false;
     total.textContent = xp.toLocaleString();
     level.textContent = "Level " + levelForXp(xp);
+    renderSubmissionHistory(submissionsResult.data || []);
     if (window.location.hash === "#xp-submit-panel" || sessionStorage.getItem("gankbyte-xp-submit") === "1") {
       sessionStorage.removeItem("gankbyte-xp-submit");
       window.setTimeout(function () { submitPanel.scrollIntoView({ behavior: "smooth", block: "start" }); }, 100);
@@ -141,6 +168,8 @@
     }
     event.target.reset();
     setStatus("Submitted. An admin will review it before XP is added.");
+    const refreshed = await client.from("challenge_submissions").select("challenge_slug,status,reviewer_note,created_at").eq("user_id", currentUser.id).order("created_at", { ascending: false }).limit(25);
+    renderSubmissionHistory(refreshed.data || []);
   });
 
   init().catch(function () {

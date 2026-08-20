@@ -5,7 +5,7 @@
   if (!document.querySelector('link[data-site-shell-style]')) {
     const style = document.createElement("link");
     style.rel = "stylesheet";
-    style.href = "site-shell.css?v=3";
+    style.href = "site-shell.css?v=4";
     style.dataset.siteShellStyle = "true";
     document.head.append(style);
   }
@@ -54,14 +54,24 @@
     toggle.innerHTML = '<span class="mobile-nav-icon" aria-hidden="true"><i></i><i></i><i></i></span><span>Menu</span>';
     mainNav.id = "site-mobile-nav";
     header.insertBefore(toggle, header.querySelector(".site-account, .header-cta"));
-    const close = () => { mainNav.classList.remove("is-open"); toggle.setAttribute("aria-expanded", "false"); };
+    const close = (returnFocus = false) => { mainNav.classList.remove("is-open"); toggle.setAttribute("aria-expanded", "false"); if (returnFocus) toggle.focus(); };
     toggle.addEventListener("click", () => {
       const open = mainNav.classList.toggle("is-open");
       toggle.setAttribute("aria-expanded", String(open));
+      if (open) mainNav.querySelector("a")?.focus();
     });
     mainNav.addEventListener("click", (event) => { if (event.target.closest("a")) close(); });
     document.addEventListener("click", (event) => { if (!header.contains(event.target)) close(); });
-    document.addEventListener("keydown", (event) => { if (event.key === "Escape") close(); });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && mainNav.classList.contains("is-open")) { event.preventDefault(); close(true); return; }
+      if (event.key !== "Tab" || !mainNav.classList.contains("is-open")) return;
+      const focusable = [...mainNav.querySelectorAll("a,button")].filter((item) => !item.hidden && item.offsetParent !== null);
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    });
   }
 
   const siteFooter = footer.closest(".site-footer");

@@ -4,6 +4,7 @@ const board = document.querySelector("#arena-board");
 const startButton = document.querySelector("#start-button");
 const arenaSubmit = document.querySelector("#arena-submit");
 const arenaResultActions = document.querySelector("#arena-result-actions");
+const arenaResultRank = document.querySelector("#arena-result-rank");
 const message = document.querySelector("#arena-message");
 const status = document.querySelector("#game-status");
 const scoreValue = document.querySelector("#score");
@@ -21,6 +22,7 @@ const arenaLeaderboardBody = document.querySelector("#arena-leaderboard-body");
 const arenaScopeButtons = document.querySelectorAll("[data-arena-scope]");
 const xpConfig = window.GANKBYTE_XP_CONFIG || {};
 const arenaBestKey = "gankbyte-byte-rush-best";
+const arenaCoarsePointer = window.matchMedia?.("(pointer: coarse)").matches || false;
 
 const WIDTH = canvas.width;
 const HEIGHT = canvas.height;
@@ -51,6 +53,7 @@ let arenaClient = null;
 let arenaUser = null;
 let lastRun = null;
 let arenaLeaderboardScope = "all";
+let arenaGestureStart = null;
 
 function random(min, max) { return Math.random() * (max - min) + min; }
 function distance(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
@@ -85,6 +88,17 @@ async function loadArenaLeaderboard(scope = "all") {
   renderArenaLeaderboard(result.data);
 }
 
+async function loadArenaRank() {
+  if (!arenaResultRank) return;
+  if (!arenaUser) { arenaResultRank.textContent = "Sign in to submit and rank this run."; return; }
+  if (!arenaClient) { arenaResultRank.textContent = "Leaderboard position unavailable."; return; }
+  const view = arenaLeaderboardScope === "week" ? "arena_weekly_leaderboard" : "arena_leaderboard";
+  const result = await arenaClient.from(view).select("id,best_score").order("best_score", { ascending: false }).limit(500);
+  if (result.error) { arenaResultRank.textContent = "Leaderboard position unavailable."; return; }
+  const position = (result.data || []).findIndex((row) => row.id === arenaUser.id);
+  arenaResultRank.textContent = position >= 0 ? `Current position: #${position + 1}` : "Your run is not on the board yet.";
+}
+
 async function submitLastRun() {
   if (!arenaClient || !arenaUser || !lastRun || lastRun.submitted) return;
   const result = await arenaClient.from("arena_scores").insert({ user_id: arenaUser.id, score: lastRun.score, wave: lastRun.wave, run_seconds: lastRun.runSeconds });
@@ -95,6 +109,7 @@ async function submitLastRun() {
   lastRun.submitted = true;
   arenaAuthStatus.textContent = "Score posted to the global leaderboard.";
   await loadArenaLeaderboard(arenaLeaderboardScope);
+  await loadArenaRank();
 }
 
 async function loadArenaSession(session) {
@@ -110,6 +125,7 @@ async function loadArenaSession(session) {
   arenaLogin.hidden = true;
   arenaLogout.hidden = false;
   await submitLastRun();
+  if (lastRun?.submitted) await loadArenaRank();
 }
 
 async function initArenaOnline() {
@@ -190,7 +206,9 @@ function resetGame() {
   nextBonusAt = random(8, 13);
   dashQueued = false;
   pointerTarget = null;
-  player = { x: WIDTH / 2, y: HEIGHT / 2, radius: 15, invulnerable: 0, angle: -Math.PI / 2, speed: 260 };
+  touch.clear();
+  arenaGestureStart = null;
+  player = { x: WIDTH / 2, y: HEIGHT / 2, radius: 15, invulnerable: 0, angle: -Math.PI / 2, speed: arenaCoarsePointer ? 225 : 260 };
   pickups = [];
   hazards = [];
   particles = [];
@@ -517,11 +535,13 @@ function finishGame() {
   const newBest = score > best;
   if (newBest) localStorage.setItem(arenaBestKey, String(score));
   lastRun = { score, wave, runSeconds: Math.round(elapsed), submitted: false };
+  localStorage.setItem("gankbyte-byte-rush-last-played", new Date().toISOString());
   message.hidden = false;
   message.innerHTML = `<strong>${lives ? "RUN COMPLETE" : "SIGNAL LOST"}</strong><span>${score} points // ${xp} XP // wave ${wave}</span>`;
   startButton.innerHTML = "Run it again  <span>&rarr;</span>";
   arenaSubmit.hidden = false;
   if (arenaResultActions) arenaResultActions.hidden = false;
+  if (arenaResultRank) arenaResultRank.textContent = arenaUser ? "Submitting run..." : "Sign in to submit and rank this run.";
   status.textContent = newBest ? `New best score: ${score}.` : `Best score on this device: ${Math.max(best, score)}.`;
   submitLastRun();
 }
@@ -554,9 +574,21 @@ function setPointerTarget(event) {
   const rect = canvas.getBoundingClientRect();
   pointerTarget = { x: (event.clientX - rect.left) * WIDTH / rect.width, y: (event.clientY - rect.top) * HEIGHT / rect.height };
 }
-canvas.addEventListener("pointerdown", (event) => { setPointerTarget(event); canvas.setPointerCapture?.(event.pointerId); });
-canvas.addEventListener("pointermove", (event) => { if (event.buttons) setPointerTarget(event); });
-canvas.addEventListener("pointerup", () => { pointerTarget = null; });
+canvas.addEventListener("pointerdown", (event) => { event.preventDefault(); setPointerTarget(event); arenaGestureStart = { x: event.clientX, y: event.clientY, pointerType: event.pointerType }; canvas.setPointerCapture?.(event.pointerId); });
+canvas.addEventListener("pointermove", (event) => { if (event.buttons) { event.preventDefault(); setPointerTarget(event); } });
+canvas.addEventListener("pointerup", (event) => {
+  event.preventDefault();
+  if (arenaGestureStart?.pointerType === "touch" && running && player) {
+    const dx = event.clientX - arenaGestureStart.x;
+    const dy = event.clientY - arenaGestureStart.y;
+    if (Math.hypot(dx, dy) > 28) {
+      const length = Math.hypot(dx, dy) || 1;
+      pointerTarget = { x: wrap(player.x + (dx / length) * 260, WIDTH), y: wrap(player.y + (dy / length) * 260, HEIGHT) };
+    }
+  }
+  arenaGestureStart = null;
+});
+canvas.addEventListener("pointercancel", () => { arenaGestureStart = null; pointerTarget = null; });
 startButton.addEventListener("click", startGame);
 arenaLogin.addEventListener("click", async () => {
   if (!arenaClient) return;

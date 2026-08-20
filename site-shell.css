@@ -24,6 +24,17 @@
 }
 @media(prefers-reduced-motion:reduce){.skip-link,.mobile-nav-icon i{transition:none}}
 
+.game-card-stat{border-left:2px solid var(--lime);color:var(--muted);font-size:11px!important;letter-spacing:.04em;margin:18px 0 0!important;padding-left:12px}
+.arena-hub-snapshot{display:grid;gap:14px;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:24px}
+.arena-hub-snapshot .content-card{min-height:150px;padding:22px}
+.arena-hub-snapshot .content-card h3{font-size:30px;margin:14px 0 8px}
+.arena-hub-snapshot .content-card p{font-size:13px}
+.hub-recent-wrap{margin-top:58px}
+.hub-recent-wrap .section-heading{align-items:start;margin-bottom:22px}
+.hub-recent-wrap .section-heading h3{font-size:28px;letter-spacing:-.05em;margin:0}
+.hub-recent-wrap .section-intro{font-size:13px;max-width:420px}
+@media(max-width:800px){.arena-hub-snapshot{grid-template-columns:1fr}.hub-recent-wrap{margin-top:38px}.hub-recent-wrap .leaderboard{min-width:560px}}
+
 /* Shared presentation for live product pages. */
 .game-thumb{aspect-ratio:16/7;background:#0e1014;border:1px solid rgba(198,255,61,.28);display:block;object-fit:cover;width:100%}
 .live-games-grid{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr))}
