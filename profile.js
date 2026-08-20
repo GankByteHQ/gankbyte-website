@@ -12,17 +12,36 @@ const profileByteRuns = document.querySelector("#profile-byte-runs");
 const profileGlitchBest = document.querySelector("#profile-glitch-best");
 const profileGlitchRuns = document.querySelector("#profile-glitch-runs");
 const profileHistory = document.querySelector("#profile-history");
+const profileRejections = document.querySelector("#profile-rejections");
 let profileClient = null;
 let profileUser = null;
 
 function profileEscape(value) { return String(value || "").replace(/[&<>'"]/g, (character) => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[character])); }
 function profileLevelFor(xp) { return String(Math.max(1, Math.floor(Number(xp || 0) / 250) + 1)).padStart(2, "0"); }
 function profileDate(value) { return value ? new Date(value).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" }) : "—"; }
+
 function renderHistory(arenaRows, glitchRows) {
   const rows = [...(arenaRows || []).map((row) => ({ game: "Byte Rush", score: row.score, result: `Wave ${row.wave}`, seconds: row.run_seconds, created_at: row.created_at })), ...(glitchRows || []).map((row) => ({ game: "Glitch Dash", score: row.score, result: `Streak ${row.streak}`, seconds: row.run_seconds, created_at: row.created_at }))].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 20);
-  if (!rows.length) { profileHistory.innerHTML = '<tr><td colspan="5">No submitted runs yet. Play a game to start your history.</td></tr>'; return; }
+  if (!rows.length) { profileHistory.innerHTML = '<tr><td colspan="5">No approved runs yet. Play a game to start your history.</td></tr>'; return; }
   profileHistory.innerHTML = rows.map((row) => `<tr><td>${row.game}</td><td>${Number(row.score || 0).toLocaleString()}</td><td>${row.result}</td><td>${Number(row.seconds || 0)}s</td><td>${profileDate(row.created_at)}</td></tr>`).join("");
 }
+
+function renderRejections(submissionRows, arenaRows, glitchRows) {
+  const records = [
+    ...(submissionRows || []).map((row) => ({ key: `submission:${row.challenge_slug}`, label: row.challenge_slug === "community-contribution" ? "Community contribution" : row.challenge_slug, status: row.status, reason: row.reviewer_note, created_at: row.created_at })),
+    ...(arenaRows || []).map((row) => ({ key: "score:Byte Rush", label: "Byte Rush score", status: row.status, reason: row.reviewer_note, created_at: row.created_at })),
+    ...(glitchRows || []).map((row) => ({ key: "score:Glitch Dash", label: "Glitch Dash score", status: row.status, reason: row.reviewer_note, created_at: row.created_at }))
+  ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  const latestByKey = new Map();
+  records.forEach((record) => { if (!latestByKey.has(record.key)) latestByKey.set(record.key, record); });
+  const rejected = [...latestByKey.values()].filter((record) => record.status === "rejected");
+  if (!rejected.length) {
+    profileRejections.innerHTML = '<article class="content-card"><span class="status-badge">Clear</span><h3>No active notices.</h3><p>Rejected submissions disappear here when you submit a newer version.</p></article>';
+    return;
+  }
+  profileRejections.innerHTML = rejected.map((record) => `<article class="content-card"><span class="status-badge planned">Needs attention</span><h3>${profileEscape(record.label)}</h3><p><strong>Reason:</strong> ${profileEscape(record.reason || "The review did not include a reason.")}</p><p class="section-copy">Reviewed ${profileDate(record.created_at)}. Submit a newer version to clear this notice.</p></article>`).join("");
+}
+
 async function loadProfile(session) {
   profileUser = session ? session.user : null;
   if (!profileUser) {
@@ -30,19 +49,21 @@ async function loadProfile(session) {
     profileTitle.textContent = "Sign in to load your profile";
     profileCopy.textContent = "Play locally without an account, or sign in with Discord to save scores and see your history.";
     profileLogin.hidden = false; profileLogout.hidden = true;
+    profileRejections.innerHTML = '<article class="content-card"><span class="status-badge">Private</span><h3>Sign in to view notices.</h3><p>Moderation feedback is visible only to the player who submitted it.</p></article>';
     return;
   }
   const name = profileUser.user_metadata?.global_name || profileUser.user_metadata?.full_name || "Discord player";
   profileBadge.textContent = "Signed in";
   profileTitle.textContent = name;
-  profileCopy.textContent = "Your scores, XP, and recent Arena activity are connected to this Discord account.";
+  profileCopy.textContent = "Your scores, XP, recent Arena activity, and moderation feedback are connected to this Discord account.";
   profileLogin.hidden = true; profileLogout.hidden = false;
   profileStatus.textContent = "Loading profile data...";
-  const [profileResult, xpResult, arenaResult, glitchResult] = await Promise.all([
+  const [profileResult, xpResult, arenaResult, glitchResult, submissionResult] = await Promise.all([
     profileClient.from("profiles").select("display_name").eq("id", profileUser.id).maybeSingle(),
     profileClient.from("xp_leaderboard").select("xp_total").eq("id", profileUser.id).maybeSingle(),
-    profileClient.from("arena_scores").select("score,wave,run_seconds,created_at").eq("user_id", profileUser.id).order("created_at", { ascending: false }).limit(50),
-    profileClient.from("glitch_dash_scores").select("score,streak,run_seconds,created_at").eq("user_id", profileUser.id).order("created_at", { ascending: false }).limit(50)
+    profileClient.from("arena_scores").select("score,wave,run_seconds,created_at,status,reviewer_note").eq("user_id", profileUser.id).order("created_at", { ascending: false }).limit(50),
+    profileClient.from("glitch_dash_scores").select("score,streak,run_seconds,created_at,status,reviewer_note").eq("user_id", profileUser.id).order("created_at", { ascending: false }).limit(50),
+    profileClient.from("challenge_submissions").select("challenge_slug,status,reviewer_note,created_at").eq("user_id", profileUser.id).order("created_at", { ascending: false }).limit(50)
   ]);
   if (profileResult.data?.display_name) profileTitle.textContent = profileResult.data.display_name;
   const xpTotal = Number(xpResult.data?.xp_total || 0);
@@ -50,15 +71,19 @@ async function loadProfile(session) {
   profileLevel.textContent = `Level ${profileLevelFor(xpTotal)}`;
   const arenaRows = arenaResult.data || [];
   const glitchRows = glitchResult.data || [];
-  const byteBest = arenaRows.reduce((best, row) => Math.max(best, Number(row.score || 0)), 0);
-  const glitchBest = glitchRows.reduce((best, row) => Math.max(best, Number(row.score || 0)), 0);
+  const approvedArenaRows = arenaRows.filter((row) => row.status !== "rejected");
+  const approvedGlitchRows = glitchRows.filter((row) => row.status !== "rejected");
+  const byteBest = approvedArenaRows.reduce((best, row) => Math.max(best, Number(row.score || 0)), 0);
+  const glitchBest = approvedGlitchRows.reduce((best, row) => Math.max(best, Number(row.score || 0)), 0);
   profileByteBest.textContent = byteBest ? byteBest.toLocaleString() : "—";
-  profileByteRuns.textContent = `${arenaRows.length} submitted run${arenaRows.length === 1 ? "" : "s"}`;
+  profileByteRuns.textContent = `${approvedArenaRows.length} submitted run${approvedArenaRows.length === 1 ? "" : "s"}`;
   profileGlitchBest.textContent = glitchBest ? glitchBest.toLocaleString() : "—";
-  profileGlitchRuns.textContent = `${glitchRows.length} submitted run${glitchRows.length === 1 ? "" : "s"}`;
-  renderHistory(arenaRows, glitchRows);
+  profileGlitchRuns.textContent = `${approvedGlitchRows.length} submitted run${approvedGlitchRows.length === 1 ? "" : "s"}`;
+  renderHistory(approvedArenaRows, approvedGlitchRows);
+  renderRejections(submissionResult.data || [], arenaRows, glitchRows);
   profileStatus.textContent = "Profile updated.";
 }
+
 async function initProfile() {
   if (!profileConfig.supabaseUrl || !profileConfig.supabasePublishableKey || !window.supabase) {
     profileBadge.textContent = "Offline mode";
@@ -71,6 +96,7 @@ async function initProfile() {
   const result = await profileClient.auth.getSession();
   await loadProfile(result.data.session);
 }
+
 profileLogin.addEventListener("click", async () => { if (!profileClient) return; const result = await profileClient.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: window.location.origin + window.location.pathname } }); if (result.error) profileStatus.textContent = result.error.message; });
 profileLogout.addEventListener("click", async () => { if (profileClient) await profileClient.auth.signOut(); });
 initProfile().catch(() => { profileStatus.textContent = "Profile data is unavailable right now."; });

@@ -51,6 +51,7 @@ create table if not exists public.arena_scores (
   run_seconds integer not null check (run_seconds between 0 and 600),
   status text not null default 'approved' check (status in ('pending', 'approved', 'rejected')),
   reviewer_id uuid references public.profiles(id),
+  reviewer_note text,
   created_at timestamptz not null default now(),
   reviewed_at timestamptz
 );
@@ -63,6 +64,7 @@ create table if not exists public.glitch_dash_scores (
   run_seconds integer not null check (run_seconds between 0 and 600),
   status text not null default 'approved' check (status in ('pending', 'approved', 'rejected')),
   reviewer_id uuid references public.profiles(id),
+  reviewer_note text,
   created_at timestamptz not null default now(),
   reviewed_at timestamptz
 );

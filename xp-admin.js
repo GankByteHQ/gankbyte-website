@@ -16,12 +16,39 @@
   const arenaScoreList = $("arena-score-list");
   const glitchScores = $("glitch-admin-scores");
   const glitchScoreList = $("glitch-score-list");
+  const rejectDialog = $("reject-dialog");
+  const rejectForm = $("reject-form");
+  const rejectReason = $("reject-reason");
+  const rejectError = $("reject-error");
+  const rejectTitle = $("reject-dialog-title");
+  const rejectCopy = $("reject-dialog-copy");
+  const rejectConfirm = $("reject-confirm");
   let client = null;
   let currentUser = null;
+  let pendingRejection = null;
 
   function message(text, error) { status.textContent = text || ""; status.classList.toggle("is-error", Boolean(error)); }
   function escapeHtml(value) { return String(value || "").replace(/[&<>'"]/g, (character) => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[character])); }
   function setBadge(text, planned) { badge.textContent = text; badge.className = "status-badge" + (planned ? " planned" : ""); }
+
+  function openRejectDialog(kind, event) {
+    const card = event.target.closest(".admin-submission");
+    pendingRejection = { kind, id: Number(card.dataset.id) };
+    const labels = { submission: "Community contribution", arena: "Byte Rush score", glitch: "Glitch Dash score" };
+    rejectTitle.textContent = "Reject " + labels[kind].toLowerCase() + ".";
+    rejectCopy.textContent = "The player will see this reason on their profile. A later resubmission will clear this notice.";
+    rejectReason.value = "";
+    rejectError.textContent = "";
+    rejectDialog.hidden = false;
+    window.setTimeout(() => rejectReason.focus(), 0);
+  }
+
+  function closeRejectDialog() {
+    pendingRejection = null;
+    rejectDialog.hidden = true;
+    rejectReason.value = "";
+    rejectError.textContent = "";
+  }
 
   async function loadSubmissions() {
     const result = await client.from("challenge_submissions").select("id,user_id,challenge_slug,proof_url,note,created_at").eq("status", "pending").order("created_at", { ascending: false });
@@ -32,7 +59,7 @@
     const names = Object.fromEntries((profiles.data || []).map((item) => [item.id, item.display_name]));
     list.innerHTML = result.data.map((item) => { const challenge = item.challenge_slug === "community-contribution" ? "Community Contribution" : item.challenge_slug; return '<article class="admin-submission" data-id="' + item.id + '"><div><span class="status-badge">Pending</span><h3>' + escapeHtml(names[item.user_id] || "GankByte Player") + '</h3><p><strong>' + escapeHtml(challenge) + '</strong> // ' + escapeHtml(item.note || "No note provided.") + '</p><a href="' + escapeHtml(item.proof_url) + '" target="_blank" rel="noreferrer">Open proof &nearr;</a></div><div class="admin-actions"><label>Award<select class="award-amount"><option value="100">+100 XP</option><option value="500">+500 XP</option></select></label><button class="button button-primary approve-button" type="button">Approve</button><button class="button button-ghost reject-button" type="button">Reject</button></div></article>'; }).join("");
     document.querySelectorAll(".approve-button").forEach((button) => button.addEventListener("click", approve));
-    document.querySelectorAll(".reject-button").forEach((button) => button.addEventListener("click", reject));
+    document.querySelectorAll(".reject-button").forEach((button) => button.addEventListener("click", (event) => openRejectDialog("submission", event)));
   }
 
   async function approve(event) {
@@ -44,39 +71,23 @@
     await loadSubmissions();
   }
 
-  async function reject(event) {
-    const card = event.target.closest(".admin-submission");
-    const result = await client.from("challenge_submissions").update({ status: "rejected", reviewer_id: currentUser.id, reviewed_at: new Date().toISOString() }).eq("id", Number(card.dataset.id)).eq("status", "pending");
-    if (result.error) { message(result.error.message, true); return; }
-    message("Submission rejected.");
-    await loadSubmissions();
-  }
-
   async function loadArenaScores() {
     const result = await client.from("arena_scores").select("id,user_id,score,wave,run_seconds,created_at").eq("status", "pending").order("score", { ascending: false });
     if (result.error) { message(result.error.message, true); return; }
-    if (!result.data.length) { arenaScoreList.innerHTML = '<div class="xp-empty">Arena scores are auto-published. No pending moderation.</div>'; return; }
+    if (!result.data.length) { arenaScoreList.innerHTML = '<div class="xp-empty">Byte Rush scores are auto-published. No pending moderation.</div>'; return; }
     const ids = [...new Set(result.data.map((item) => item.user_id))];
     const profiles = await client.from("profiles").select("id,display_name").in("id", ids);
     const names = Object.fromEntries((profiles.data || []).map((item) => [item.id, item.display_name]));
     arenaScoreList.innerHTML = result.data.map((item) => '<article class="admin-submission arena-score-submission" data-id="' + item.id + '"><div><span class="status-badge">Pending</span><h3>' + escapeHtml(names[item.user_id] || "GankByte Player") + '</h3><p>' + Number(item.score).toLocaleString() + ' points // wave ' + Number(item.wave) + ' // ' + Number(item.run_seconds) + ' seconds</p></div><div class="admin-actions"><button class="button button-primary approve-score-button" type="button">Approve score</button><button class="button button-ghost reject-score-button" type="button">Reject</button></div></article>').join("");
     document.querySelectorAll(".approve-score-button").forEach((button) => button.addEventListener("click", approveArenaScore));
-    document.querySelectorAll(".reject-score-button").forEach((button) => button.addEventListener("click", rejectArenaScore));
+    document.querySelectorAll(".reject-score-button").forEach((button) => button.addEventListener("click", (event) => openRejectDialog("arena", event)));
   }
 
   async function approveArenaScore(event) {
     const card = event.target.closest(".arena-score-submission");
     const result = await client.rpc("approve_arena_score", { p_score_id: Number(card.dataset.id) });
     if (result.error) { message(result.error.message, true); return; }
-    message("Arena score approved and added to the leaderboard.");
-    await loadArenaScores();
-  }
-
-  async function rejectArenaScore(event) {
-    const card = event.target.closest(".arena-score-submission");
-    const result = await client.from("arena_scores").update({ status: "rejected", reviewer_id: currentUser.id, reviewed_at: new Date().toISOString() }).eq("id", Number(card.dataset.id)).eq("status", "pending");
-    if (result.error) { message(result.error.message, true); return; }
-    message("Arena score rejected.");
+    message("Byte Rush score approved and added to the leaderboard.");
     await loadArenaScores();
   }
 
@@ -89,7 +100,7 @@
     const names = Object.fromEntries((profiles.data || []).map((item) => [item.id, item.display_name]));
     glitchScoreList.innerHTML = result.data.map((item) => '<article class="admin-submission glitch-score-submission" data-id="' + item.id + '"><div><span class="status-badge">Pending</span><h3>' + escapeHtml(names[item.user_id] || "GankByte Player") + '</h3><p>' + Number(item.score).toLocaleString() + ' points // streak ' + Number(item.streak) + ' // ' + Number(item.run_seconds) + ' seconds</p></div><div class="admin-actions"><button class="button button-primary approve-glitch-score-button" type="button">Approve score</button><button class="button button-ghost reject-glitch-score-button" type="button">Reject</button></div></article>').join("");
     document.querySelectorAll(".approve-glitch-score-button").forEach((button) => button.addEventListener("click", approveGlitchScore));
-    document.querySelectorAll(".reject-glitch-score-button").forEach((button) => button.addEventListener("click", rejectGlitchScore));
+    document.querySelectorAll(".reject-glitch-score-button").forEach((button) => button.addEventListener("click", (event) => openRejectDialog("glitch", event)));
   }
 
   async function approveGlitchScore(event) {
@@ -100,12 +111,25 @@
     await loadGlitchScores();
   }
 
-  async function rejectGlitchScore(event) {
-    const card = event.target.closest(".glitch-score-submission");
-    const result = await client.from("glitch_dash_scores").update({ status: "rejected", reviewer_id: currentUser.id, reviewed_at: new Date().toISOString() }).eq("id", Number(card.dataset.id)).eq("status", "pending");
-    if (result.error) { message(result.error.message, true); return; }
-    message("Glitch Dash score rejected.");
-    await loadGlitchScores();
+  async function submitRejection(event) {
+    event.preventDefault();
+    const reason = rejectReason.value.trim();
+    if (!pendingRejection || reason.length < 5) { rejectError.textContent = "Please provide at least five characters explaining the rejection."; return; }
+    rejectConfirm.disabled = true;
+    const fields = { status: "rejected", reviewer_id: currentUser.id, reviewed_at: new Date().toISOString(), reviewer_note: reason };
+    const table = pendingRejection.kind === "submission" ? "challenge_submissions" : pendingRejection.kind === "arena" ? "arena_scores" : "glitch_dash_scores";
+    const result = await client.from(table).update(fields).eq("id", pendingRejection.id).eq("status", "pending");
+    rejectConfirm.disabled = false;
+    if (result.error) { rejectError.textContent = result.error.message; return; }
+    closeRejectDialog();
+    message("Rejected with reason. The player can see it on their profile.");
+    await refreshQueues();
+  }
+
+  async function refreshQueues() {
+    refresh.disabled = true;
+    await Promise.all([loadSubmissions(), loadArenaScores(), loadGlitchScores()]);
+    refresh.disabled = false;
   }
 
   async function loadSession(session) {
@@ -124,12 +148,6 @@
     setBadge("Admin connected"); title.textContent = profile.data.display_name || "GankByte Admin"; copy.textContent = "Review pending contributions and game scores below."; login.hidden = true; refresh.hidden = false; logout.hidden = false; submissions.hidden = false; arenaScores.hidden = false; glitchScores.hidden = false; await refreshQueues();
   }
 
-  async function refreshQueues() {
-    refresh.disabled = true;
-    await Promise.all([loadSubmissions(), loadArenaScores(), loadGlitchScores()]);
-    refresh.disabled = false;
-  }
-
   if (!ready) {
     loadSession(null);
     login.disabled = true;
@@ -142,4 +160,7 @@
   login.addEventListener("click", async () => { if (!client) return; const result = await client.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: window.location.origin + window.location.pathname } }); if (result.error) message(result.error.message, true); });
   logout.addEventListener("click", async () => { if (client) await client.auth.signOut(); });
   refresh.addEventListener("click", refreshQueues);
+  rejectForm.addEventListener("submit", submitRejection);
+  rejectDialog.querySelectorAll("[data-reject-cancel]").forEach((element) => element.addEventListener("click", closeRejectDialog));
+  window.addEventListener("keydown", (event) => { if (event.key === "Escape" && !rejectDialog.hidden) closeRejectDialog(); });
 }());

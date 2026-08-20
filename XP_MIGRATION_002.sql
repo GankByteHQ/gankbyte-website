@@ -8,3 +8,9 @@ set title = excluded.title,
     base_xp = excluded.base_xp,
     bonus_xp = excluded.bonus_xp,
     active = true;
+
+alter table public.arena_scores
+  add column if not exists reviewer_note text;
+
+alter table public.glitch_dash_scores
+  add column if not exists reviewer_note text;

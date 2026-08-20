@@ -135,7 +135,8 @@
     const note = $("xp-note-input").value.trim();
     const result = await client.from("challenge_submissions").insert({ user_id: currentUser.id, challenge_slug: contributionChallengeSlug, proof_url: proof, note: note || null });
     if (result.error) {
-      setStatus(result.error.message, true);
+      const setupMessage = result.error.message.includes("challenge_submissions_challenge_slug_fkey") ? "XP setup is missing the Community Contribution challenge. An admin must run XP_MIGRATION_002.sql in Supabase." : result.error.message;
+      setStatus(setupMessage, true);
       return;
     }
     event.target.reset();
