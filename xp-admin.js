@@ -8,6 +8,7 @@
   const copy = $("admin-copy");
   const status = $("admin-status");
   const login = $("admin-login");
+  const refresh = $("admin-refresh");
   const logout = $("admin-logout");
   const submissions = $("admin-submissions");
   const list = $("submission-list");
@@ -29,7 +30,7 @@
     const ids = [...new Set(result.data.map((item) => item.user_id))];
     const profiles = await client.from("profiles").select("id,display_name").in("id", ids);
     const names = Object.fromEntries((profiles.data || []).map((item) => [item.id, item.display_name]));
-    list.innerHTML = result.data.map((item) => '<article class="admin-submission" data-id="' + item.id + '"><div><span class="status-badge">Pending</span><h3>' + escapeHtml(names[item.user_id] || "GankByte Player") + '</h3><p>' + escapeHtml(item.note || "No note provided.") + '</p><a href="' + escapeHtml(item.proof_url) + '" target="_blank" rel="noreferrer">Open proof &nearr;</a></div><div class="admin-actions"><label>Award<select class="award-amount"><option value="100">+100 XP</option><option value="500">+500 XP</option></select></label><button class="button button-primary approve-button" type="button">Approve</button><button class="button button-ghost reject-button" type="button">Reject</button></div></article>').join("");
+    list.innerHTML = result.data.map((item) => { const challenge = item.challenge_slug === "community-contribution" ? "Community Contribution" : item.challenge_slug; return '<article class="admin-submission" data-id="' + item.id + '"><div><span class="status-badge">Pending</span><h3>' + escapeHtml(names[item.user_id] || "GankByte Player") + '</h3><p><strong>' + escapeHtml(challenge) + '</strong> // ' + escapeHtml(item.note || "No note provided.") + '</p><a href="' + escapeHtml(item.proof_url) + '" target="_blank" rel="noreferrer">Open proof &nearr;</a></div><div class="admin-actions"><label>Award<select class="award-amount"><option value="100">+100 XP</option><option value="500">+500 XP</option></select></label><button class="button button-primary approve-button" type="button">Approve</button><button class="button button-ghost reject-button" type="button">Reject</button></div></article>'; }).join("");
     document.querySelectorAll(".approve-button").forEach((button) => button.addEventListener("click", approve));
     document.querySelectorAll(".reject-button").forEach((button) => button.addEventListener("click", reject));
   }
@@ -113,14 +114,20 @@
       setBadge(ready ? "Discord login required" : "Backend setup needed", true);
       title.textContent = "XP admin";
       copy.textContent = ready ? "Sign in with Discord to continue." : "Add the Supabase project values before enabling admin access.";
-      login.hidden = false; logout.hidden = true; submissions.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true;
+      login.hidden = false; refresh.hidden = true; logout.hidden = true; submissions.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true;
       return;
     }
     const profile = await client.from("profiles").select("display_name,is_admin").eq("id", currentUser.id).maybeSingle();
     if (!profile.data || !profile.data.is_admin) {
-      setBadge("Access denied", true); title.textContent = "Not an admin"; copy.textContent = "This Discord account is not marked as a GankByte admin."; login.hidden = true; logout.hidden = false; submissions.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; return;
+      setBadge("Access denied", true); title.textContent = "Not an admin"; copy.textContent = "This Discord account is not marked as a GankByte admin."; login.hidden = true; refresh.hidden = true; logout.hidden = false; submissions.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; return;
     }
-    setBadge("Admin connected"); title.textContent = profile.data.display_name || "GankByte Admin"; copy.textContent = "Review pending submissions and game scores below."; login.hidden = true; logout.hidden = false; submissions.hidden = false; arenaScores.hidden = false; glitchScores.hidden = false; await loadSubmissions(); await loadArenaScores(); await loadGlitchScores();
+    setBadge("Admin connected"); title.textContent = profile.data.display_name || "GankByte Admin"; copy.textContent = "Review pending contributions and game scores below."; login.hidden = true; refresh.hidden = false; logout.hidden = false; submissions.hidden = false; arenaScores.hidden = false; glitchScores.hidden = false; await refreshQueues();
+  }
+
+  async function refreshQueues() {
+    refresh.disabled = true;
+    await Promise.all([loadSubmissions(), loadArenaScores(), loadGlitchScores()]);
+    refresh.disabled = false;
   }
 
   if (!ready) {
@@ -134,4 +141,5 @@
 
   login.addEventListener("click", async () => { if (!client) return; const result = await client.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: window.location.origin + window.location.pathname } }); if (result.error) message(result.error.message, true); });
   logout.addEventListener("click", async () => { if (client) await client.auth.signOut(); });
+  refresh.addEventListener("click", refreshQueues);
 }());

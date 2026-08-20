@@ -15,6 +15,7 @@
   const level = $("xp-level");
   const adminLink = $("xp-admin-link");
   const leaderboardBody = $("leaderboard-body");
+  const contributionChallengeSlug = "community-contribution";
   let client = null;
   let currentUser = null;
 
@@ -86,6 +87,10 @@
     adminLink.hidden = !profile.is_admin;
     total.textContent = xp.toLocaleString();
     level.textContent = "Level " + levelForXp(xp);
+    if (window.location.hash === "#xp-submit-panel" || sessionStorage.getItem("gankbyte-xp-submit") === "1") {
+      sessionStorage.removeItem("gankbyte-xp-submit");
+      window.setTimeout(function () { submitPanel.scrollIntoView({ behavior: "smooth", block: "start" }); }, 100);
+    }
   }
 
   async function init() {
@@ -112,6 +117,7 @@
   loginButton.addEventListener("click", async function () {
     if (!client) return;
     setStatus("Opening Discord...");
+    if (window.location.hash === "#xp-submit-panel") sessionStorage.setItem("gankbyte-xp-submit", "1");
     const result = await client.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: window.location.origin + window.location.pathname } });
     if (result.error) setStatus(result.error.message, true);
   });
@@ -127,7 +133,7 @@
     if (!client || !currentUser) return;
     const proof = $("xp-proof").value.trim();
     const note = $("xp-note-input").value.trim();
-    const result = await client.from("challenge_submissions").insert({ user_id: currentUser.id, challenge_slug: "community-contribution", proof_url: proof, note: note || null });
+    const result = await client.from("challenge_submissions").insert({ user_id: currentUser.id, challenge_slug: contributionChallengeSlug, proof_url: proof, note: note || null });
     if (result.error) {
       setStatus(result.error.message, true);
       return;

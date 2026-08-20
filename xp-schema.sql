@@ -87,6 +87,10 @@ insert into public.challenges (slug, title, base_xp, bonus_xp)
 values ('weekend-challenge-001', 'Weekend Challenge #001', 100, 500)
 on conflict (slug) do update set title = excluded.title, base_xp = excluded.base_xp, bonus_xp = excluded.bonus_xp;
 
+insert into public.challenges (slug, title, base_xp, bonus_xp)
+values ('community-contribution', 'Community Contribution', 100, 500)
+on conflict (slug) do update set title = excluded.title, base_xp = excluded.base_xp, bonus_xp = excluded.bonus_xp, active = true;
+
 insert into public.arena_events (slug, title, game, description, rules_url, status)
 values ('weekend-challenge-001', 'Weekend Challenge #001', 'Byte Rush', 'Chase the highest Byte Rush score, share proof, and help test the first Arena event.', 'https://gankbyte.com/community.html', 'live')
 on conflict (slug) do update set title = excluded.title, game = excluded.game, description = excluded.description, rules_url = excluded.rules_url, status = excluded.status;
