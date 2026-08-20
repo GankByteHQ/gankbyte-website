@@ -72,13 +72,13 @@
   if (!document.querySelector('link[data-site-auth-style]')) {
     const style = document.createElement("link");
     style.rel = "stylesheet";
-    style.href = "site-auth.css?v=2";
+    style.href = "site-auth.css?v=3";
     style.dataset.siteAuthStyle = "true";
     document.head.append(style);
   }
   if (!document.querySelector('script[data-site-auth]')) {
     const script = document.createElement("script");
-    script.src = "site-auth.js?v=1";
+    script.src = "site-auth.js?v=2";
     script.dataset.siteAuth = "true";
     document.body.append(script);
   }

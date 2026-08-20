@@ -5,6 +5,14 @@
   const headerCta = document.querySelector(".header-cta");
   if (!headerCta || document.querySelector(".site-account")) return;
 
+  // Keep the shared header control dark even before the external account stylesheet finishes loading.
+  if (!document.querySelector("style[data-gankbyte-account-style]")) {
+    const style = document.createElement("style");
+    style.dataset.gankbyteAccountStyle = "true";
+    style.textContent = ".site-account-trigger{appearance:none!important;background:#0a0b0f!important;border:1px solid rgba(244,242,234,.14)!important;box-shadow:none!important;color:#f4f2ea!important;cursor:pointer!important}.site-account-trigger:hover{background:#191b20!important;border-color:#c6ff3d!important;color:#c6ff3d!important}";
+    document.head.append(style);
+  }
+
   const account = document.createElement("div");
   account.className = "site-account";
   account.innerHTML = `
