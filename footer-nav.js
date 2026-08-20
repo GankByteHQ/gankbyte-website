@@ -5,7 +5,7 @@
   if (!document.querySelector('link[data-site-shell-style]')) {
     const style = document.createElement("link");
     style.rel = "stylesheet";
-    style.href = "site-shell.css?v=1";
+    style.href = "site-shell.css?v=2";
     style.dataset.siteShellStyle = "true";
     document.head.append(style);
   }
@@ -40,6 +40,12 @@
       link.textContent = label;
       mainNav.append(link);
     });
+    const mobileAuth = document.createElement("button");
+    mobileAuth.className = "mobile-nav-auth mobile-nav-extra";
+    mobileAuth.id = "mobile-nav-auth";
+    mobileAuth.type = "button";
+    mobileAuth.textContent = "Sign in with Discord";
+    mainNav.append(mobileAuth);
     const toggle = document.createElement("button");
     toggle.className = "mobile-nav-toggle";
     toggle.type = "button";
@@ -134,7 +140,7 @@
   }
   if (!document.querySelector('script[data-site-auth]')) {
     const script = document.createElement("script");
-    script.src = "site-auth.js?v=4";
+    script.src = "site-auth.js?v=5";
     script.dataset.siteAuth = "true";
     document.body.append(script);
   }

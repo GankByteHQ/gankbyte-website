@@ -2,6 +2,7 @@ const dashCanvas = document.querySelector("#glitch-canvas");
 const dashCtx = dashCanvas.getContext("2d");
 const dashStart = document.querySelector("#dash-start");
 const dashSubmit = document.querySelector("#dash-submit");
+const dashResultActions = document.querySelector("#dash-result-actions");
 const dashMessage = document.querySelector("#dash-message");
 const dashStatus = document.querySelector("#dash-status");
 const dashScoreValue = document.querySelector("#dash-score");
@@ -144,6 +145,7 @@ async function initDashOnline() {
 
 function dashReset() {
   dashSubmit.hidden = true;
+  if (dashResultActions) dashResultActions.hidden = true;
   dashRunning = false;
   dashElapsed = 0;
   dashScore = 0;
@@ -325,6 +327,7 @@ function dashFinish() {
   dashMessage.innerHTML = `<strong>${dashLives ? "RUN COMPLETE" : "SIGNAL LOST"}</strong><span>${dashScore.toLocaleString()} points // streak ${dashStreak}</span>`;
   dashStart.innerHTML = "Run it again  <span>&rarr;</span>";
   dashSubmit.hidden = false;
+  if (dashResultActions) dashResultActions.hidden = false;
   dashStatus.textContent = newBest ? `New best score: ${dashScore.toLocaleString()}.` : `Best score on this device: ${Math.max(best, dashScore).toLocaleString()}.`;
   submitDashRun();
 }

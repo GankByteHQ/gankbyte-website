@@ -12,6 +12,18 @@
     <link rel="stylesheet" href="xp.css?v=2" />
     <link rel="stylesheet" href="auth-controls.css" />
     <title>XP &mdash; GankByte</title>
+      <link rel="canonical" href="https://gankbyte.com/xp.html" />
+    <meta property="og:title" content="XP &mdash; GankByte" />
+    <meta property="og:description" content="GankByte XP: off-chain progression for playing, building, and helping the community." />
+    <meta property="og:url" content="https://gankbyte.com/xp.html" />
+    <meta property="og:site_name" content="GankByte" />
+    <meta property="og:image" content="https://gankbyte.com/gankbyte-social-card.svg" />
+    <meta property="og:image:alt" content="GankByte — Gaming. Memes. Code." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="GankByte — Gaming. Memes. Code." />
+    <meta name="twitter:description" content="Gaming community and developer ecosystem building stupidly fun things." />
+    <meta name="twitter:image" content="https://gankbyte.com/gankbyte-social-card.svg" />
+      <link rel="stylesheet" href="site-shell.css?v=2" data-site-shell-style="true" />
   </head>
   <body>
     <header class="site-header shell">
@@ -23,7 +35,7 @@
     <main>
       <section class="page-hero shell"><p class="page-label">04 // PROGRESSION</p><h1>Play more.<br /><em>Build more.</em></h1><p class="hero-lede">GankByte XP recognises the people who play, create, test, explain, and help make the community better.</p></section>
 
-      <section class="section shell xp-console-section"><div class="section-heading"><div><p class="eyebrow">XP // ACCOUNT</p><h2>Your progress.<br /><em>Your bragging rights.</em></h2></div><p class="section-intro">Sign in with Discord to submit contributions, see your approved XP, and appear on the public leaderboard.</p></div><div class="xp-console"><div class="xp-account-panel"><span class="status-badge" id="xp-connection-badge">Checking backend</span><h3 id="xp-account-title">GankByte XP account</h3><p id="xp-account-copy">The XP system is loading.</p><div class="xp-account-actions"><button class="button button-primary" id="xp-login" type="button">Sign in with Discord <span>&nearr;</span></button><button class="button button-ghost" id="xp-logout" type="button" hidden>Sign out</button><a class="text-link" id="xp-admin-link" href="xp-admin.html" hidden>Open admin <span>&nearr;</span></a></div><p class="xp-status" id="xp-status" aria-live="polite"></p></div><div class="xp-score-panel"><small>YOUR APPROVED XP</small><strong id="xp-total">0</strong><span id="xp-level">Level 01</span></div></div><div class="xp-submit-panel" id="xp-submit-panel" hidden><div><p class="eyebrow">SUBMIT A CONTRIBUTION</p><h3>Show us what you did.</h3><p>Submit a proof link and a short note. An admin reviews it before XP is added.</p></div><form id="xp-submission-form"><label for="xp-proof">Proof link</label><input id="xp-proof" name="proof" type="url" placeholder="https://..." required /><label for="xp-note-input">What happened?</label><textarea id="xp-note-input" name="note" rows="3" maxlength="500" placeholder="Score, contribution, or useful context..."></textarea><button class="button button-primary" type="submit">Submit for review <span>&rarr;</span></button></form></div></section>
+      <section class="section shell xp-console-section"><div class="section-heading"><div><p class="eyebrow">XP // ACCOUNT</p><h2>Your progress.<br /><em>Your bragging rights.</em></h2></div><p class="section-intro">Sign in with Discord to submit contributions, see your approved XP, and appear on the public leaderboard.</p></div><div class="xp-console"><div class="xp-account-panel"><span class="status-badge" id="xp-connection-badge">Checking backend</span><h3 id="xp-account-title">GankByte XP account</h3><p id="xp-account-copy">The XP system is loading.</p><div class="xp-account-actions"><button class="button button-primary" id="xp-login" type="button">Sign in with Discord <span>&nearr;</span></button><button class="button button-ghost" id="xp-logout" type="button" hidden>Sign out</button><a class="text-link" id="xp-admin-link" href="xp-admin.html" hidden>Open admin <span>&nearr;</span></a></div><p class="xp-status" id="xp-status" aria-live="polite"></p></div><div class="xp-score-panel"><small>YOUR APPROVED XP</small><strong id="xp-total">0</strong><span id="xp-level">Level 01</span></div></div><div class="xp-submit-panel" id="xp-submit-panel" hidden><div><p class="eyebrow">SUBMIT A CONTRIBUTION</p><h3>Show us what you did.</h3><p>Submit a proof link and a short note. An admin reviews it before XP is added.</p></div><form id="xp-submission-form"><label for="xp-proof">Proof link</label><input id="xp-proof" name="proof" type="url" placeholder="https://..." required /><label for="xp-note-input">What happened?</label><textarea id="xp-note-input" name="note" rows="3" maxlength="500" placeholder="Score, contribution, or useful context..."></textarea><button class="button button-primary" type="submit">Submit for review <span>&rarr;</span></button></form></div><div class="content-grid xp-status-guide"><article class="content-card"><span class="status-badge">Pending</span><h3>Under review</h3><p>Your proof is received but XP is not added until the contribution is checked.</p></article><article class="content-card"><span class="status-badge">Approved</span><h3>Added to your total</h3><p>Approved contributions update your XP total, level, and public leaderboard position.</p></article><article class="content-card"><span class="status-badge planned">Rejected</span><h3>Feedback is visible</h3><p>A rejected contribution includes a reason on your profile. Submit a clearer version or dismiss the notice.</p></article></div></section>
 
       <section class="section section-dark"><div class="shell"><div class="section-heading"><div><p class="eyebrow">LEADERBOARD</p><h2>Earn it.<br /><em>Own it.</em></h2></div><p class="section-intro">Only approved XP appears here. The leaderboard is public; contribution proof and private account details are not.</p></div><div class="leaderboard-wrap"><table class="leaderboard"><thead><tr><th>#</th><th>Player</th><th>Level</th><th>XP</th></tr></thead><tbody id="leaderboard-body"><tr><td colspan="4">Connect the XP backend to load the leaderboard.</td></tr></tbody></table></div></div></section>
 
@@ -36,6 +48,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="xp-config.js"></script>
     <script src="xp-app.js?v=2"></script>
-    <script src="footer-nav.js?v=2"></script>
+    <script src="footer-nav.js?v=3"></script>
   </body>
 </html>

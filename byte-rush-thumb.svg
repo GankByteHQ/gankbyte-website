@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" role="img" aria-labelledby="title desc">
+  <title id="title">Byte Rush game scene</title>
+  <desc id="desc">A neon GankByte diamond moving through a gridded arena while purple glitches close in.</desc>
+  <defs><radialGradient id="bg" cx="50%" cy="45%"><stop offset="0" stop-color="#252038"/><stop offset="1" stop-color="#0e1014"/></radialGradient><filter id="glow"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+  <rect width="960" height="420" fill="url(#bg)"/>
+  <g opacity=".18" stroke="#f4f2ea"><path d="M0 70h960M0 140h960M0 210h960M0 280h960M0 350h960M80 0v420M160 0v420M240 0v420M320 0v420M400 0v420M480 0v420M560 0v420M640 0v420M720 0v420M800 0v420M880 0v420"/></g>
+  <circle cx="480" cy="210" r="135" fill="none" stroke="#9a7bff" stroke-opacity=".25"/><circle cx="480" cy="210" r="80" fill="none" stroke="#c6ff3d" stroke-opacity=".22"/>
+  <g filter="url(#glow)" fill="#c6ff3d"><path d="m480 126 42 42-42 42-42-42z"/><circle cx="205" cy="98" r="12"/><circle cx="785" cy="310" r="12"/></g>
+  <g fill="#9a7bff" opacity=".9"><path d="m180 250 30-25 30 25-30 25z"/><path d="m720 124 24-38 24 38-24 38z"/><path d="m610 300 18-32 18 32-18 32z"/></g>
+  <text x="28" y="35" fill="#c6ff3d" font-family="Arial,sans-serif" font-size="13" font-weight="700" letter-spacing="3">BYTE RUSH // LIVE</text>
+  <text x="932" y="390" fill="#98979b" font-family="Arial,sans-serif" font-size="12" text-anchor="end" letter-spacing="2">COLLECT // DODGE // REPEAT</text>
+</svg>

@@ -3,6 +3,7 @@ const ctx = canvas.getContext("2d");
 const board = document.querySelector("#arena-board");
 const startButton = document.querySelector("#start-button");
 const arenaSubmit = document.querySelector("#arena-submit");
+const arenaResultActions = document.querySelector("#arena-result-actions");
 const message = document.querySelector("#arena-message");
 const status = document.querySelector("#game-status");
 const scoreValue = document.querySelector("#score");
@@ -173,6 +174,7 @@ function burst(x, y, color, amount = 12) {
 
 function resetGame() {
   arenaSubmit.hidden = true;
+  if (arenaResultActions) arenaResultActions.hidden = true;
   elapsed = 0;
   score = 0;
   combo = 0;
@@ -519,6 +521,7 @@ function finishGame() {
   message.innerHTML = `<strong>${lives ? "RUN COMPLETE" : "SIGNAL LOST"}</strong><span>${score} points // ${xp} XP // wave ${wave}</span>`;
   startButton.innerHTML = "Run it again  <span>&rarr;</span>";
   arenaSubmit.hidden = false;
+  if (arenaResultActions) arenaResultActions.hidden = false;
   status.textContent = newBest ? `New best score: ${score}.` : `Best score on this device: ${Math.max(best, score)}.`;
   submitLastRun();
 }
@@ -575,7 +578,10 @@ document.querySelectorAll("[data-dir]").forEach((button) => {
 
 resetGame();
 status.textContent = localBestScore() ? `Best score on this device: ${localBestScore()}.` : "No best score yet. Start a run.";
-initArenaOnline();
+initArenaOnline().catch(() => {
+  arenaAuthStatus.textContent = "Online scores are unavailable, but local play is still ready.";
+  arenaLogin.disabled = true;
+});
 arenaScopeButtons.forEach((button) => {
   button.addEventListener("click", () => {
   arenaScopeButtons.forEach((item) => { item.classList.toggle("is-active", item === button); item.setAttribute("aria-selected", item === button ? "true" : "false"); });

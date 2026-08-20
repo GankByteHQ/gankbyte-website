@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0a0b0f"/><stop offset="1" stop-color="#1a1830"/></linearGradient></defs>
+  <rect width="1200" height="630" fill="url(#bg)"/><circle cx="920" cy="230" r="180" fill="none" stroke="#9a7bff" stroke-opacity=".3" stroke-width="2"/><circle cx="920" cy="230" r="110" fill="none" stroke="#c6ff3d" stroke-opacity=".28" stroke-width="2"/>
+  <path d="m920 104 126 126-126 126-126-126z" fill="#c6ff3d"/><text x="920" y="242" fill="#0a0b0f" font-family="Arial,sans-serif" font-size="42" font-weight="800" text-anchor="middle">GB</text>
+  <text x="84" y="170" fill="#c6ff3d" font-family="Arial,sans-serif" font-size="20" font-weight="700" letter-spacing="5">GANKBYTE</text><text x="84" y="300" fill="#f4f2ea" font-family="Arial,sans-serif" font-size="90" font-weight="800">Gaming.</text><text x="84" y="390" fill="#c6ff3d" font-family="Arial,sans-serif" font-size="90" font-weight="800">Memes.</text><text x="84" y="480" fill="#f4f2ea" font-family="Arial,sans-serif" font-size="90" font-weight="800">Code.</text><text x="84" y="548" fill="#98979b" font-family="Arial,sans-serif" font-size="18" letter-spacing="3">PLAY // BUILD // GANK</text>
+</svg>

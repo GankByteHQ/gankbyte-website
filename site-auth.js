@@ -43,6 +43,7 @@
   const accountSubtitle = document.querySelector("#site-account-subtitle");
   const adminLink = document.querySelector("#site-account-admin");
   const signout = document.querySelector("#site-account-signout");
+  const mobileAuth = document.querySelector("#mobile-nav-auth");
   [
     ["font-size", "10px"],
     ["font-weight", "700"],
@@ -119,6 +120,7 @@
       accountName.textContent = "GankByte account";
       accountSubtitle.textContent = "Discord account";
       adminLink.hidden = true;
+      if (mobileAuth) mobileAuth.textContent = "Sign in with Discord";
       closeMenu();
     } else {
       const name = displayName(currentUser, currentProfile);
@@ -129,6 +131,7 @@
       accountName.textContent = name;
       accountSubtitle.textContent = currentUser.email || "Discord account";
       adminLink.hidden = !currentProfile?.is_admin;
+      if (mobileAuth) mobileAuth.textContent = "Sign out";
     }
     publishAuthState();
   }
@@ -157,6 +160,7 @@
 
   trigger.addEventListener("click", () => { if (currentUser && menu.hidden) openMenu(); else if (currentUser) closeMenu(); else signIn(); });
   signout.addEventListener("click", async () => { if (!client) return; await client.auth.signOut(); closeMenu(); });
+  mobileAuth?.addEventListener("click", async () => { if (currentUser) { if (client) await client.auth.signOut(); } else signIn(); });
   document.addEventListener("click", (event) => { if (!account.contains(event.target)) closeMenu(); });
   document.addEventListener("keydown", (event) => { if (event.key === "Escape") closeMenu(); });
 
