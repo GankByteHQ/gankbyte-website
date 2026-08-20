@@ -2,6 +2,7 @@ const canvas = document.querySelector("#arena-canvas");
 const ctx = canvas.getContext("2d");
 const board = document.querySelector("#arena-board");
 const startButton = document.querySelector("#start-button");
+const arenaSubmit = document.querySelector("#arena-submit");
 const message = document.querySelector("#arena-message");
 const status = document.querySelector("#game-status");
 const scoreValue = document.querySelector("#score");
@@ -171,6 +172,7 @@ function burst(x, y, color, amount = 12) {
 }
 
 function resetGame() {
+  arenaSubmit.hidden = true;
   elapsed = 0;
   score = 0;
   combo = 0;
@@ -516,6 +518,7 @@ function finishGame() {
   message.hidden = false;
   message.innerHTML = `<strong>${lives ? "RUN COMPLETE" : "SIGNAL LOST"}</strong><span>${score} points // ${xp} XP // wave ${wave}</span>`;
   startButton.innerHTML = "Run it again  <span>&rarr;</span>";
+  arenaSubmit.hidden = false;
   status.textContent = newBest ? `New best score: ${score}.` : `Best score on this device: ${Math.max(best, score)}.`;
   submitLastRun();
 }

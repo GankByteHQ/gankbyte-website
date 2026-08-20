@@ -69,6 +69,14 @@ create table if not exists public.glitch_dash_scores (
   reviewed_at timestamptz
 );
 
+create table if not exists public.moderation_notice_dismissals (
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  notice_type text not null check (notice_type in ('submission', 'arena', 'glitch')),
+  notice_id bigint not null,
+  dismissed_at timestamptz not null default now(),
+  primary key (user_id, notice_type, notice_id)
+);
+
 create table if not exists public.arena_events (
   slug text primary key,
   title text not null,
@@ -125,6 +133,7 @@ alter table public.challenge_submissions enable row level security;
 alter table public.xp_ledger enable row level security;
 alter table public.arena_scores enable row level security;
 alter table public.glitch_dash_scores enable row level security;
+alter table public.moderation_notice_dismissals enable row level security;
 alter table public.arena_events enable row level security;
 
 -- The project uses explicit Data API exposure, so grant only the access this site needs.
@@ -135,6 +144,7 @@ grant select, insert, update on public.challenge_submissions to authenticated;
 grant select on public.xp_ledger to anon, authenticated;
 grant select, insert, update on public.arena_scores to authenticated;
 grant select, insert, update on public.glitch_dash_scores to authenticated;
+grant select, insert, delete on public.moderation_notice_dismissals to authenticated;
 grant select on public.arena_events to anon, authenticated;
 
 drop policy if exists "Public profiles are visible" on public.profiles;
@@ -172,6 +182,15 @@ create policy "Players see their own Glitch Dash scores" on public.glitch_dash_s
 
 drop policy if exists "Admins review Glitch Dash scores" on public.glitch_dash_scores;
 create policy "Admins review Glitch Dash scores" on public.glitch_dash_scores for update to authenticated using (exists (select 1 from public.profiles where id = auth.uid() and is_admin)) with check (exists (select 1 from public.profiles where id = auth.uid() and is_admin));
+
+drop policy if exists "Players see their own dismissed notices" on public.moderation_notice_dismissals;
+create policy "Players see their own dismissed notices" on public.moderation_notice_dismissals for select to authenticated using (auth.uid() = user_id);
+
+drop policy if exists "Players dismiss their own notices" on public.moderation_notice_dismissals;
+create policy "Players dismiss their own notices" on public.moderation_notice_dismissals for insert to authenticated with check (auth.uid() = user_id);
+
+drop policy if exists "Players remove their own dismissals" on public.moderation_notice_dismissals;
+create policy "Players remove their own dismissals" on public.moderation_notice_dismissals for delete to authenticated using (auth.uid() = user_id);
 
 create or replace view public.xp_leaderboard as
 select p.id, p.display_name, p.avatar_url, coalesce(sum(x.amount) filter (where x.approved = true), 0)::integer as xp_total

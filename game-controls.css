@@ -1,0 +1,8 @@
+.game-submit-button[hidden] {
+  display: none !important;
+}
+
+.arena-controls .game-submit-button,
+.glitch-dash-controls .game-submit-button {
+  border: 1px solid var(--line);
+}

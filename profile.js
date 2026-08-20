@@ -16,9 +16,18 @@ const profileRejections = document.querySelector("#profile-rejections");
 let profileClient = null;
 let profileUser = null;
 
-function profileEscape(value) { return String(value || "").replace(/[&<>'"]/g, (character) => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[character])); }
+function profileEscape(value) { return String(value || "").replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", "\"": "&quot;" }[character])); }
 function profileLevelFor(xp) { return String(Math.max(1, Math.floor(Number(xp || 0) / 250) + 1)).padStart(2, "0"); }
 function profileDate(value) { return value ? new Date(value).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" }) : "—"; }
+function profileNoticeKey(type, id) { return `${type}:${id}`; }
+function profileLocalDismissals(userId) {
+  try { return JSON.parse(window.localStorage.getItem(`gankbyte-dismissed-notices:${userId}`) || "[]"); } catch { return []; }
+}
+function saveProfileLocalDismissal(userId, type, id) {
+  const current = new Set(profileLocalDismissals(userId));
+  current.add(profileNoticeKey(type, id));
+  try { window.localStorage.setItem(`gankbyte-dismissed-notices:${userId}`, JSON.stringify([...current])); } catch { /* best effort fallback */ }
+}
 
 function renderHistory(arenaRows, glitchRows) {
   const rows = [...(arenaRows || []).map((row) => ({ game: "Byte Rush", score: row.score, result: `Wave ${row.wave}`, seconds: row.run_seconds, created_at: row.created_at })), ...(glitchRows || []).map((row) => ({ game: "Glitch Dash", score: row.score, result: `Streak ${row.streak}`, seconds: row.run_seconds, created_at: row.created_at }))].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 20);
@@ -26,20 +35,35 @@ function renderHistory(arenaRows, glitchRows) {
   profileHistory.innerHTML = rows.map((row) => `<tr><td>${row.game}</td><td>${Number(row.score || 0).toLocaleString()}</td><td>${row.result}</td><td>${Number(row.seconds || 0)}s</td><td>${profileDate(row.created_at)}</td></tr>`).join("");
 }
 
-function renderRejections(submissionRows, arenaRows, glitchRows) {
+function renderRejections(submissionRows, arenaRows, glitchRows, dismissalRows) {
   const records = [
-    ...(submissionRows || []).map((row) => ({ key: `submission:${row.challenge_slug}`, label: row.challenge_slug === "community-contribution" ? "Community contribution" : row.challenge_slug, status: row.status, reason: row.reviewer_note, created_at: row.created_at })),
-    ...(arenaRows || []).map((row) => ({ key: "score:Byte Rush", label: "Byte Rush score", status: row.status, reason: row.reviewer_note, created_at: row.created_at })),
-    ...(glitchRows || []).map((row) => ({ key: "score:Glitch Dash", label: "Glitch Dash score", status: row.status, reason: row.reviewer_note, created_at: row.created_at }))
+    ...(submissionRows || []).map((row) => ({ key: profileNoticeKey("submission", row.id), group: `submission:${row.challenge_slug}`, type: "submission", id: row.id, label: row.challenge_slug === "community-contribution" ? "Community contribution" : row.challenge_slug, status: row.status, reason: row.reviewer_note, created_at: row.created_at })),
+    ...(arenaRows || []).map((row) => ({ key: profileNoticeKey("arena", row.id), group: "score:Byte Rush", type: "arena", id: row.id, label: "Byte Rush score", status: row.status, reason: row.reviewer_note, created_at: row.created_at })),
+    ...(glitchRows || []).map((row) => ({ key: profileNoticeKey("glitch", row.id), group: "score:Glitch Dash", type: "glitch", id: row.id, label: "Glitch Dash score", status: row.status, reason: row.reviewer_note, created_at: row.created_at }))
   ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  const latestByKey = new Map();
-  records.forEach((record) => { if (!latestByKey.has(record.key)) latestByKey.set(record.key, record); });
-  const rejected = [...latestByKey.values()].filter((record) => record.status === "rejected");
+  const latestByGroup = new Map();
+  records.forEach((record) => { if (!latestByGroup.has(record.group)) latestByGroup.set(record.group, record); });
+  const dismissed = new Set((dismissalRows || []).map((row) => profileNoticeKey(row.notice_type, row.notice_id)));
+  const rejected = [...latestByGroup.values()].filter((record) => record.status === "rejected" && !dismissed.has(record.key));
   if (!rejected.length) {
-    profileRejections.innerHTML = '<article class="content-card"><span class="status-badge">Clear</span><h3>No active notices.</h3><p>Rejected submissions disappear here when you submit a newer version.</p></article>';
+    profileRejections.innerHTML = '<article class="content-card"><span class="status-badge">Clear</span><h3>No active notices.</h3><p>Rejected submissions disappear here when you submit a newer version or clear the notice.</p></article>';
     return;
   }
-  profileRejections.innerHTML = rejected.map((record) => `<article class="content-card"><span class="status-badge planned">Needs attention</span><h3>${profileEscape(record.label)}</h3><p><strong>Reason:</strong> ${profileEscape(record.reason || "The review did not include a reason.")}</p><p class="section-copy">Reviewed ${profileDate(record.created_at)}. Submit a newer version to clear this notice.</p></article>`).join("");
+  profileRejections.innerHTML = rejected.map((record) => `<article class="content-card"><span class="status-badge planned">Needs attention</span><h3>${profileEscape(record.label)}</h3><p><strong>Reason:</strong> ${profileEscape(record.reason || "The review did not include a reason.")}</p><p class="section-copy">Reviewed ${profileDate(record.created_at)}. Submit a newer version or clear this notice when you are ready.</p><button class="button button-ghost profile-dismiss-button" type="button" data-notice-type="${record.type}" data-notice-id="${record.id}">Clear notice</button></article>`).join("");
+  profileRejections.querySelectorAll(".profile-dismiss-button").forEach((button) => button.addEventListener("click", dismissProfileNotice));
+}
+
+async function dismissProfileNotice(event) {
+  const button = event.currentTarget;
+  const type = button.dataset.noticeType;
+  const id = Number(button.dataset.noticeId);
+  button.disabled = true;
+  const result = await profileClient.from("moderation_notice_dismissals").insert({ user_id: profileUser.id, notice_type: type, notice_id: id });
+  if (result.error) {
+    saveProfileLocalDismissal(profileUser.id, type, id);
+    profileStatus.textContent = "Notice cleared on this device. Run XP_MIGRATION_002.sql to sync dismissals across devices.";
+  }
+  await loadProfile({ user: profileUser });
 }
 
 async function loadProfile(session) {
@@ -58,12 +82,13 @@ async function loadProfile(session) {
   profileCopy.textContent = "Your scores, XP, recent Arena activity, and moderation feedback are connected to this Discord account.";
   profileLogin.hidden = true; profileLogout.hidden = false;
   profileStatus.textContent = "Loading profile data...";
-  const [profileResult, xpResult, arenaResult, glitchResult, submissionResult] = await Promise.all([
+  const [profileResult, xpResult, arenaResult, glitchResult, submissionResult, dismissalResult] = await Promise.all([
     profileClient.from("profiles").select("display_name").eq("id", profileUser.id).maybeSingle(),
     profileClient.from("xp_leaderboard").select("xp_total").eq("id", profileUser.id).maybeSingle(),
-    profileClient.from("arena_scores").select("score,wave,run_seconds,created_at,status,reviewer_note").eq("user_id", profileUser.id).order("created_at", { ascending: false }).limit(50),
-    profileClient.from("glitch_dash_scores").select("score,streak,run_seconds,created_at,status,reviewer_note").eq("user_id", profileUser.id).order("created_at", { ascending: false }).limit(50),
-    profileClient.from("challenge_submissions").select("challenge_slug,status,reviewer_note,created_at").eq("user_id", profileUser.id).order("created_at", { ascending: false }).limit(50)
+    profileClient.from("arena_scores").select("id,score,wave,run_seconds,created_at,status,reviewer_note").eq("user_id", profileUser.id).order("created_at", { ascending: false }).limit(50),
+    profileClient.from("glitch_dash_scores").select("id,score,streak,run_seconds,created_at,status,reviewer_note").eq("user_id", profileUser.id).order("created_at", { ascending: false }).limit(50),
+    profileClient.from("challenge_submissions").select("id,challenge_slug,status,reviewer_note,created_at").eq("user_id", profileUser.id).order("created_at", { ascending: false }).limit(50),
+    profileClient.from("moderation_notice_dismissals").select("notice_type,notice_id").eq("user_id", profileUser.id)
   ]);
   if (profileResult.data?.display_name) profileTitle.textContent = profileResult.data.display_name;
   const xpTotal = Number(xpResult.data?.xp_total || 0);
@@ -80,7 +105,8 @@ async function loadProfile(session) {
   profileGlitchBest.textContent = glitchBest ? glitchBest.toLocaleString() : "—";
   profileGlitchRuns.textContent = `${approvedGlitchRows.length} submitted run${approvedGlitchRows.length === 1 ? "" : "s"}`;
   renderHistory(approvedArenaRows, approvedGlitchRows);
-  renderRejections(submissionResult.data || [], arenaRows, glitchRows);
+  const dismissalRows = dismissalResult.error ? profileLocalDismissals(profileUser.id).map((key) => { const [notice_type, notice_id] = String(key).split(":"); return { notice_type, notice_id: Number(notice_id) }; }) : (dismissalResult.data || []);
+  renderRejections(submissionResult.data || [], arenaRows, glitchRows, dismissalRows);
   profileStatus.textContent = "Profile updated.";
 }
 
