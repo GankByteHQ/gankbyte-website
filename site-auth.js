@@ -43,6 +43,14 @@
   const accountSubtitle = document.querySelector("#site-account-subtitle");
   const adminLink = document.querySelector("#site-account-admin");
   const signout = document.querySelector("#site-account-signout");
+  [
+    ["font-size", "10px"],
+    ["font-weight", "700"],
+    ["letter-spacing", ".1em"],
+    ["line-height", "normal"],
+    ["padding", "12px 14px"],
+    ["text-transform", "uppercase"]
+  ].forEach(([property, value]) => trigger.style.setProperty(property, value, "important"));
   let client = null;
   let currentUser = null;
   let currentProfile = null;
