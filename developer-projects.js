@@ -19,7 +19,7 @@
     report.rel = "noreferrer";
     report.textContent = `${links[1]} `;
     const reportArrow = document.createElement("span");
-    reportArrow.textContent = "↗";
+    reportArrow.textContent = "->";
     report.append(reportArrow);
     const license = document.createElement("a");
     license.className = "text-link";
@@ -28,7 +28,7 @@
     license.rel = "noreferrer";
     license.textContent = `${links[3]} `;
     const licenseArrow = document.createElement("span");
-    licenseArrow.textContent = "↗";
+    licenseArrow.textContent = "->";
     license.append(licenseArrow);
     wrap.append(report, license);
     card.append(wrap);
