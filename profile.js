@@ -16,13 +16,24 @@ const profileHistory = document.querySelector("#profile-history");
 const profileRejections = document.querySelector("#profile-rejections");
 const profileChallenges = document.querySelector("#profile-challenges");
 const profileXpHistory = document.querySelector("#profile-xp-history");
+const profileBadges = document.querySelector("#profile-badges");
 let profileClient = null;
 let profileUser = null;
 
 function profileEscape(value) { return String(value || "").replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", "\"": "&quot;" }[character])); }
-function profileLevelFor(xp) { return String(Math.max(1, Math.floor(Number(xp || 0) / 250) + 1)).padStart(2, "0"); }
+function profileLevelFor(xp) {
+  const thresholds = [0, 250, 600, 1000, 1500, 2200, 3000, 4000, 5200, 6600];
+  let current = 1;
+  thresholds.forEach((threshold, index) => { if (Number(xp || 0) >= threshold) current = index + 1; });
+  return String(current).padStart(2, "0");
+}
+function renderProfileBadges(xp) {
+  if (!profileBadges) return;
+  const earned = [["First signal", xp >= 100], ["Playtester", xp >= 500], ["Builder", xp >= 1500], ["Core contributor", xp >= 3000]];
+  profileBadges.innerHTML = earned.map(([label, active]) => `<span class="xp-badge${active ? " is-earned" : ""}">${active ? "Earned" : "Locked"} // ${label}</span>`).join("");
+}
 function profileInitials(value) { return String(value || "GB").split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "GB"; }
-function profileDate(value) { return value ? new Date(value).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" }) : "—"; }
+function profileDate(value) { return value ? new Date(value).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" }) : "-"; }
 function profileNoticeKey(type, id) { return `${type}:${id}`; }
 function profileLocalDismissals(userId) {
   try { return JSON.parse(window.localStorage.getItem(`gankbyte-dismissed-notices:${userId}`) || "[]"); } catch { return []; }
@@ -109,6 +120,7 @@ async function loadProfile(session) {
     profileRejections.innerHTML = '<article class="content-card"><span class="status-badge">Private</span><h3>Sign in to view notices.</h3><p>Moderation feedback is visible only to the player who submitted it.</p></article>';
     if (profileChallenges) profileChallenges.innerHTML = '<article class="content-card"><span class="status-badge">Private</span><h3>Sign in to load challenges.</h3><p>Play a challenge, then return here to track the submission.</p></article>';
     if (profileXpHistory) profileXpHistory.innerHTML = '<tr><td colspan="4">Sign in to load your XP history.</td></tr>';
+    renderProfileBadges(0);
     return;
   }
   const name = profileUser.user_metadata?.global_name || profileUser.user_metadata?.full_name || "Discord player";
@@ -135,15 +147,16 @@ async function loadProfile(session) {
   const xpTotal = Number(xpResult.data?.xp_total || 0);
   profileXp.textContent = `${xpTotal.toLocaleString()} XP`;
   profileLevel.textContent = `Level ${profileLevelFor(xpTotal)}`;
+  renderProfileBadges(xpTotal);
   const arenaRows = arenaResult.data || [];
   const glitchRows = glitchResult.data || [];
   const approvedArenaRows = arenaRows.filter((row) => row.status !== "rejected");
   const approvedGlitchRows = glitchRows.filter((row) => row.status !== "rejected");
   const byteBest = approvedArenaRows.reduce((best, row) => Math.max(best, Number(row.score || 0)), 0);
   const glitchBest = approvedGlitchRows.reduce((best, row) => Math.max(best, Number(row.score || 0)), 0);
-  profileByteBest.textContent = byteBest ? byteBest.toLocaleString() : "—";
+  profileByteBest.textContent = byteBest ? byteBest.toLocaleString() : "-";
   profileByteRuns.textContent = `${approvedArenaRows.length} submitted run${approvedArenaRows.length === 1 ? "" : "s"}`;
-  profileGlitchBest.textContent = glitchBest ? glitchBest.toLocaleString() : "—";
+  profileGlitchBest.textContent = glitchBest ? glitchBest.toLocaleString() : "-";
   profileGlitchRuns.textContent = `${approvedGlitchRows.length} submitted run${approvedGlitchRows.length === 1 ? "" : "s"}`;
   renderHistory(approvedArenaRows, approvedGlitchRows);
   renderXpHistory(xpHistoryResult.data || []);

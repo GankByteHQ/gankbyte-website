@@ -59,6 +59,9 @@
 .game-result-actions .button{font-size:10px;padding:12px 14px}
 .page-status{border-left:2px solid var(--lime);color:var(--muted);font-size:13px;line-height:1.6;margin:22px 0 0;padding-left:16px}
 .profile-avatar{align-items:center;background:var(--lime);color:#0a0b0f;display:flex;font-size:18px;font-weight:800;height:48px;justify-content:center;letter-spacing:-.08em;margin-bottom:16px;transform:skew(-9deg);width:48px}
+.profile-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.profile-badges .xp-badge{border:1px solid var(--line);color:#77787c;font-size:9px;letter-spacing:.08em;padding:8px 10px;text-transform:uppercase}
+.profile-badges .xp-badge.is-earned{border-color:rgba(198,255,61,.55);color:var(--lime)}
 .site-footer a:focus-visible,.button:focus-visible,.text-link:focus-visible,.social-list a:focus-visible,.dashboard-link:focus-visible,.feature-card:focus-visible,.live-game-card a:focus-visible{outline:2px solid var(--lime);outline-offset:4px}
 button.button{appearance:none;border-radius:0;cursor:pointer;font:inherit}
 button.button-ghost{background:var(--surface);border:1px solid var(--line);color:var(--text)}

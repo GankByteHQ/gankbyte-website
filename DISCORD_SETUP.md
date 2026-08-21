@@ -2,11 +2,11 @@
 
 ## Minimum roles
 
-- `Admin` — owner and moderation access.
-- `Moderator` — rules, reports, and event support.
-- `Developer` — project and code discussion.
-- `Playtester` — testing and feedback.
-- `Community` — default member role.
+- `Admin` - owner and moderation access.
+- `Moderator` - rules, reports, and event support.
+- `Developer` - project and code discussion.
+- `Playtester` - testing and feedback.
+- `Community` - default member role.
 
 Keep administrator permissions limited to the owner. Give moderators only the permissions they need.
 

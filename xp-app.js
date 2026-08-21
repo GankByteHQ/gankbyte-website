@@ -15,6 +15,8 @@
   const level = $("xp-level");
   const adminLink = $("xp-admin-link");
   const leaderboardBody = $("leaderboard-body");
+  const challengeSelect = $("xp-challenge-select");
+  const badges = $("xp-badges");
   const contributionChallengeSlug = "community-contribution";
   let client = null;
   let currentUser = null;
@@ -36,6 +38,25 @@
     let current = 1;
     thresholds.forEach((threshold, index) => { if (value >= threshold) current = index + 1; });
     return String(current).padStart(2, "0");
+  }
+
+  function renderBadges(xp) {
+    if (!badges) return;
+    const earned = [
+      ["First signal", xp >= 100],
+      ["Playtester", xp >= 500],
+      ["Builder", xp >= 1500],
+      ["Core contributor", xp >= 3000]
+    ];
+    badges.innerHTML = earned.map(([label, active]) => `<span class="xp-badge${active ? " is-earned" : ""}">${active ? "Earned" : "Locked"} // ${label}</span>`).join("");
+  }
+
+  function renderChallengeOptions(challenges) {
+    if (!challengeSelect) return;
+    const current = challengeSelect.value || contributionChallengeSlug;
+    const rows = challenges?.length ? challenges : [{ slug: contributionChallengeSlug, title: "Community contribution" }];
+    challengeSelect.innerHTML = rows.map((challenge) => `<option value="${escapeHtml(challenge.slug)}">${escapeHtml(challenge.title)}</option>`).join("");
+    challengeSelect.value = rows.some((challenge) => challenge.slug === current) ? current : rows[0].slug;
   }
 
   function escapeHtml(value) {
@@ -120,6 +141,8 @@
       if (challengePanel) challengePanel.hidden = true;
       total.textContent = "0";
       level.textContent = "Level 01";
+      renderBadges(0);
+      renderChallengeOptions([]);
       return;
     }
 
@@ -147,6 +170,8 @@
     ensureChallengePanel().hidden = false;
     total.textContent = xp.toLocaleString();
     level.textContent = "Level " + levelForXp(xp);
+    renderBadges(xp);
+    renderChallengeOptions(challengesResult.data || []);
     renderSubmissionHistory(submissionsResult.data || []);
     renderChallengeProgress(challengesResult.data || [], submissionsResult.data || []);
     if (window.location.hash === "#xp-submit-panel" || sessionStorage.getItem("gankbyte-xp-submit") === "1") {
@@ -195,7 +220,8 @@
     if (!client || !currentUser) return;
     const proof = $("xp-proof").value.trim();
     const note = $("xp-note-input").value.trim();
-    const result = await client.from("challenge_submissions").insert({ user_id: currentUser.id, challenge_slug: contributionChallengeSlug, proof_url: proof, note: note || null });
+    const challengeSlug = challengeSelect?.value || contributionChallengeSlug;
+    const result = await client.from("challenge_submissions").insert({ user_id: currentUser.id, challenge_slug: challengeSlug, proof_url: proof, note: note || null });
     if (result.error) {
       const setupMessage = result.error.message.includes("challenge_submissions_challenge_slug_fkey") ? "XP setup is missing the Community Contribution challenge. An admin must run XP_MIGRATION_002.sql in Supabase." : result.error.message;
       setStatus(setupMessage, true);

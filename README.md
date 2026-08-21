@@ -13,23 +13,23 @@ This repository contains the public GankByte landing page. The site is a lightwe
 
 ## Public routes
 
-- `games.html` — live game library with personal and global bests
-- `arena-hub.html` — Arena dashboard and recent player results
-- `arena.html` — Byte Rush
-- `glitch-dash.html` — Glitch Dash
-- `profile.html` — personal runs, XP history, challenges, and moderation notes
-- `xp.html` — XP submission and public XP leaderboard
-- `developers.html` / `contributing.html` — project and contribution routes
-- `projects.html` — live games, systems, and public developer projects
-- `project-submit.html` — the public project proposal route and review stages
-- `resource-bench.html` — browser-only Lua/FiveM starter generator
+- `games.html` - live game library with personal and global bests
+- `arena-hub.html` - Arena dashboard and recent player results
+- `arena.html` - Byte Rush
+- `glitch-dash.html` - Glitch Dash
+- `profile.html` - personal runs, XP history, challenges, and moderation notes
+- `xp.html` - XP submission and public XP leaderboard
+- `developers.html` / `contributing.html` - project and contribution routes
+- `projects.html` - live games, systems, and public developer projects
+- `project-submit.html` - the public project proposal route and review stages
+- `resource-bench.html` - browser-only Lua, FiveM, Python, Java, web, Minecraft, RuneLite, and SQL starter generator
 
 ## Developer workflow
 
-- [`CONTRIBUTING.md`](CONTRIBUTING.md) — pull request and issue guidance
-- [`DEVELOPER_WORKFLOW.md`](DEVELOPER_WORKFLOW.md) — proposal stages and showcase requirements
-- [`PROJECT_RULES.md`](PROJECT_RULES.md) — ownership, licensing, safety, and scope rules
-- [`LICENSE`](LICENSE) — website code and asset rights notice
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) - pull request and issue guidance
+- [`DEVELOPER_WORKFLOW.md`](DEVELOPER_WORKFLOW.md) - proposal stages and showcase requirements
+- [`PROJECT_RULES.md`](PROJECT_RULES.md) - ownership, licensing, safety, and scope rules
+- [`LICENSE`](LICENSE) - website code and asset rights notice
 
 ## Local test
 

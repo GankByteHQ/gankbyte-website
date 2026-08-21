@@ -12,6 +12,7 @@ create table if not exists public.profiles (
 create table if not exists public.challenges (
   slug text primary key,
   title text not null,
+  category text not null default 'community',
   base_xp integer not null check (base_xp > 0),
   bonus_xp integer not null default 0 check (bonus_xp >= 0),
   active boolean not null default true,
@@ -93,13 +94,21 @@ create table if not exists public.arena_events (
 update public.arena_scores set status = 'approved' where status = 'pending';
 update public.glitch_dash_scores set status = 'approved' where status = 'pending';
 
-insert into public.challenges (slug, title, base_xp, bonus_xp)
-values ('weekend-challenge-001', 'Weekend Challenge #001', 100, 500)
-on conflict (slug) do update set title = excluded.title, base_xp = excluded.base_xp, bonus_xp = excluded.bonus_xp;
+insert into public.challenges (slug, title, category, base_xp, bonus_xp)
+values ('weekend-challenge-001', 'Weekend Challenge #001', 'play', 100, 500)
+on conflict (slug) do update set title = excluded.title, category = excluded.category, base_xp = excluded.base_xp, bonus_xp = excluded.bonus_xp;
 
-insert into public.challenges (slug, title, base_xp, bonus_xp)
-values ('community-contribution', 'Community Contribution', 100, 500)
-on conflict (slug) do update set title = excluded.title, base_xp = excluded.base_xp, bonus_xp = excluded.bonus_xp, active = true;
+insert into public.challenges (slug, title, category, base_xp, bonus_xp)
+values ('community-contribution', 'Community Contribution', 'community', 100, 500)
+on conflict (slug) do update set title = excluded.title, category = excluded.category, base_xp = excluded.base_xp, bonus_xp = excluded.bonus_xp, active = true;
+
+insert into public.challenges (slug, title, category, base_xp, bonus_xp)
+values
+  ('play-and-improve', 'Play and improve', 'play', 100, 250),
+  ('useful-bug-report', 'Useful bug report', 'help', 100, 300),
+  ('creative-contribution', 'Creative contribution', 'create', 100, 400),
+  ('ship-a-project', 'Ship a project', 'build', 250, 750)
+on conflict (slug) do update set title = excluded.title, category = excluded.category, base_xp = excluded.base_xp, bonus_xp = excluded.bonus_xp, active = true;
 
 insert into public.arena_events (slug, title, game, description, rules_url, status)
 values ('weekend-challenge-001', 'Weekend Challenge #001', 'Byte Rush', 'Chase the highest Byte Rush score, share proof, and help test the first Arena event.', 'https://gankbyte.com/community.html', 'live')

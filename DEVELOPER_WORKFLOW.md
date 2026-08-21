@@ -27,12 +27,12 @@ Do not submit proprietary game files, copied characters, official logos, private
 
 Project proposals are reviewed in this order:
 
-- **Received** — awaiting triage.
-- **Needs information** — scope, ownership, licence, or first-version plan needs clarification.
-- **Accepted for exploration** — the idea fits the project and can be discussed or prototyped.
-- **Building** — a public repository, branch, or playable proof exists.
-- **Showcase candidate** — the project is testable, documented, and ready for a public project page.
-- **Closed** — the proposal is paused, declined, or completed without a current showcase.
+- **Received** - awaiting triage.
+- **Needs information** - scope, ownership, licence, or first-version plan needs clarification.
+- **Accepted for exploration** - the idea fits the project and can be discussed or prototyped.
+- **Building** - a public repository, branch, or playable proof exists.
+- **Showcase candidate** - the project is testable, documented, and ready for a public project page.
+- **Closed** - the proposal is paused, declined, or completed without a current showcase.
 
 Acceptance is not a promise of funding, employment, partnership, or publication. GankByte may request changes or close a proposal when it is out of scope, legally unclear, unsafe, or not testable.
 

@@ -24,6 +24,9 @@
 .xp-score-panel span{color:var(--muted);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
 .xp-status{color:var(--lime)!important;font-size:12px!important;margin:18px 0 0!important}
 .xp-status.is-error{color:#ff8e8e!important}
+.xp-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.xp-badge{border:1px solid var(--line);color:#77787c;font-size:9px;letter-spacing:.08em;padding:8px 10px;text-transform:uppercase}
+.xp-badge.is-earned{border-color:rgba(198,255,61,.55);color:var(--lime)}
 .xp-submit-panel{align-items:start;display:grid;gap:40px;grid-template-columns:1fr 1fr;margin-top:14px}
 .xp-submit-panel h3{font-size:28px;letter-spacing:-.05em;margin:0 0 10px}
 .xp-submit-panel form{display:grid;gap:8px}

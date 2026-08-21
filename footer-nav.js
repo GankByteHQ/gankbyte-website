@@ -124,6 +124,8 @@
     ["profile.html", "Profile"],
     ["account.html", "Account"],
     ["challenges.html", "Challenges"],
+    ["contributing.html", "Contribute"],
+    ["project-submit.html", "Submit a project"],
     ["brand.html", "Brand"],
     ["contact.html", "Contact"],
     ["rules.html", "Rules"],

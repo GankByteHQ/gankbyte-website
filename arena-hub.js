@@ -3,7 +3,7 @@
   const config = window.GANKBYTE_XP_CONFIG || {};
   const $ = (id) => document.getElementById(id);
   const format = (value) => Number(value || 0).toLocaleString();
-  const date = (value) => value ? new Date(value).toLocaleDateString(undefined, { day: "2-digit", month: "short" }) : "—";
+  const date = (value) => value ? new Date(value).toLocaleDateString(undefined, { day: "2-digit", month: "short" }) : "-";
   const recent = $("hub-recent-results");
   const status = $("hub-status");
   if (!config.supabaseUrl || !config.supabasePublishableKey || !window.supabase) {

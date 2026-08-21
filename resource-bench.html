@@ -4,17 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#090b10" />
-    <meta name="description" content="GankByte Resource Bench generates complete, readable Lua and FiveM starter projects locally in your browser." />
+    <meta name="description" content="GankByte Resource Bench generates readable Lua, FiveM, Python, Java, web, Minecraft, and SQL starter projects locally in your browser." />
     <link rel="canonical" href="https://gankbyte.com/resource-bench.html" />
     <meta property="og:title" content="Resource Bench - GankByte" />
-    <meta property="og:description" content="Generate complete Lua and FiveM starter projects locally in your browser." />
+    <meta property="og:description" content="Generate readable Lua, FiveM, Python, Java, web, Minecraft, and SQL starter projects locally in your browser." />
     <meta property="og:url" content="https://gankbyte.com/resource-bench.html" />
     <meta property="og:site_name" content="GankByte" />
     <meta property="og:image" content="https://gankbyte.com/gankbyte-og.png" />
     <meta property="og:image:alt" content="GankByte - Gaming. Memes. Code." />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Resource Bench - GankByte" />
-    <meta name="twitter:description" content="Generate complete Lua and FiveM starter projects locally in your browser." />
+    <meta name="twitter:description" content="Generate readable Lua, FiveM, Python, Java, web, Minecraft, and SQL starter projects locally in your browser." />
     <meta name="twitter:image" content="https://gankbyte.com/gankbyte-og.png" />
     <title>Resource Bench // GankByte</title>
     <link rel="stylesheet" href="resource-bench.css" />
@@ -35,7 +35,7 @@
         <div>
           <p class="eyebrow"><span class="status-dot"></span> GANKBYTE LABS // DEVELOPER TOOL</p>
           <h1>Build a resource.<br /><em>Ship the useful version.</em></h1>
-          <p class="lede">Resource Bench turns a small idea into a clean, readable Lua or FiveM starter project. Pick a preset, tune the files, and inspect the result before you ship it.</p>
+          <p class="lede">Resource Bench turns a small idea into a clean, readable starter project for Lua, FiveM, Python, Java, web tools, Minecraft, or SQL. Pick a preset, tune the files, and inspect the result before you ship it.</p>
         </div>
         <div class="hero-note" aria-label="Project principle">
           <span class="hero-note-label">THE RULE</span>
@@ -75,6 +75,17 @@
                 <option value="lua-module">Lua module</option>
                 <option value="lua-config">Lua configuration package</option>
                 <option value="test-harness">Lua test harness</option>
+              </optgroup>
+              <optgroup label="Python and web">
+                <option value="python-cli">Python utility</option>
+                <option value="javascript-cli">JavaScript tool</option>
+                <option value="typescript-cli">TypeScript tool</option>
+              </optgroup>
+              <optgroup label="Java and data">
+                <option value="java-app">Java desktop/app starter</option>
+                <option value="minecraft-plugin">Minecraft plugin starter</option>
+                <option value="runelite-plugin">RuneLite plugin starter</option>
+                <option value="sql-migration">SQL migration starter</option>
               </optgroup>
             </select>
 
@@ -126,6 +137,18 @@
               <div class="field-grid"><div><label for="fx-version">FX version</label><input id="fx-version" value="cerulean" /></div><div><label for="dependencies-summary">Dependencies</label><input id="dependencies-summary" value="Use project options above" disabled /></div></div>
             </fieldset>
 
+            <fieldset id="language-options" hidden>
+              <legend>Language settings</legend>
+              <div class="language-field" data-language-field="python"><label for="python-version">Python version</label><input id="python-version" value="3.11" /></div>
+              <div class="language-field" data-language-field="node"><label for="node-version">Node version</label><input id="node-version" value="20" /></div>
+              <div class="field-grid language-field" data-language-field="java"><div><label for="java-version">Java version</label><input id="java-version" value="21" /></div><div><label for="package-name">Java package</label><input id="package-name" value="com.gankbyte.demo" /></div></div>
+              <div class="language-field" data-language-field="java"><label for="class-name">Main class</label><input id="class-name" value="Main" /></div>
+              <div class="language-field" data-language-field="minecraft"><label for="minecraft-api">Minecraft API version</label><input id="minecraft-api" value="1.21" placeholder="1.21" /></div>
+              <div class="language-field" data-language-field="runelite"><label for="runelite-api">RuneLite API version</label><input id="runelite-api" value="1.11.10" placeholder="1.11.10" /></div>
+              <div class="language-field" data-language-field="sql"><label for="sql-engine">SQL engine</label><select id="sql-engine"><option value="postgresql">PostgreSQL / Supabase</option><option value="sqlite">SQLite</option><option value="mysql">MySQL</option></select></div>
+              <div class="language-field" data-language-field="sql"><label for="table-name">Table name</label><input id="table-name" value="example_records" /></div>
+            </fieldset>
+
             <div class="action-row">
               <button class="button primary" type="submit">Generate project <span>-&gt;</span></button>
               <button class="button ghost" id="reset-button" type="button">Reset</button>
@@ -135,24 +158,25 @@
         </div>
 
         <div class="panel output-panel">
-          <div class="panel-heading output-heading"><div><p class="eyebrow">02 // REVIEW</p><h2>See the build.</h2></div><div class="output-actions"><button class="button ghost" id="copy-button" type="button">Copy file</button><button class="button ghost" id="copy-bundle-button" type="button">Copy bundle</button><button class="button ghost" id="download-file-button" type="button">Download file</button><button class="button primary" id="download-button" type="button">Download bundle</button></div></div>
+          <div class="panel-heading output-heading"><div><p class="eyebrow">02 // REVIEW</p><h2>See the build.</h2></div><div class="output-actions"><button class="button ghost" id="copy-button" type="button">Copy file</button><button class="button ghost" id="copy-bundle-button" type="button">Copy bundle</button><button class="button ghost" id="download-file-button" type="button">Download file</button><button class="button ghost" id="download-zip-button" type="button">Download ZIP</button><button class="button primary" id="download-button" type="button">Download bundle</button></div></div>
           <div class="file-layout">
             <div class="file-list-wrap">
               <p class="file-list-label">GENERATED FILES</p>
+              <label class="visually-hidden" for="file-filter">Filter generated files</label><input class="file-filter" id="file-filter" type="search" placeholder="Filter files..." />
               <div class="file-list" id="file-list" role="listbox" aria-label="Generated files"></div>
             </div>
             <div class="code-wrap"><div class="code-top"><span id="selected-file">fxmanifest.lua</span><span id="file-language">LUA</span></div><pre><code id="file-content" tabindex="0"></code></pre></div>
           </div>
           <div class="quality-strip" id="quality-strip" aria-live="polite"></div>
-          <p class="output-help">The bundle downloads as a readable text archive so you can review it before placing files in a real project.</p>
+          <p class="output-help">Review each file, copy one file, download a readable text bundle, or download a ZIP ready to open in a real project.</p>
         </div>
       </section>
 
       <section class="principles" aria-labelledby="principles-title">
-        <div class="section-heading"><div><p class="eyebrow">03 // HANDOFF</p><h2 id="principles-title">Keep the good bits.</h2></div><p class="lede">Resource Bench is a starting point, not a claim that the resource is finished. Read the generated files, test them, and own the next step.</p></div>
+          <div class="section-heading"><div><p class="eyebrow">03 // HANDOFF</p><h2 id="principles-title">Keep the good bits.</h2></div><p class="lede">Resource Bench is a starting point, not a claim that the project is finished. Read the generated files, test them, and own the next step.</p></div>
         <div class="principle-grid">
-          <article><span>01</span><h3>Choose a shape</h3><p>Start with a plain resource, NUI interface, command, map, Lua module, config package, or test harness.</p></article>
-          <article><span>02</span><h3>Inspect every file</h3><p>Generated manifests, events, commands, exports, UI files, README, tests, and configuration stay visible before download.</p></article>
+          <article><span>01</span><h3>Choose a shape</h3><p>Start with FiveM, Lua, Python, JavaScript, TypeScript, Java, Minecraft, SQL, or a focused test harness.</p></article>
+          <article><span>02</span><h3>Inspect every file</h3><p>Generated source, manifests, build files, migrations, UI files, README, tests, and configuration stay visible before download.</p></article>
           <article><span>03</span><h3>No hidden services</h3><p>Everything runs locally in the browser. The tool does not send your resource name, code, or files anywhere.</p></article>
         </div>
       </section>
