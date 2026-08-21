@@ -51,3 +51,9 @@ A project is ready to be showcased only when it has:
 ## 5. Contribution expectations
 
 Keep pull requests small and explain the player or developer problem they solve. Preserve the existing licence and credit third-party work. Do not add token promotion, financial claims, copied game assets, secrets, or unrelated rewrites to a project contribution.
+
+## 6. From proposal to public project
+
+When a proposal is accepted for exploration, the maintainer should create or nominate a focused repository, add a README, licence, contribution guide, security contact, and issue forms, then link a working proof from the GankByte project board. The project page must label whether the build is live, experimental, or still being prepared.
+
+Resource Bench is the reference implementation of this workflow: it is a separate MIT-licensed repository, has local-only privacy boundaries, issue forms, a responsive interface, and a live demo at <https://gankbyte.com/resource-bench.html>.

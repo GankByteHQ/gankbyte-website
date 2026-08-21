@@ -16,21 +16,21 @@
   const account = document.createElement("div");
   account.className = "site-account";
   account.innerHTML = `
-    <button class="header-cta site-account-trigger" id="site-account-trigger" type="button" aria-expanded="false">
+    <button class="header-cta site-account-trigger" id="site-account-trigger" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="site-account-menu">
       <span class="site-account-avatar" id="site-account-avatar">GB</span>
       <span id="site-account-trigger-label">Sign in with Discord</span>
       <span class="site-account-chevron" aria-hidden="true">&#9662;</span>
     </button>
     <div class="site-account-menu" id="site-account-menu" hidden>
       <div class="site-account-summary"><span class="site-account-avatar site-account-avatar-large" id="site-account-menu-avatar">GB</span><div><strong id="site-account-name">GankByte account</strong><small id="site-account-subtitle">Discord account</small></div></div>
-      <div class="site-account-links">
-        <a href="profile.html">Profile</a>
-        <a href="xp.html">XP</a>
-        <a href="challenges.html">Challenges</a>
-        <a href="account.html">Account</a>
-        <a href="xp-admin.html" id="site-account-admin" hidden>Admin Dashboard</a>
+      <div class="site-account-links" role="menu">
+        <a role="menuitem" href="profile.html">Profile</a>
+        <a role="menuitem" href="xp.html">XP</a>
+        <a role="menuitem" href="challenges.html">Challenges</a>
+        <a role="menuitem" href="account.html">Account</a>
+        <a role="menuitem" href="xp-admin.html" id="site-account-admin" hidden>Admin Dashboard</a>
       </div>
-      <button class="site-account-item site-account-signout" id="site-account-signout" type="button">Sign out</button>
+      <button class="site-account-item site-account-signout" id="site-account-signout" type="button" role="menuitem">Sign out</button>
     </div>`;
   headerCta.replaceWith(account);
 
@@ -60,7 +60,13 @@
   function displayName(user, profile) { return profile?.display_name || user?.user_metadata?.global_name || user?.user_metadata?.full_name || user?.user_metadata?.name || "GankByte Player"; }
   function initials(name) { return String(name || "GB").split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "GB"; }
   function closeMenu() { menu.hidden = true; trigger.setAttribute("aria-expanded", "false"); }
-  function openMenu() { if (!currentUser) return; menu.hidden = false; trigger.setAttribute("aria-expanded", "true"); }
+  function menuItems() { return [...menu.querySelectorAll('[role="menuitem"]')].filter((item) => !item.hidden); }
+  function openMenu(focusFirst = false) {
+    if (!currentUser) return;
+    menu.hidden = false;
+    trigger.setAttribute("aria-expanded", "true");
+    if (focusFirst) window.setTimeout(() => menuItems()[0]?.focus(), 0);
+  }
   function loadScript(src) {
     return new Promise((resolve, reject) => {
       const existing = document.querySelector(`script[src="${src}"]`);
@@ -159,6 +165,24 @@
   }
 
   trigger.addEventListener("click", () => { if (currentUser && menu.hidden) openMenu(); else if (currentUser) closeMenu(); else signIn(); });
+  trigger.addEventListener("keydown", (event) => {
+    if (!currentUser) return;
+    if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openMenu(true);
+    }
+  });
+  menu.addEventListener("keydown", (event) => {
+    const items = menuItems();
+    const index = items.indexOf(document.activeElement);
+    if (event.key === "Escape") { event.preventDefault(); closeMenu(); trigger.focus(); return; }
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      const next = event.key === "ArrowDown" ? (index + 1) % items.length : (index - 1 + items.length) % items.length;
+      items[next]?.focus();
+    } else if (event.key === "Home") { event.preventDefault(); items[0]?.focus(); }
+    else if (event.key === "End") { event.preventDefault(); items[items.length - 1]?.focus(); }
+  });
   signout.addEventListener("click", async () => { if (!client) return; await client.auth.signOut(); closeMenu(); });
   mobileAuth?.addEventListener("click", async () => { if (currentUser) { if (client) await client.auth.signOut(); } else signIn(); });
   document.addEventListener("click", (event) => { if (!account.contains(event.target)) closeMenu(); });

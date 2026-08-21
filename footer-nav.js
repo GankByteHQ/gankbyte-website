@@ -25,10 +25,11 @@
   if (header && mainNav && !header.querySelector(".mobile-nav-toggle")) {
     const page = window.location.pathname.split("/").pop() || "index.html";
     const activePage = page === "arena.html" || page === "glitch-dash.html" || page === "arena-hub.html" ? "arena-hub.html"
-      : page === "projects.html" || page === "contributing.html" ? "developers.html"
+      : page === "projects.html" || page === "contributing.html" || page === "project-submit.html" ? "developers.html"
       : page === "challenges.html" ? "community.html"
       : page === "xp-admin.html" ? "xp.html"
       : page;
+    mainNav.querySelectorAll("a[aria-current]").forEach((link) => link.removeAttribute("aria-current"));
     mainNav.querySelectorAll("a").forEach((link) => {
       if (link.getAttribute("href") === activePage) link.setAttribute("aria-current", "page");
     });

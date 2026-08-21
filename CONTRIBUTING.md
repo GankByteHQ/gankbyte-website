@@ -10,6 +10,8 @@ Read the [developer workflow](DEVELOPER_WORKFLOW.md), then choose the smallest a
 - [Request a feature](https://github.com/GankByteHQ/gankbyte-website/issues/new?template=feature_request.yml)
 - [Propose a project](https://github.com/GankByteHQ/gankbyte-website/issues/new?template=project_proposal.yml)
 
+The guided project route is [Submit a project](https://gankbyte.com/project-submit.html). Use it to understand the required brief, proof, ownership, and review stages before opening the proposal issue.
+
 ## Pull requests
 
 1. Keep the change focused and explain the player or developer problem it solves.
@@ -23,3 +25,7 @@ Read the [developer workflow](DEVELOPER_WORKFLOW.md), then choose the smallest a
 Small, testable work is preferred. GankByte may request a narrower first version, ownership/licence clarification, or a public proof before accepting a project for showcase.
 
 For private matters, contact `contact@gankbyte.com`. For community discussion, use [Discord](https://discord.gg/CpWjZkjtjJ).
+
+## Current reference project
+
+[Resource Bench](https://gankbyte.com/resource-bench.html) shows the expected standard for a small public developer project: clear scope, local-first behaviour, responsive accessibility, a licence, issue forms, and honest limitations.

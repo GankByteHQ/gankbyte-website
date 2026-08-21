@@ -100,6 +100,7 @@
     const result = await client.from("xp_leaderboard").select("display_name,xp_total").order("xp_total", { ascending: false }).limit(25);
     if (result.error) {
       leaderboardBody.innerHTML = '<tr><td colspan="4">The leaderboard is not available yet.</td></tr>';
+      setStatus("The XP leaderboard is temporarily unavailable.", true);
       return;
     }
     renderLeaderboard(result.data);
@@ -123,6 +124,7 @@
     }
 
     const profileResult = await client.from("profiles").select("display_name,is_admin").eq("id", user.id).maybeSingle();
+    if (profileResult.error) { setStatus("Your profile could not be loaded. Try refreshing shortly.", true); return; }
     const profile = profileResult.data || {};
     const displayName = profile.display_name || user.user_metadata?.global_name || user.user_metadata?.full_name || "GankByte Player";
     const [ledgerResult, submissionsResult, challengesResult] = await Promise.all([
@@ -130,6 +132,8 @@
       client.from("challenge_submissions").select("challenge_slug,status,reviewer_note,created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(25),
       client.from("challenges").select("slug,title,base_xp,bonus_xp").eq("active", true).order("created_at", { ascending: true })
     ]);
+    const accountError = [ledgerResult, submissionsResult, challengesResult].find((result) => result?.error);
+    if (accountError) setStatus("Some XP account data is temporarily unavailable. Try refreshing shortly.", true);
     const xp = (ledgerResult.data || []).reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
     setBadge("Discord connected");

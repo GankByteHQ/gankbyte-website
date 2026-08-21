@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#090b10" />
+    <meta name="description" content="GankByte Resource Bench generates clean starter files for small Lua and FiveM resources." />
+    <link rel="canonical" href="https://gankbyte.com/resource-bench.html" />
+    <meta property="og:title" content="Resource Bench - GankByte" />
+    <meta property="og:description" content="Generate readable Lua and FiveM starter files locally in your browser." />
+    <meta property="og:url" content="https://gankbyte.com/resource-bench.html" />
+    <meta property="og:site_name" content="GankByte" />
+    <meta property="og:image" content="https://gankbyte.com/gankbyte-og.png" />
+    <meta property="og:image:alt" content="GankByte - Gaming. Memes. Code." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Resource Bench - GankByte" />
+    <meta name="twitter:description" content="Generate readable Lua and FiveM starter files locally in your browser." />
+    <meta name="twitter:image" content="https://gankbyte.com/gankbyte-og.png" />
+    <title>Resource Bench // GankByte</title>
+    <link rel="stylesheet" href="resource-bench.css?v=1" />
+  </head>
+  <body>
+    <a class="skip-link" href="#bench">Skip to builder</a>
+    <header class="site-header">
+      <a class="brand" href="https://gankbyte.com" aria-label="GankByte home"><span class="brand-mark">GB</span><span>RESOURCE BENCH</span></a>
+      <nav aria-label="Project links">
+        <a href="https://gankbyte.com/developers.html">GankByte Labs</a>
+        <a href="https://github.com/GankByteHQ/gankbyte-resource-bench">Source</a>
+      </nav>
+    </header>
+
+    <main id="bench">
+      <section class="hero">
+        <div>
+          <p class="eyebrow"><span class="status-dot"></span> GANKBYTE LABS // DEVELOPER TOOL</p>
+          <h1>Build a resource.<br /><em>Ship the useful version.</em></h1>
+          <p class="lede">Resource Bench turns a small idea into a clean, readable Lua or FiveM starter bundle. No account, token, upload, or framework lock-in.</p>
+        </div>
+        <div class="hero-note" aria-label="Project principle">
+          <span class="hero-note-label">THE RULE</span>
+          <strong>Start small.<br />Make it testable.</strong>
+          <span>Generated files stay in your browser until you download or copy them.</span>
+        </div>
+      </section>
+
+      <section class="builder-grid" aria-labelledby="builder-title">
+        <div class="panel settings-panel">
+          <div class="panel-heading"><p class="eyebrow">01 // CONFIGURE</p><h2 id="builder-title">Give it a shape.</h2></div>
+          <form id="resource-form">
+            <label for="resource-name">Resource name <span>lowercase + underscores</span></label>
+            <input id="resource-name" name="resourceName" value="gankbyte_demo" autocomplete="off" spellcheck="false" required />
+            <p class="field-help">Use a name you could safely use as a folder or resource identifier.</p>
+
+            <label for="resource-author">Author or team</label>
+            <input id="resource-author" name="author" value="GankByte Community" autocomplete="organization" />
+
+            <label for="resource-description">What does it do?</label>
+            <textarea id="resource-description" name="description" rows="3" maxlength="180">A small, testable resource starter.</textarea>
+
+            <label for="resource-template">Starter type</label>
+            <select id="resource-template" name="template">
+              <option value="fivem">FiveM resource</option>
+              <option value="lua-module">Lua module</option>
+              <option value="test-harness">Lua test harness</option>
+            </select>
+
+            <fieldset id="file-options">
+              <legend>Include files</legend>
+              <label class="check-row"><input id="include-client" type="checkbox" checked /> <span>Client script</span><small>client/main.lua</small></label>
+              <label class="check-row"><input id="include-server" type="checkbox" checked /> <span>Server script</span><small>server/main.lua</small></label>
+              <label class="check-row"><input id="include-shared" type="checkbox" checked /> <span>Shared config</span><small>shared/config.lua</small></label>
+            </fieldset>
+
+            <div class="action-row">
+              <button class="button primary" type="submit">Generate files <span>→</span></button>
+              <button class="button ghost" id="reset-button" type="button">Reset</button>
+            </div>
+          </form>
+          <p class="status" id="form-status" role="status" aria-live="polite"></p>
+        </div>
+
+        <div class="panel output-panel">
+          <div class="panel-heading output-heading"><div><p class="eyebrow">02 // REVIEW</p><h2>See the build.</h2></div><div class="output-actions"><button class="button ghost" id="copy-button" type="button">Copy file</button><button class="button primary" id="download-button" type="button">Download bundle</button></div></div>
+          <div class="file-layout">
+            <div class="file-list-wrap">
+              <p class="file-list-label">GENERATED FILES</p>
+              <div class="file-list" id="file-list" role="listbox" aria-label="Generated files"></div>
+            </div>
+            <div class="code-wrap"><div class="code-top"><span id="selected-file">fxmanifest.lua</span><span id="file-language">LUA</span></div><pre><code id="file-content" tabindex="0"></code></pre></div>
+          </div>
+          <div class="quality-strip" id="quality-strip" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section class="principles" aria-labelledby="principles-title">
+        <div class="section-heading"><div><p class="eyebrow">03 // HANDOFF</p><h2 id="principles-title">Keep the good bits.</h2></div><p class="lede">Resource Bench is a starting point, not a claim that the resource is finished. Read the generated files, test them, and own the next step.</p></div>
+        <div class="principle-grid">
+          <article><span>01</span><h3>Readable first</h3><p>The generated structure is deliberately obvious so a new contributor can find the client, server, shared, and test code.</p></article>
+          <article><span>02</span><h3>No hidden services</h3><p>Everything runs locally in the browser. The tool does not send your resource name, code, or files anywhere.</p></article>
+          <article><span>03</span><h3>Licence it clearly</h3><p>Add your own licence and third-party notices before publishing a resource or accepting contributions.</p></article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer"><span>GANKBYTE // GAMING. MEMES. CODE.</span><a href="https://gankbyte.com/rules.html">Rules</a><a href="https://gankbyte.com/privacy.html">Privacy</a><span>© 2026 GankByte Labs</span></footer>
+    <script src="resource-bench.js?v=1"></script>
+  </body>
+</html>

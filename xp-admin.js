@@ -29,6 +29,7 @@
 
   function message(text, error) { status.textContent = text || ""; status.classList.toggle("is-error", Boolean(error)); }
   function escapeHtml(value) { return String(value || "").replace(/[&<>'"]/g, (character) => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[character])); }
+  function safeProofUrl(value) { try { const url = new URL(String(value || ""), window.location.href); return ["http:", "https:"].includes(url.protocol) ? url.href : ""; } catch { return ""; } }
   function setBadge(text, planned) { badge.textContent = text; badge.className = "status-badge" + (planned ? " planned" : ""); }
 
   function openRejectDialog(kind, event) {
@@ -57,7 +58,7 @@
     const ids = [...new Set(result.data.map((item) => item.user_id))];
     const profiles = await client.from("profiles").select("id,display_name").in("id", ids);
     const names = Object.fromEntries((profiles.data || []).map((item) => [item.id, item.display_name]));
-    list.innerHTML = result.data.map((item) => { const challenge = item.challenge_slug === "community-contribution" ? "Community Contribution" : item.challenge_slug; return '<article class="admin-submission" data-id="' + item.id + '"><div><span class="status-badge">Pending</span><h3>' + escapeHtml(names[item.user_id] || "GankByte Player") + '</h3><p><strong>' + escapeHtml(challenge) + '</strong> // ' + escapeHtml(item.note || "No note provided.") + '</p><a href="' + escapeHtml(item.proof_url) + '" target="_blank" rel="noreferrer">Open proof &nearr;</a></div><div class="admin-actions"><label>Award<select class="award-amount"><option value="100">+100 XP</option><option value="500">+500 XP</option></select></label><button class="button button-primary approve-button" type="button">Approve</button><button class="button button-ghost reject-button" type="button">Reject</button></div></article>'; }).join("");
+    list.innerHTML = result.data.map((item) => { const challenge = item.challenge_slug === "community-contribution" ? "Community Contribution" : item.challenge_slug; const proofUrl = safeProofUrl(item.proof_url); const proof = proofUrl ? '<a href="' + escapeHtml(proofUrl) + '" target="_blank" rel="noreferrer">Open proof &nearr;</a>' : '<span class="section-copy">No valid proof link supplied.</span>'; return '<article class="admin-submission" data-id="' + item.id + '"><div><span class="status-badge">Pending</span><h3>' + escapeHtml(names[item.user_id] || "GankByte Player") + '</h3><p><strong>' + escapeHtml(challenge) + '</strong> // ' + escapeHtml(item.note || "No note provided.") + '</p>' + proof + '</div><div class="admin-actions"><label>Award<select class="award-amount"><option value="100">+100 XP</option><option value="500">+500 XP</option></select></label><button class="button button-primary approve-button" type="button">Approve</button><button class="button button-ghost reject-button" type="button">Reject</button></div></article>'; }).join("");
     document.querySelectorAll(".approve-button").forEach((button) => button.addEventListener("click", approve));
     document.querySelectorAll(".reject-button").forEach((button) => button.addEventListener("click", (event) => openRejectDialog("submission", event)));
   }
@@ -128,8 +129,9 @@
 
   async function refreshQueues() {
     refresh.disabled = true;
-    await Promise.all([loadSubmissions(), loadArenaScores(), loadGlitchScores()]);
-    refresh.disabled = false;
+    try { await Promise.all([loadSubmissions(), loadArenaScores(), loadGlitchScores()]); }
+    catch (error) { message(error?.message || "Could not refresh the review queues.", true); }
+    finally { refresh.disabled = false; }
   }
 
   async function loadSession(session) {
@@ -142,6 +144,7 @@
       return;
     }
     const profile = await client.from("profiles").select("display_name,is_admin").eq("id", currentUser.id).maybeSingle();
+    if (profile.error) { setBadge("Admin check unavailable", true); title.textContent = "Admin check failed"; copy.textContent = profile.error.message; login.hidden = true; refresh.hidden = true; logout.hidden = false; submissions.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; return; }
     if (!profile.data || !profile.data.is_admin) {
       setBadge("Access denied", true); title.textContent = "Not an admin"; copy.textContent = "This Discord account is not marked as a GankByte admin."; login.hidden = true; refresh.hidden = true; logout.hidden = false; submissions.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; return;
     }
