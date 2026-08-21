@@ -56,4 +56,4 @@ Keep pull requests small and explain the player or developer problem they solve.
 
 When a proposal is accepted for exploration, the maintainer should create or nominate a focused repository, add a README, licence, contribution guide, security contact, and issue forms, then link a working proof from the GankByte project board. The project page must label whether the build is live, experimental, or still being prepared.
 
-Resource Bench is the reference implementation of this workflow: its standalone MIT-licensed source is prepared, it has local-only privacy boundaries, issue forms, a responsive interface, and a live demo at <https://gankbyte.com/resource-bench.html>.
+Resource Bench is the reference implementation of this workflow: it is a standalone MIT-licensed public repository, has local-only privacy boundaries, issue forms, a responsive interface, and a live demo at <https://gankbyte.com/resource-bench.html>.
