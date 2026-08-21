@@ -23,6 +23,7 @@ This repository contains the public GankByte landing page. The site is a lightwe
 - `projects.html` - live games, systems, and public developer projects
 - `project-submit.html` - the public project proposal route and review stages
 - `resource-bench.html` - browser-only Lua, FiveM, Python, Java, web, Minecraft, RuneLite, and SQL starter generator
+- `changelog.html` - dated release notes for shipped changes
 
 ## Developer workflow
 
@@ -30,6 +31,7 @@ This repository contains the public GankByte landing page. The site is a lightwe
 - [`DEVELOPER_WORKFLOW.md`](DEVELOPER_WORKFLOW.md) - proposal stages and showcase requirements
 - [`PROJECT_RULES.md`](PROJECT_RULES.md) - ownership, licensing, safety, and scope rules
 - [`LICENSE`](LICENSE) - website code and asset rights notice
+- `XP_MIGRATION_003.sql` and `XP_MIGRATION_004_ARENA_VNEXT.sql` - Supabase migrations for XP categories and verified Arena/event data
 
 ## Local test
 

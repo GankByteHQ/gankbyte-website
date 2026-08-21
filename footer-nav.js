@@ -3,9 +3,9 @@
   if (!footer) return;
 
   if (!document.querySelector('link[data-site-shell-style]')) {
-    const style = document.createElement("link");
+  const style = document.createElement("link");
     style.rel = "stylesheet";
-    style.href = "site-shell.css?v=4";
+    style.href = "site-shell.css?v=5";
     style.dataset.siteShellStyle = "true";
     document.head.append(style);
   }
@@ -126,7 +126,8 @@
     ["challenges.html", "Challenges"],
     ["contributing.html", "Contribute"],
     ["project-submit.html", "Submit a project"],
-    ["brand.html", "Brand"],
+      ["brand.html", "Brand"],
+      ["changelog.html", "Changelog"],
     ["contact.html", "Contact"],
     ["rules.html", "Rules"],
     ["privacy.html", "Privacy"],
@@ -147,13 +148,13 @@
   if (!document.querySelector('link[data-site-auth-style]')) {
     const style = document.createElement("link");
     style.rel = "stylesheet";
-    style.href = "site-auth.css?v=4";
+    style.href = "site-auth.css?v=5";
     style.dataset.siteAuthStyle = "true";
     document.head.append(style);
   }
   if (!document.querySelector('script[data-site-auth]')) {
     const script = document.createElement("script");
-    script.src = "site-auth.js?v=5";
+    script.src = "site-auth.js?v=6";
     script.dataset.siteAuth = "true";
     document.body.append(script);
   }

@@ -17,6 +17,12 @@ const dashLogin = document.querySelector("#dash-login");
 const dashLogout = document.querySelector("#dash-logout");
 const dashLeaderboardBody = document.querySelector("#dash-leaderboard-body");
 const dashScopeButtons = document.querySelectorAll("[data-dash-scope]");
+const dashEventSelect = document.querySelector("#dash-event-select");
+const dashResultCard = document.querySelector("#dash-result-card");
+const dashResultCardScore = document.querySelector("#dash-result-card-score");
+const dashResultCardDetail = document.querySelector("#dash-result-card-detail");
+const dashResultCardNote = document.querySelector("#dash-result-card-note");
+const dashShareResult = document.querySelector("#dash-share-result");
 const dashConfig = window.GANKBYTE_XP_CONFIG || {};
 const dashBestKey = "gankbyte-glitch-dash-best";
 const dashCoarsePointer = window.matchMedia?.("(pointer: coarse)").matches || false;
@@ -46,6 +52,8 @@ let dashSparks = [];
 let dashClient = null;
 let dashUser = null;
 let dashLastRun = null;
+let dashServerRunId = null;
+let dashRunAttempt = 0;
 let dashLeaderboardScope = "all";
 let dashGestureStart = null;
 
@@ -116,8 +124,43 @@ async function loadDashRank() {
   dashResultRank.textContent = position >= 0 ? `Current position: #${position + 1}` : "Your run is not on the board yet.";
 }
 
+async function loadDashEvents() {
+  if (!dashClient || !dashEventSelect) return;
+  const result = await dashClient.from("arena_live_events").select("slug,title,kind,status").eq("game", "Glitch Dash").eq("status", "live").order("starts_at", { ascending: true, nullsFirst: false });
+  if (result.error || !result.data?.length) return;
+  const selected = new URLSearchParams(window.location.search).get("event") || "";
+  dashEventSelect.innerHTML = '<option value="">Personal run</option>' + result.data.map((event) => `<option value="${escapeDashHtml(event.slug)}">${escapeDashHtml(event.title)}${event.kind === "tournament" ? " // Tournament" : ""}</option>`).join("");
+  if (result.data.some((event) => event.slug === selected)) dashEventSelect.value = selected;
+}
+
+async function beginDashVerifiedRun() {
+  const attempt = ++dashRunAttempt;
+  dashServerRunId = null;
+  if (!dashClient || !dashUser) return;
+  const result = await dashClient.rpc("start_arena_run", { p_game_slug: "glitch-dash", p_event_slug: dashEventSelect?.value || null });
+  if (attempt === dashRunAttempt && !result.error && result.data?.[0]?.run_id) dashServerRunId = result.data[0].run_id;
+}
+
+function dashVerificationFunctionMissing(error) {
+  return error && (error.code === "PGRST202" || /start_arena_run|submit_verified_arena_run|function .*does not exist/i.test(error.message || ""));
+}
+
 async function submitDashRun() {
   if (!dashClient || !dashUser || !dashLastRun || dashLastRun.submitted) return;
+  if (dashServerRunId) {
+    const verified = await dashClient.rpc("submit_verified_arena_run", { p_run_id: dashServerRunId, p_score: dashLastRun.score, p_stat: dashLastRun.streak, p_client_seconds: dashLastRun.runSeconds });
+    if (!verified.error) {
+      dashLastRun.submitted = true;
+      dashAuthStatus.textContent = "Verified score posted to the global leaderboard.";
+      await loadDashLeaderboard(dashLeaderboardScope);
+      await loadDashRank();
+      return;
+    }
+    if (!dashVerificationFunctionMissing(verified.error)) {
+      dashAuthStatus.textContent = verified.error.message || "Score could not be verified.";
+      return;
+    }
+  }
   const result = await dashClient.from("glitch_dash_scores").insert({ user_id: dashUser.id, score: dashLastRun.score, streak: dashLastRun.streak, run_seconds: dashLastRun.runSeconds });
   if (result.error) {
     dashAuthStatus.textContent = "Score could not be submitted. Try again while signed in.";
@@ -157,12 +200,16 @@ async function initDashOnline() {
   dashClient.auth.onAuthStateChange((event, session) => window.setTimeout(() => loadDashSession(session), 0));
   const result = await dashClient.auth.getSession();
   await loadDashSession(result.data.session);
+  await loadDashEvents();
   await loadDashLeaderboard(dashLeaderboardScope);
 }
 
 function dashReset() {
+  dashRunAttempt += 1;
   dashSubmit.hidden = true;
   if (dashResultActions) dashResultActions.hidden = true;
+  if (dashResultCard) dashResultCard.hidden = true;
+  dashServerRunId = null;
   dashRunning = false;
   dashElapsed = 0;
   dashScore = 0;
@@ -348,6 +395,10 @@ function dashFinish() {
   dashStart.innerHTML = "Run it again  <span>&rarr;</span>";
   dashSubmit.hidden = false;
   if (dashResultActions) dashResultActions.hidden = false;
+  if (dashResultCard) dashResultCard.hidden = false;
+  if (dashResultCardScore) dashResultCardScore.textContent = dashScore.toLocaleString();
+  if (dashResultCardDetail) dashResultCardDetail.textContent = `Best streak ${dashBestStreak} // ${Math.round(dashElapsed)} seconds`;
+  if (dashResultCardNote) dashResultCardNote.textContent = newBest ? "New personal best. Share the run." : "Read the gap and beat your best next run.";
   if (dashResultRank) dashResultRank.textContent = dashUser ? "Submitting run..." : "Sign in to submit and rank this run.";
   dashStatus.textContent = newBest ? `New best score: ${dashScore.toLocaleString()}.` : `Best score on this device: ${Math.max(best, dashScore).toLocaleString()}.`;
   submitDashRun();
@@ -360,6 +411,7 @@ function dashStartRun() {
   dashStart.innerHTML = "Restart run  <span>&rarr;</span>";
   dashStatus.textContent = "Read the gap. Make the move.";
   dashCanvas.focus();
+  beginDashVerifiedRun();
 }
 
 function dashFrame(timestamp) {
@@ -415,4 +467,13 @@ dashScopeButtons.forEach((button) => {
     dashLeaderboardScope = button.dataset.dashScope;
     loadDashLeaderboard(dashLeaderboardScope);
   });
+});
+dashShareResult?.addEventListener("click", async () => {
+  if (!dashLastRun) return;
+  const text = `I scored ${dashLastRun.score.toLocaleString()} in Glitch Dash with a ${dashLastRun.streak}-gate streak at GankByte.`;
+  const url = `${window.location.origin}${window.location.pathname}`;
+  try {
+    if (navigator.share) await navigator.share({ title: "Glitch Dash result", text, url });
+    else { await navigator.clipboard.writeText(`${text} ${url}`); dashStatus.textContent = "Result copied to clipboard."; }
+  } catch (error) { if (error?.name !== "AbortError") dashStatus.textContent = "Could not share this result."; }
 });

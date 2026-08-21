@@ -16,6 +16,10 @@
   const arenaScoreList = $("arena-score-list");
   const glitchScores = $("glitch-admin-scores");
   const glitchScoreList = $("glitch-score-list");
+  const arenaEvents = $("arena-admin-events");
+  const arenaEventList = $("arena-event-list");
+  const arenaEventForm = $("arena-event-form");
+  const eventFormStatus = $("event-form-status");
   const rejectDialog = $("reject-dialog");
   const rejectForm = $("reject-form");
   const rejectReason = $("reject-reason");
@@ -30,6 +34,8 @@
   function message(text, error) { status.textContent = text || ""; status.classList.toggle("is-error", Boolean(error)); }
   function escapeHtml(value) { return String(value || "").replace(/[&<>'"]/g, (character) => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[character])); }
   function safeProofUrl(value) { try { const url = new URL(String(value || ""), window.location.href); return ["http:", "https:"].includes(url.protocol) ? url.href : ""; } catch { return ""; } }
+  function dateTimeLocal(value) { if (!value) return ""; const date = new Date(value); if (Number.isNaN(date.getTime())) return ""; const pad = (part) => String(part).padStart(2, "0"); return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`; }
+  function isoOrNull(value) { if (!value) return null; const date = new Date(value); return Number.isNaN(date.getTime()) ? null : date.toISOString(); }
   function setBadge(text, planned) { badge.textContent = text; badge.className = "status-badge" + (planned ? " planned" : ""); }
 
   function openRejectDialog(kind, event) {
@@ -104,6 +110,42 @@
     document.querySelectorAll(".reject-glitch-score-button").forEach((button) => button.addEventListener("click", (event) => openRejectDialog("glitch", event)));
   }
 
+  async function loadArenaEvents() {
+    if (!arenaEventList) return;
+    const result = await client.from("arena_events").select("slug,title,game,description,kind,status,starts_at,ends_at").order("created_at", { ascending: false });
+    if (result.error) { arenaEventList.innerHTML = `<div class="xp-empty">${escapeHtml(result.error.message)}</div>`; return; }
+    if (!result.data?.length) { arenaEventList.innerHTML = '<div class="xp-empty">No events created yet.</div>'; return; }
+    arenaEventList.innerHTML = result.data.map((event) => `<article class="admin-submission"><div><span class="status-badge${event.status === "upcoming" ? " planned" : ""}">${escapeHtml(event.status)} // ${escapeHtml(event.kind || "challenge")}</span><h3>${escapeHtml(event.title)}</h3><p>${escapeHtml(event.game)} // <code>${escapeHtml(event.slug)}</code></p><p class="section-copy">${escapeHtml(event.description)}</p></div><button class="button button-ghost event-edit-button" type="button" data-event='${escapeHtml(JSON.stringify(event))}'>Edit</button></article>`).join("");
+    arenaEventList.querySelectorAll(".event-edit-button").forEach((button) => button.addEventListener("click", () => {
+      const event = JSON.parse(button.dataset.event);
+      ["slug", "title", "game", "kind", "status", "rules_url", "starts_at", "ends_at", "description"].forEach((field) => { const input = $(`event-${field.replace("_", "-")}`); if (input) input.value = field === "starts_at" || field === "ends_at" ? dateTimeLocal(event[field]) : event[field] || ""; });
+      eventFormStatus.textContent = "Editing this event. Saving will update it.";
+      arenaEventForm?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }));
+  }
+
+  async function saveArenaEvent(event) {
+    event.preventDefault();
+    if (!arenaEventForm) return;
+    const form = new FormData(arenaEventForm);
+    eventFormStatus.textContent = "Saving event...";
+    const result = await client.rpc("upsert_arena_event", {
+      p_slug: String(form.get("slug") || "").trim(),
+      p_title: String(form.get("title") || "").trim(),
+      p_game: form.get("game"),
+      p_description: String(form.get("description") || "").trim(),
+      p_kind: form.get("kind"),
+      p_status: form.get("status"),
+      p_rules_url: String(form.get("rules_url") || "").trim() || null,
+      p_starts_at: isoOrNull(form.get("starts_at")),
+      p_ends_at: isoOrNull(form.get("ends_at"))
+    });
+    if (result.error) { eventFormStatus.textContent = result.error.message; eventFormStatus.classList.add("is-error"); return; }
+    eventFormStatus.classList.remove("is-error");
+    eventFormStatus.textContent = "Event saved.";
+    await loadArenaEvents();
+  }
+
   async function approveGlitchScore(event) {
     const card = event.target.closest(".glitch-score-submission");
     const result = await client.from("glitch_dash_scores").update({ status: "approved", reviewer_id: currentUser.id, reviewed_at: new Date().toISOString() }).eq("id", Number(card.dataset.id)).eq("status", "pending");
@@ -129,7 +171,7 @@
 
   async function refreshQueues() {
     refresh.disabled = true;
-    try { await Promise.all([loadSubmissions(), loadArenaScores(), loadGlitchScores()]); }
+    try { await Promise.all([loadSubmissions(), loadArenaScores(), loadGlitchScores(), loadArenaEvents()]); }
     catch (error) { message(error?.message || "Could not refresh the review queues.", true); }
     finally { refresh.disabled = false; }
   }
@@ -140,15 +182,15 @@
       setBadge(ready ? "Discord login required" : "Backend setup needed", true);
       title.textContent = "XP admin";
       copy.textContent = ready ? "Sign in with Discord to continue." : "Add the Supabase project values before enabling admin access.";
-      login.hidden = false; refresh.hidden = true; logout.hidden = true; submissions.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true;
+      login.hidden = false; refresh.hidden = true; logout.hidden = true; submissions.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; if (arenaEvents) arenaEvents.hidden = true;
       return;
     }
     const profile = await client.from("profiles").select("display_name,is_admin").eq("id", currentUser.id).maybeSingle();
-    if (profile.error) { setBadge("Admin check unavailable", true); title.textContent = "Admin check failed"; copy.textContent = profile.error.message; login.hidden = true; refresh.hidden = true; logout.hidden = false; submissions.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; return; }
+    if (profile.error) { setBadge("Admin check unavailable", true); title.textContent = "Admin check failed"; copy.textContent = profile.error.message; login.hidden = true; refresh.hidden = true; logout.hidden = false; submissions.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; if (arenaEvents) arenaEvents.hidden = true; return; }
     if (!profile.data || !profile.data.is_admin) {
-      setBadge("Access denied", true); title.textContent = "Not an admin"; copy.textContent = "This Discord account is not marked as a GankByte admin."; login.hidden = true; refresh.hidden = true; logout.hidden = false; submissions.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; return;
+      setBadge("Access denied", true); title.textContent = "Not an admin"; copy.textContent = "This Discord account is not marked as a GankByte admin."; login.hidden = true; refresh.hidden = true; logout.hidden = false; submissions.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; if (arenaEvents) arenaEvents.hidden = true; return;
     }
-    setBadge("Admin connected"); title.textContent = profile.data.display_name || "GankByte Admin"; copy.textContent = "Review pending contributions and game scores below."; login.hidden = true; refresh.hidden = false; logout.hidden = false; submissions.hidden = false; arenaScores.hidden = false; glitchScores.hidden = false; await refreshQueues();
+    setBadge("Admin connected"); title.textContent = profile.data.display_name || "GankByte Admin"; copy.textContent = "Review pending contributions, game scores, and Arena events below."; login.hidden = true; refresh.hidden = false; logout.hidden = false; submissions.hidden = false; arenaScores.hidden = false; glitchScores.hidden = false; if (arenaEvents) arenaEvents.hidden = false; await refreshQueues(); await loadArenaEvents();
   }
 
   if (!ready) {
@@ -163,6 +205,8 @@
   login.addEventListener("click", async () => { if (!client) return; const result = await client.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: window.location.origin + window.location.pathname } }); if (result.error) message(result.error.message, true); });
   logout.addEventListener("click", async () => { if (client) await client.auth.signOut(); });
   refresh.addEventListener("click", refreshQueues);
+  arenaEventForm?.addEventListener("submit", saveArenaEvent);
+  $("event-form-clear")?.addEventListener("click", () => { arenaEventForm?.reset(); if (eventFormStatus) eventFormStatus.textContent = ""; });
   rejectForm.addEventListener("submit", submitRejection);
   rejectDialog.querySelectorAll("[data-reject-cancel]").forEach((element) => element.addEventListener("click", closeRejectDialog));
   window.addEventListener("keydown", (event) => { if (event.key === "Escape" && !rejectDialog.hidden) closeRejectDialog(); });

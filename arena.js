@@ -20,6 +20,12 @@ const arenaLogin = document.querySelector("#arena-login");
 const arenaLogout = document.querySelector("#arena-logout");
 const arenaLeaderboardBody = document.querySelector("#arena-leaderboard-body");
 const arenaScopeButtons = document.querySelectorAll("[data-arena-scope]");
+const arenaEventSelect = document.querySelector("#arena-event-select");
+const arenaResultCard = document.querySelector("#arena-result-card");
+const arenaResultCardScore = document.querySelector("#arena-result-card-score");
+const arenaResultCardDetail = document.querySelector("#arena-result-card-detail");
+const arenaResultCardNote = document.querySelector("#arena-result-card-note");
+const arenaShareResult = document.querySelector("#arena-share-result");
 const xpConfig = window.GANKBYTE_XP_CONFIG || {};
 const arenaBestKey = "gankbyte-byte-rush-best";
 const arenaCoarsePointer = window.matchMedia?.("(pointer: coarse)").matches || false;
@@ -52,6 +58,8 @@ let particles = [];
 let arenaClient = null;
 let arenaUser = null;
 let lastRun = null;
+let serverRunId = null;
+let runAttempt = 0;
 let arenaLeaderboardScope = "all";
 let arenaGestureStart = null;
 
@@ -99,8 +107,43 @@ async function loadArenaRank() {
   arenaResultRank.textContent = position >= 0 ? `Current position: #${position + 1}` : "Your run is not on the board yet.";
 }
 
+async function loadArenaEvents() {
+  if (!arenaClient || !arenaEventSelect) return;
+  const result = await arenaClient.from("arena_live_events").select("slug,title,kind,status").eq("game", "Byte Rush").eq("status", "live").order("starts_at", { ascending: true, nullsFirst: false });
+  if (result.error || !result.data?.length) return;
+  const selected = new URLSearchParams(window.location.search).get("event") || "";
+  arenaEventSelect.innerHTML = '<option value="">Personal run</option>' + result.data.map((event) => `<option value="${escapeArenaHtml(event.slug)}">${escapeArenaHtml(event.title)}${event.kind === "tournament" ? " // Tournament" : ""}</option>`).join("");
+  if (result.data.some((event) => event.slug === selected)) arenaEventSelect.value = selected;
+}
+
+async function beginVerifiedRun() {
+  const attempt = ++runAttempt;
+  serverRunId = null;
+  if (!arenaClient || !arenaUser) return;
+  const result = await arenaClient.rpc("start_arena_run", { p_game_slug: "byte-rush", p_event_slug: arenaEventSelect?.value || null });
+  if (attempt === runAttempt && !result.error && result.data?.[0]?.run_id) serverRunId = result.data[0].run_id;
+}
+
+function verificationFunctionMissing(error) {
+  return error && (error.code === "PGRST202" || /start_arena_run|submit_verified_arena_run|function .*does not exist/i.test(error.message || ""));
+}
+
 async function submitLastRun() {
   if (!arenaClient || !arenaUser || !lastRun || lastRun.submitted) return;
+  if (serverRunId) {
+    const verified = await arenaClient.rpc("submit_verified_arena_run", { p_run_id: serverRunId, p_score: lastRun.score, p_stat: lastRun.wave, p_client_seconds: lastRun.runSeconds });
+    if (!verified.error) {
+      lastRun.submitted = true;
+      arenaAuthStatus.textContent = "Verified score posted to the global leaderboard.";
+      await loadArenaLeaderboard(arenaLeaderboardScope);
+      await loadArenaRank();
+      return;
+    }
+    if (!verificationFunctionMissing(verified.error)) {
+      arenaAuthStatus.textContent = verified.error.message || "Score could not be verified.";
+      return;
+    }
+  }
   const result = await arenaClient.from("arena_scores").insert({ user_id: arenaUser.id, score: lastRun.score, wave: lastRun.wave, run_seconds: lastRun.runSeconds });
   if (result.error) {
     arenaAuthStatus.textContent = "Score could not be submitted. Try again while signed in.";
@@ -140,6 +183,7 @@ async function initArenaOnline() {
   arenaClient.auth.onAuthStateChange((event, session) => window.setTimeout(() => loadArenaSession(session), 0));
   const result = await arenaClient.auth.getSession();
   await loadArenaSession(result.data.session);
+  await loadArenaEvents();
   await loadArenaLeaderboard(arenaLeaderboardScope);
 }
 
@@ -189,8 +233,11 @@ function burst(x, y, color, amount = 12) {
 }
 
 function resetGame() {
+  runAttempt += 1;
   arenaSubmit.hidden = true;
   if (arenaResultActions) arenaResultActions.hidden = true;
+  if (arenaResultCard) arenaResultCard.hidden = true;
+  serverRunId = null;
   elapsed = 0;
   score = 0;
   combo = 0;
@@ -541,6 +588,10 @@ function finishGame() {
   startButton.innerHTML = "Run it again  <span>&rarr;</span>";
   arenaSubmit.hidden = false;
   if (arenaResultActions) arenaResultActions.hidden = false;
+  if (arenaResultCard) arenaResultCard.hidden = false;
+  if (arenaResultCardScore) arenaResultCardScore.textContent = score.toLocaleString();
+  if (arenaResultCardDetail) arenaResultCardDetail.textContent = `Wave ${wave} // ${Math.round(elapsed)} seconds`;
+  if (arenaResultCardNote) arenaResultCardNote.textContent = newBest ? "New personal best. Share the run." : "Keep moving. Beat your best next run.";
   if (arenaResultRank) arenaResultRank.textContent = arenaUser ? "Submitting run..." : "Sign in to submit and rank this run.";
   status.textContent = newBest ? `New best score: ${score}.` : `Best score on this device: ${Math.max(best, score)}.`;
   submitLastRun();
@@ -553,6 +604,7 @@ function startGame() {
   startButton.innerHTML = "Restart run  <span>&rarr;</span>";
   status.textContent = "Collect bytes. Dodge glitches.";
   canvas.focus();
+  beginVerifiedRun();
 }
 
 function frame(timestamp) {
@@ -614,11 +666,20 @@ initArenaOnline().catch(() => {
   arenaAuthStatus.textContent = "Online scores are unavailable, but local play is still ready.";
   arenaLogin.disabled = true;
 });
-arenaScopeButtons.forEach((button) => {
+  arenaScopeButtons.forEach((button) => {
   button.addEventListener("click", () => {
   arenaScopeButtons.forEach((item) => { item.classList.toggle("is-active", item === button); item.setAttribute("aria-selected", item === button ? "true" : "false"); });
     arenaLeaderboardScope = button.dataset.arenaScope;
     loadArenaLeaderboard(arenaLeaderboardScope);
   });
+});
+arenaShareResult?.addEventListener("click", async () => {
+  if (!lastRun) return;
+  const text = `I scored ${lastRun.score.toLocaleString()} in Byte Rush at GankByte.`;
+  const url = `${window.location.origin}${window.location.pathname}`;
+  try {
+    if (navigator.share) await navigator.share({ title: "Byte Rush result", text, url });
+    else { await navigator.clipboard.writeText(`${text} ${url}`); status.textContent = "Result copied to clipboard."; }
+  } catch (error) { if (error?.name !== "AbortError") status.textContent = "Could not share this result."; }
 });
 requestAnimationFrame(frame);

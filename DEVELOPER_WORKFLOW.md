@@ -57,3 +57,7 @@ Keep pull requests small and explain the player or developer problem they solve.
 When a proposal is accepted for exploration, the maintainer should create or nominate a focused repository, add a README, licence, contribution guide, security contact, and issue forms, then link a working proof from the GankByte project board. The project page must label whether the build is live, experimental, or still being prepared.
 
 Resource Bench is the reference implementation of this workflow: it is a standalone MIT-licensed public repository, has local-only privacy boundaries, issue forms, a responsive interface, and a live demo at <https://gankbyte.com/resource-bench.html>.
+
+## Adding a game to Arena
+
+Future GankByte games should register an adapter in `arena-registry.js` with a stable slug, display name, play URL, leaderboard views, and result-stat label. The shared Arena event and verified-run system uses that adapter so profiles, event links, and leaderboard surfaces do not need a game-specific rewrite for every new project.

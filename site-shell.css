@@ -22,6 +22,7 @@
   .site-account-trigger{max-width:155px!important}
   .site-account-trigger>span:nth-child(2){max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 }
+.event-standings{list-style:none;margin:18px 0 20px;padding:0}.event-standings li{border-top:1px solid var(--line);color:var(--muted);display:flex;font-size:12px;justify-content:space-between;padding:10px 0}.event-standings li:last-child{border-bottom:1px solid var(--line)}.event-standings strong{color:var(--lime)}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
   .skip-link,.mobile-nav-icon i{transition:none}
@@ -57,6 +58,7 @@
 .game-result-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
 .game-result-actions[hidden]{display:none!important}
 .game-result-actions .button{font-size:10px;padding:12px 14px}
+.arena-event-control{align-items:start;display:grid;gap:8px;margin-top:18px;max-width:420px}.arena-event-control label{color:var(--text);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}.arena-event-control select{appearance:none;background:var(--surface);border:1px solid var(--line);border-radius:0;color:var(--text);font:inherit;font-size:13px;padding:13px 14px;width:100%}.arena-event-control select:focus-visible{border-color:var(--lime);outline:2px solid var(--lime);outline-offset:2px}.arena-event-control small{color:var(--muted);font-size:11px;line-height:1.5}.arena-result-card{background:linear-gradient(135deg,rgba(198,255,61,.12),rgba(154,123,255,.08));border:1px solid rgba(198,255,61,.42);display:grid;gap:8px;margin-top:18px;padding:20px 22px;position:relative}.arena-result-card[hidden]{display:none!important}.arena-result-card .eyebrow{font-size:9px;margin:0}.arena-result-card strong{color:var(--lime);font-size:42px;letter-spacing:-.08em;line-height:1}.arena-result-card span:not(.eyebrow){color:var(--text);font-size:13px}.arena-result-card small{color:var(--muted);font-size:12px}.score-rules-note{color:var(--muted);font-size:12px;line-height:1.6;margin:18px 0 0}.score-rules-note .text-link{font-size:10px;margin-top:0}
 .page-status{border-left:2px solid var(--lime);color:var(--muted);font-size:13px;line-height:1.6;margin:22px 0 0;padding-left:16px}
 .profile-avatar{align-items:center;background:var(--lime);color:#0a0b0f;display:flex;font-size:18px;font-weight:800;height:48px;justify-content:center;letter-spacing:-.08em;margin-bottom:16px;transform:skew(-9deg);width:48px}
 .profile-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
