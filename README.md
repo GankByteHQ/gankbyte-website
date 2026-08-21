@@ -25,6 +25,13 @@ This repository contains the public GankByte landing page. The site is a lightwe
 - `resource-bench.html` - browser-only Lua, FiveM, Python, Java, web, Minecraft, RuneLite, and SQL starter generator
 - `changelog.html` - dated release notes for shipped changes
 
+## Gameplay media
+
+The `images/` folder contains genuine captures from the current live builds:
+
+- `byte-rush-gameplay.png` and `byte-rush-result.png`
+- `glitch-dash-gameplay.png` and `glitch-dash-result.png`
+
 ## Developer workflow
 
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) - pull request and issue guidance
