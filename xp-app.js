@@ -104,7 +104,7 @@
   function renderChallengeProgress(challenges, submissions) {
     const panel = ensureChallengePanel();
     const grid = panel.querySelector("#xp-challenge-progress-grid");
-    if (!challenges?.length) { grid.innerHTML = '<article class="content-card"><span class="status-badge">No active challenges</span><h3>Check back soon.</h3><p>New challenge formats will appear here when they are active.</p></article>'; return; }
+    if (!challenges?.length) { grid.innerHTML = '<article class="content-card"><span class="status-badge">No challenge data</span><h3>Play from the Arena.</h3><p>Live game challenges are available from the Arena challenge board.</p><a class="text-link" href="challenges.html">Open challenges <span>&nearr;</span></a></article>'; return; }
     const latest = new Map();
     (submissions || []).forEach((row) => { if (!latest.has(row.challenge_slug)) latest.set(row.challenge_slug, row); });
     grid.innerHTML = challenges.map((challenge) => {

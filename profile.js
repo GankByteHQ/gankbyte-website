@@ -63,7 +63,7 @@ function renderXpHistory(rows) {
 function renderChallenges(challenges, submissions) {
   if (!profileChallenges) return;
   if (!challenges?.length) {
-    profileChallenges.innerHTML = '<article class="content-card"><span class="status-badge">No active targets</span><h3>Check back soon.</h3><p>New challenge formats will appear here when they are active.</p></article>';
+    profileChallenges.innerHTML = '<article class="content-card"><span class="status-badge">No challenge activity</span><h3>Choose your next run.</h3><p>Open the live challenge board to pick a target and create your first result.</p><a class="text-link" href="challenges.html">Open challenges <span>&nearr;</span></a></article>';
     return;
   }
   const latest = new Map();
