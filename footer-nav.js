@@ -5,7 +5,7 @@
   if (!document.querySelector('link[data-site-shell-style]')) {
   const style = document.createElement("link");
     style.rel = "stylesheet";
-    style.href = "site-shell.css?v=5";
+    style.href = "site-shell.css?v=6";
     style.dataset.siteShellStyle = "true";
     document.head.append(style);
   }
@@ -27,12 +27,31 @@
     const activePage = page === "arena.html" || page === "glitch-dash.html" || page === "arena-hub.html" ? "arena-hub.html"
       : page === "projects.html" || page === "contributing.html" || page === "project-submit.html" ? "developers.html"
       : page === "challenges.html" ? "community.html"
-      : page === "xp-admin.html" ? "xp.html"
+      : page === "xp-admin.html" || page === "xp-submit.html" || page === "xp-leaderboard.html" ? "xp.html"
       : page;
     mainNav.querySelectorAll("a[aria-current]").forEach((link) => link.removeAttribute("aria-current"));
     mainNav.querySelectorAll("a").forEach((link) => {
       if (link.getAttribute("href") === activePage) link.setAttribute("aria-current", "page");
     });
+    const xpLink = mainNav.querySelector('a[href$="xp.html"]');
+    if (xpLink && !xpLink.parentElement.classList.contains("site-nav-dropdown")) {
+      const baseHref = xpLink.getAttribute("href");
+      const dropdown = document.createElement("details");
+      dropdown.className = "site-nav-dropdown";
+      const summary = document.createElement("summary");
+      summary.textContent = "XP";
+      if (xpLink.getAttribute("aria-current")) summary.setAttribute("aria-current", "page");
+      const panel = document.createElement("div");
+      panel.className = "site-nav-dropdown-panel";
+      [[baseHref, "Overview"], [baseHref.replace("xp.html", "xp-submit.html"), "Submit Contribution"], [baseHref.replace("xp.html", "xp-leaderboard.html"), "Leaderboard"]].forEach(([href, label]) => {
+        const link = document.createElement("a");
+        link.href = href;
+        link.textContent = label;
+        panel.append(link);
+      });
+      dropdown.append(summary, panel);
+      xpLink.replaceWith(dropdown);
+    }
     [["profile.html", "Profile"], ["account.html", "Account"], ["challenges.html", "Challenges"]].forEach(([href, label]) => {
       if (mainNav.querySelector(`a[href="${href}"]`)) return;
       const link = document.createElement("a");
