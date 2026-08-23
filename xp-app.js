@@ -197,9 +197,14 @@
       renderSubmissionHistory(submissionsResult.data || []);
       renderChallengeProgress(challengesResult.data || [], submissionsResult.data || []);
     }
-    if (window.location.hash === "#xp-submit-panel" || sessionStorage.getItem("gankbyte-xp-submit") === "1") {
+    const shouldOpenSubmit = window.location.hash === "#xp-submit-panel" || sessionStorage.getItem("gankbyte-xp-submit") === "1";
+    if (shouldOpenSubmit) {
       sessionStorage.removeItem("gankbyte-xp-submit");
-      window.setTimeout(function () { submitPanel.scrollIntoView({ behavior: "smooth", block: "start" }); }, 100);
+      if (submitPanel && xpPage === "submit") {
+        window.setTimeout(function () { submitPanel.scrollIntoView({ behavior: "smooth", block: "start" }); }, 100);
+      } else if (xpPage !== "submit") {
+        window.location.replace("xp-submit.html");
+      }
     }
   }
 

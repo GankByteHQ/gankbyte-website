@@ -35,7 +35,34 @@
     <main>
       <section class="page-hero shell"><p class="page-label">04 // PROGRESSION</p><h1>Play more.<br /><em>Build more.</em></h1><p class="hero-lede">GankByte XP recognises the people who play, create, test, explain, and help make the community better.</p></section>
 
-      <section id="xp-account" class="section shell xp-console-section"><div class="section-heading"><div><p class="eyebrow">XP // ACCOUNT</p><h2>Your progress.<br /><em>Your bragging rights.</em></h2></div><p class="section-intro">Sign in with Discord to submit contributions, see your approved XP, and appear on the public leaderboard.</p></div><div class="xp-console"><div class="xp-account-panel"><span class="status-badge" id="xp-connection-badge">Checking backend</span><h3 id="xp-account-title">GankByte XP account</h3><p id="xp-account-copy">The XP system is loading.</p><div class="xp-account-actions"><button class="button button-primary" id="xp-login" type="button">Sign in with Discord <span>&nearr;</span></button><button class="button button-ghost" id="xp-logout" type="button" hidden>Sign out</button><a class="text-link" id="xp-admin-link" href="xp-admin.html" hidden>Open admin <span>&nearr;</span></a></div><div class="xp-badges" id="xp-badges" aria-live="polite"></div><p class="xp-status" id="xp-status" aria-live="polite"></p></div><div class="xp-score-panel"><small>YOUR APPROVED XP</small><strong id="xp-total">0</strong><span id="xp-level">Level 01</span></div></div><div class="xp-submit-panel" id="xp-submit-panel" hidden><div><p class="eyebrow">SUBMIT A CONTRIBUTION</p><h3>Show us what you did.</h3><p>Choose the kind of contribution, then submit a proof link and a short note. An admin reviews it before XP is added.</p></div><form id="xp-submission-form"><label for="xp-challenge-select">Contribution type</label><select id="xp-challenge-select" name="challenge"><option value="community-contribution">Community contribution</option></select><label for="xp-proof">Proof link</label><input id="xp-proof" name="proof" type="url" placeholder="https://..." required /><label for="xp-note-input">What happened?</label><textarea id="xp-note-input" name="note" rows="3" maxlength="500" placeholder="Score, contribution, or useful context..."></textarea><button class="button button-primary" type="submit">Submit for review <span>&rarr;</span></button></form></div><div class="content-grid xp-status-guide"><article class="content-card"><span class="status-badge">Pending</span><h3>Under review</h3><p>Your proof is received but XP is not added until the contribution is checked.</p></article><article class="content-card"><span class="status-badge">Approved</span><h3>Added to your total</h3><p>Approved contributions update your XP total, level, badges, and public leaderboard position.</p></article><article class="content-card"><span class="status-badge planned">Rejected</span><h3>Feedback is visible</h3><p>A rejected contribution includes a reason on your profile. Submit a clearer version or dismiss the notice.</p></article></div></section>
+      <section id="xp-account" class="section shell xp-console-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">XP // ACCOUNT</p>
+            <h2>Your progress.<br /><em>Your bragging rights.</em></h2>
+          </div>
+          <p class="section-intro">Sign in with Discord to submit contributions, see your approved XP, and appear on the public leaderboard.</p>
+        </div>
+        <div class="xp-console">
+          <div class="xp-account-panel">
+            <span class="status-badge" id="xp-connection-badge">Checking backend</span>
+            <h3 id="xp-account-title">GankByte XP account</h3>
+            <p id="xp-account-copy">The XP system is loading.</p>
+            <div class="xp-account-actions">
+              <button class="button button-primary" id="xp-login" type="button">Sign in with Discord <span>&nearr;</span></button>
+              <button class="button button-ghost" id="xp-logout" type="button" hidden>Sign out</button>
+              <a class="text-link" id="xp-admin-link" href="xp-admin.html" hidden>Open admin <span>&nearr;</span></a>
+            </div>
+            <div class="xp-badges" id="xp-badges" aria-live="polite"></div>
+            <p class="xp-status" id="xp-status" aria-live="polite"></p>
+          </div>
+          <div class="xp-score-panel">
+            <small>YOUR APPROVED XP</small>
+            <strong id="xp-total">0</strong>
+            <span id="xp-level">Level 01</span>
+          </div>
+        </div>
+      </section>
 
       <section class="section shell"><div class="content-grid"><article class="content-card"><span class="status-badge">Make a contribution</span><h3>Submit your proof.</h3><p>Send useful playtesting, community help, guides, projects, or other contributions for review.</p><a class="button button-primary" href="xp-submit.html">Submit Contribution <span>&nearr;</span></a></article><article class="content-card"><span class="status-badge">Public rankings</span><h3>See the leaderboard.</h3><p>Compare approved XP totals and levels across the GankByte community.</p><a class="button button-ghost" href="xp-leaderboard.html">View Leaderboard <span>&nearr;</span></a></article></div></section>
 
@@ -47,7 +74,7 @@
     <footer class="site-footer shell"><div class="footer-top"><a class="brand" href="index.html"><span class="brand-mark">GB</span><span>GANKBYTE</span></a><p>Gaming. Memes. Code.</p><p class="footer-motto">BUILD. PLAY. GANK.</p></div><div class="footer-bottom"><div class="social-links"><a href="https://x.com/GankByte" target="_blank" rel="noreferrer">X</a><a href="https://www.youtube.com/@GankByte" target="_blank" rel="noreferrer">YouTube</a><a href="https://www.tiktok.com/@GankByte" target="_blank" rel="noreferrer">TikTok</a><a href="https://www.instagram.com/GankByte" target="_blank" rel="noreferrer">Instagram</a><a href="https://www.reddit.com/user/GankByteHQ" target="_blank" rel="noreferrer">Reddit</a><a href="https://github.com/GankByteHQ" target="_blank" rel="noreferrer">GitHub</a></div><a href="mailto:contact@gankbyte.com">contact@gankbyte.com</a><span>&copy; 2026 GankByte</span></div></footer>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="xp-config.js"></script>
-    <script src="xp-app.js?v=7"></script>
+    <script src="xp-app.js?v=8"></script>
     <script src="footer-nav.js?v=5"></script>
   </body>
 </html>
