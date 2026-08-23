@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Symbol Catch — a GankByte reflex challenge.">
+  <title>Symbol Catch // GankByte</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="site-header">
+      <a class="brand" href="https://gankbyte.com"><span class="brand-mark">GB</span><span>GANKBYTE</span></a>
+      <span class="header-tag">ARENA // PROTOTYPE 01</span>
+    </header>
+
+    <section class="intro">
+      <p class="eyebrow"><span class="status-dot"></span> SIGNAL ACQUISITION</p>
+      <h1>Catch the<br><em>right symbol.</em></h1>
+      <p class="lede">A signal is falling through the grid. Match the symbol shown in the collector before it hits the floor.</p>
+    </section>
+
+    <section class="game-wrap" aria-label="Symbol Catch game">
+      <div class="hud">
+        <div><span>SCORE</span><strong id="score">0</strong></div>
+        <div><span>STREAK</span><strong id="streak">0</strong></div>
+        <div><span>TIME</span><strong id="time">45</strong></div>
+        <div><span>LIVES</span><strong id="lives">3</strong></div>
+        <div class="target"><span>COLLECT THIS</span><strong id="target">◆</strong></div>
+      </div>
+
+      <div class="board" id="board">
+        <canvas id="game" width="960" height="560" tabindex="0" aria-label="Falling symbol game"></canvas>
+        <div class="message" id="message"><strong>READY?</strong><span>Use A/D or the arrow keys. Catch only the target symbol.</span></div>
+      </div>
+
+      <div class="controls">
+        <button class="button primary" id="start" type="button">Start challenge <span>→</span></button>
+        <p id="status" aria-live="polite">Best score is saved on this device.</p>
+      </div>
+      <div class="touch-controls" aria-label="Touch controls">
+        <button type="button" data-move="left">←</button>
+        <button type="button" data-move="right">→</button>
+      </div>
+    </section>
+
+    <section class="howto">
+      <p class="eyebrow">HOW TO PLAY</p>
+      <div class="rule-grid">
+        <p><strong>01 // MATCH</strong><br>Read the glowing target in the HUD and catch matching symbols.</p>
+        <p><strong>02 // REACT</strong><br>Correct catches build your streak. Wrong symbols break it.</p>
+        <p><strong>03 // SURVIVE</strong><br>Missed targets cost a life. The signal accelerates as you score.</p>
+      </div>
+    </section>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>
