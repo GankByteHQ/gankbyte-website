@@ -220,7 +220,8 @@
     setStatus("Signed out.");
   });
 
-  $("xp-submission-form").addEventListener("submit", async function (event) {
+  const submissionForm = $("xp-submission-form");
+  submissionForm?.addEventListener("submit", async function (event) {
     event.preventDefault();
     if (!client || !currentUser) return;
     const proof = $("xp-proof").value.trim();
