@@ -10,6 +10,7 @@ const targetEl = document.querySelector("#target");
 const perkEl = document.querySelector("#perk");
 
 const symbols = ["\u25c6", "\u25cf", "\u25b2", "\u271a", "\u2726", "\u2b1f"];
+const symbolColors = ["#c6ff3d", "#55e8ff", "#ff855c", "#9a7bff", "#ffd166", "#ff6bb5"];
 const W = canvas.width;
 const H = canvas.height;
 const bestKey = "gankbyte-symbol-catch-best";
@@ -35,12 +36,12 @@ let particles = [];
 let catcher = { x: W / 2, width: 108, speed: 690 };
 const keys = { left: false, right: false };
 
-function updateHud() { scoreEl.textContent = score; streakEl.textContent = streak; livesEl.textContent = lives; targetEl.textContent = target; perkEl.textContent = currentPerk; }
+function updateHud() { scoreEl.textContent = score; streakEl.textContent = streak; livesEl.textContent = lives; targetEl.textContent = target; targetEl.style.color = symbolColors[symbols.indexOf(target)]; perkEl.textContent = currentPerk; }
 function randomTarget() { target = symbols[Math.floor(Math.random() * symbols.length)]; }
 function bestScore() { return Number(localStorage.getItem(bestKey) || 0); }
 function reset() { elapsed = 0; spawnTimer = .2; score = 0; streak = 0; catches = 0; lives = 3; catchRange = 0; scoreMultiplier = 1; currentPerk = "NONE"; drops = []; particles = []; catcher = { x: W / 2, width: 108, speed: 690 }; randomTarget(); updateHud(); }
-function spawnDrop(offset = 0) { drops.push({ x: 36 + Math.random() * (W - 72), y: -30 - offset, size: 24 + Math.random() * 8, speed: (105 + elapsed * 2.8 + Math.random() * 50) * 1.15, symbol: symbols[Math.floor(Math.random() * symbols.length)] }); }
-function spawn() { spawnDrop(); if (Math.random() < .55) spawnDrop(36 + Math.random() * 70); if (elapsed > 18 && Math.random() < .22) spawnDrop(80 + Math.random() * 70); }
+function spawnDrop(offset = 0) { const symbol = symbols[Math.floor(Math.random() * symbols.length)]; drops.push({ x: 36 + Math.random() * (W - 72), y: -30 - offset, size: 24 + Math.random() * 8, speed: (105 + elapsed * 2.8 + Math.random() * 50) * 1.15, symbol, color: symbolColors[symbols.indexOf(symbol)] }); }
+function spawn() { spawnDrop(); if (Math.random() < .35) spawnDrop(44 + Math.random() * 70); if (elapsed > 22 && Math.random() < .1) spawnDrop(90 + Math.random() * 70); }
 function burst(x, y, color) { for (let i = 0; i < 12; i++) particles.push({ x, y, dx: (Math.random() - .5) * 180, dy: (Math.random() - .7) * 180, life: .45, color }); }
 function awardPerk() { const perk = perks[Math.floor(Math.random() * perks.length)]; perk.apply({ catcher, get catchRange() { return catchRange; }, set catchRange(value) { catchRange = value; }, get scoreMultiplier() { return scoreMultiplier; }, set scoreMultiplier(value) { scoreMultiplier = value; } }); currentPerk = perk.name; status.textContent = `${perk.name}: ${perk.description}.`; burst(catcher.x, H - 55, "#c6ff3d"); updateHud(); }
 function finish(text) { running = false; const best = bestScore(); if (score > best) localStorage.setItem(bestKey, String(score)); message.innerHTML = `<strong>${text}</strong><span>${score} points // ${streak} final streak // ${currentPerk} active</span>`; message.hidden = false; startButton.textContent = "Run it again \u2192"; status.textContent = score > best ? `New best score: ${score}.` : `Best score on this device: ${Math.max(score, best)}.`; }
@@ -51,12 +52,12 @@ function update(dt) {
   if (keys.right) catcher.x += catcher.speed * dt;
   catcher.x = Math.max(catcher.width / 2 + 10, Math.min(W - catcher.width / 2 - 10, catcher.x));
   spawnTimer -= dt;
-  if (spawnTimer <= 0) { spawn(); spawnTimer = Math.max(.2, .58 - elapsed / 110); }
+  if (spawnTimer <= 0) { spawn(); spawnTimer = Math.max(.24, .67 - elapsed / 130); }
   for (let i = drops.length - 1; i >= 0; i--) { const drop = drops[i]; drop.y += drop.speed * dt; if (drop.y > H - 78 && drop.y < H - 30 && Math.abs(drop.x - catcher.x) < catcher.width / 2 + drop.size / 2 + catchRange) { catchDrop(drop); drops.splice(i, 1); } else if (drop.y > H + 30) { if (drop.symbol === target) { lives--; streak = 0; updateHud(); burst(drop.x, H - 45, "#c6ff3d"); if (lives <= 0) finish("SIGNAL LOST"); } drops.splice(i, 1); } }
   particles = particles.filter((p) => { p.x += p.dx * dt; p.y += p.dy * dt; p.life -= dt; return p.life > 0; });
 }
 function draw() { ctx.clearRect(0, 0, W, H); ctx.save(); ctx.globalAlpha = .08; ctx.fillStyle = "#c6ff3d"; ctx.fillRect(0, H - 38, W, 1); ctx.restore();
-  drops.forEach((d) => { ctx.save(); ctx.translate(d.x, d.y); ctx.shadowBlur = 22; ctx.shadowColor = "#c6ff3d"; ctx.fillStyle = "#c6ff3d"; ctx.font = `800 ${d.size}px Arial`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(d.symbol, 0, 0); ctx.restore(); });
+  drops.forEach((d) => { ctx.save(); ctx.translate(d.x, d.y); ctx.shadowBlur = d.symbol === target ? 26 : 15; ctx.shadowColor = d.color; ctx.fillStyle = d.color; ctx.font = `800 ${d.size}px Arial`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(d.symbol, 0, 0); ctx.restore(); });
   particles.forEach((p) => { ctx.globalAlpha = Math.max(0, p.life * 2); ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 3, 3); }); ctx.globalAlpha = 1;
   const x = catcher.x; const y = H - 48; const w = catcher.width; ctx.save(); ctx.shadowBlur = 18; ctx.shadowColor = "#c6ff3d"; ctx.fillStyle = "#c6ff3d"; ctx.beginPath(); ctx.moveTo(x - w / 2, y); ctx.lineTo(x + w / 2, y); ctx.lineTo(x + w / 2 - 12, y + 19); ctx.lineTo(x - w / 2 + 12, y + 19); ctx.closePath(); ctx.fill(); ctx.restore(); ctx.fillStyle = "#090a0e"; ctx.font = "700 9px Arial"; ctx.textAlign = "center"; ctx.fillText("CATCH", x, y + 13); }
 function frame(now) { const dt = Math.min(.05, (now - lastTime) / 1000 || 0); lastTime = now; if (running) update(dt); draw(); requestAnimationFrame(frame); }
