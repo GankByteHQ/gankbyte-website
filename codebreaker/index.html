@@ -4,183 +4,58 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0a0b0f" />
-    <meta name="description" content="Play Codebreaker, a 30-level hacking puzzle campaign of passwords, patterns, binary, and boss firewalls." />
-    <link rel="icon" href="../gb-logo.png" />
-    <link rel="stylesheet" href="../styles.css" />
-    <link rel="stylesheet" href="../site-spacing.css" />
-    <link rel="stylesheet" href="../page-compact.css" />
-    <link rel="stylesheet" href="../site-shell.css?v=7" data-site-shell-style="true" />
-    <link rel="stylesheet" href="codebreaker.css?v=1" />
-    <title>Codebreaker &mdash; GankByte Games</title>
-    <link rel="canonical" href="https://gankbyte.com/codebreaker/" />
-    <meta property="og:title" content="Codebreaker &mdash; GankByte Games" />
-    <meta property="og:description" content="Break into 30 escalating systems by decoding passwords, logic puzzles, binary, and boss firewalls." />
+    <meta name="description" content="Codebreaker is GankByte's arcade hacking campaign: decode, debug, react, and survive the trace." />
+    <meta property="og:title" content="GankByte Codebreaker" />
+    <meta property="og:description" content="Break the code before the system finds you." />
+    <meta property="og:type" content="website" />
     <meta property="og:url" content="https://gankbyte.com/codebreaker/" />
-    <meta property="og:site_name" content="GankByte" />
-    <meta property="og:image" content="https://gankbyte.com/gankbyte-og.png" />
-    <meta property="og:image:alt" content="GankByte - Gaming. Memes. Code." />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Codebreaker &mdash; GankByte Games" />
-    <meta name="twitter:description" content="Break into 30 escalating systems by decoding passwords, logic puzzles, binary, and boss firewalls." />
-    <meta name="twitter:image" content="https://gankbyte.com/gankbyte-og.png" />
+    <meta property="og:image" content="https://gankbyte.com/codebreaker-thumb.svg" />
+    <link rel="icon" href="../gb-logo.png" />
+    <link rel="canonical" href="https://gankbyte.com/codebreaker/" />
+    <link rel="stylesheet" href="../styles.css" />
+    <link rel="stylesheet" href="../site-shell.css?v=7" data-site-shell-style="true" />
+    <link rel="stylesheet" href="main.css?v=1" />
+    <title>GankByte &mdash; Codebreaker</title>
   </head>
   <body>
+    <a class="skip-link" href="#codebreaker-root">Skip to game</a>
     <header class="site-header shell">
       <a class="brand" href="../index.html" aria-label="GankByte home"><span class="brand-mark">GB</span><span>GANKBYTE</span></a>
-      <nav class="site-nav" aria-label="Main navigation"><a href="../games.html" aria-current="page">Games</a><a href="../arena-hub.html">Arena</a><a href="../developers.html">Developers</a><a href="../community.html">Community</a><a href="../xp.html">XP</a><a href="../roadmap.html">Roadmap</a></nav>
-      <a class="header-cta" href="https://discord.gg/CpWjZkjtjJ" target="_blank" rel="noreferrer">Join Discord <span>&nearr;</span></a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a href="../games.html">Games</a>
+        <a href="../arena-hub.html">Arena</a>
+        <a href="../developers.html">Developers</a>
+        <a href="../community.html">Community</a>
+        <a href="../xp.html">XP</a>
+        <a href="../roadmap.html">Roadmap</a>
+      </nav>
+      <a class="header-cta" href="../games.html">Back to Games <span>-></span></a>
     </header>
 
-    <main>
-      <section class="page-hero shell codebreaker-hero">
-        <p class="page-label">GANKBYTE GAMES // CAMPAIGN</p>
-        <h1>Code<br /><em>breaker.</em></h1>
-        <p class="hero-lede">Break into 30 escalating systems with passwords, binary, syntax checks, logic traps, and three boss firewalls. Runs save locally on this device.</p>
-        <div class="hero-actions">
-          <button class="button button-primary" id="codebreaker-start" type="button">Start campaign <span>&rarr;</span></button>
-          <a class="button button-ghost" href="../games.html">Back to Games <span>&nearr;</span></a>
+    <main id="codebreaker-root" class="codebreaker-page shell">
+      <section class="codebreaker-hero">
+        <div class="hero-copy">
+          <p class="eyebrow">GANKBYTE // CODEBREAKER</p>
+          <h1>Break the code.<br /><span>Beat the system.</span></h1>
+          <p class="hero-lede">A 30-system arcade hacking campaign built around coding, debugging, decoding, reaction, trace pressure, lives, powerups, and bosses.</p>
         </div>
-      </section>
-
-      <section class="section shell">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">CAMPAIGN RUN</p>
-            <h2>Read the system.<br /><em>Break the key.</em></h2>
+        <div class="hero-panel">
+          <div class="hero-panel-top">
+            <span>CONNECTED</span>
+            <span id="kb-connection-state">LOCAL SESSION</span>
           </div>
-          <p class="section-intro">Each level changes the theme, the puzzle type, and the timer pressure. Boss levels stack three stages and award a bigger reward when you clear them.</p>
-        </div>
-
-        <div class="codebreaker-layout">
-          <div class="codebreaker-main">
-            <div class="codebreaker-hud">
-              <div><span class="hud-label">LEVEL</span><strong id="codebreaker-level">01 / 30</strong></div>
-              <div><span class="hud-label">SCORE</span><strong id="codebreaker-score">0</strong></div>
-              <div><span class="hud-label">LIVES</span><strong id="codebreaker-lives">5</strong></div>
-              <div><span class="hud-label">TRACE</span><strong id="codebreaker-trace">0</strong></div>
-              <div><span class="hud-label">TIME</span><strong id="codebreaker-time">0s</strong></div>
-              <div><span class="hud-label">POWERUPS</span><strong id="codebreaker-powerups">0</strong></div>
-            </div>
-
-            <div class="codebreaker-terminal" id="codebreaker-terminal">
-              <div class="codebreaker-terminal-top">
-                <div>
-                  <p class="eyebrow" id="codebreaker-system">ACCESS LOCKED</p>
-                  <h2 id="codebreaker-title">Press start.</h2>
-                </div>
-                <div class="codebreaker-progress" id="codebreaker-progress">Level 1 of 30</div>
-              </div>
-
-              <p class="codebreaker-mono" id="codebreaker-code">No challenge loaded.</p>
-              <p class="codebreaker-clue" id="codebreaker-clue">The campaign loads one challenge at a time. Solve it before the timer or trace meter gets you.</p>
-              <div class="codebreaker-options" id="codebreaker-options" hidden></div>
-              <div class="codebreaker-entry">
-                <input id="codebreaker-input" type="text" autocomplete="off" placeholder="Type the answer here" />
-                <button class="button button-primary" id="codebreaker-submit" type="button">Submit answer <span>&rarr;</span></button>
-              </div>
-              <p class="codebreaker-feedback" id="codebreaker-feedback" aria-live="polite">Press start to begin the campaign.</p>
-              <div class="codebreaker-trace">
-                <span class="codebreaker-trace-bar" id="codebreaker-trace-bar"></span>
-              </div>
-            </div>
-
-            <div class="codebreaker-result-card" id="codebreaker-result-card" hidden>
-              <span class="status-badge" id="codebreaker-result-badge">RUN COMPLETE</span>
-              <strong id="codebreaker-result-score">0</strong>
-              <span id="codebreaker-result-detail">Level 1 // waiting for the first breach.</span>
-              <small id="codebreaker-result-note">Clear the mainframe, then try for a cleaner route.</small>
-            </div>
+          <div class="hero-panel-body">
+            <strong>CODEBREAKER</strong>
+            <p>Campaign, Daily Hack, Quick Hack, Endless, Speedrun, Profile, Achievements, and Leaderboards.</p>
           </div>
-
-          <aside class="codebreaker-side">
-            <article class="codebreaker-card">
-              <p class="eyebrow">POWERUPS</p>
-              <h3>Tools in the vault.</h3>
-              <p>Unlock one-time tools as you progress. Each one changes the run in a useful way, but only if you spend it before the next gate closes.</p>
-              <div class="codebreaker-power-grid" id="codebreaker-powergrid"></div>
-            </article>
-            <article class="codebreaker-card">
-              <p class="eyebrow">ACHIEVEMENTS</p>
-              <h3>Milestones unlocked.</h3>
-              <p>Clear bosses, finish with clean traces, and hit major campaign checkpoints to open permanent badges on this device.</p>
-              <div class="codebreaker-achievements" id="codebreaker-achievements"></div>
-            </article>
-          </aside>
-        </div>
-      </section>
-
-      <section class="section section-dark codebreaker-leaderboard-section" id="leaderboard">
-        <div class="shell">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">LOCAL RUN BOARD</p>
-              <h2>Best campaigns.<br /><em>Saved here.</em></h2>
-            </div>
-            <p class="section-intro">Runs are stored on this device so you can see your cleanest clears, highest levels, and best scores while the full backend score table is being planned.</p>
-          </div>
-
-          <div class="leaderboard-wrap">
-            <table class="leaderboard">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Result</th>
-                  <th>Level</th>
-                  <th>Score</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody id="codebreaker-leaderboard-body">
-                <tr><td colspan="5">No runs yet. Start the campaign to create the first entry.</td></tr>
-              </tbody>
-            </table>
+          <div class="hero-panel-bottom">
+            <span>TRACE // 100%</span>
+            <span>LIVES // 5</span>
           </div>
         </div>
       </section>
 
-      <section class="section section-dark codebreaker-how">
-        <div class="shell split-section">
-          <div>
-            <p class="eyebrow">HOW IT WORKS</p>
-            <h2>Thirty levels.<br /><em>Three bosses.</em></h2>
-          </div>
-          <div>
-            <p class="section-intro">The campaign starts with basic passwords and ends with systems that mix binary, syntax checks, logic traps, and memory pressure. Every tenth level is a boss firewall with three stages.</p>
-            <div class="codebreaker-tier-grid">
-              <article class="codebreaker-tier">
-                <span class="status-badge">01-03</span>
-                <h3>School computer to gaming server</h3>
-                <p>Basic code, passwords, and simple decoding.</p>
-              </article>
-              <article class="codebreaker-tier">
-                <span class="status-badge">04-09</span>
-                <h3>Web to satellite systems</h3>
-                <p>Binary, patterns, database logic, and shorter timers.</p>
-              </article>
-              <article class="codebreaker-tier">
-                <span class="status-badge">10</span>
-                <h3>Firewall boss</h3>
-                <p>Three linked security gates that demand clean answers under pressure.</p>
-              </article>
-              <article class="codebreaker-tier">
-                <span class="status-badge">11-19</span>
-                <h3>Central system to root access</h3>
-                <p>More deceptive instructions, faster challenge swaps, and tougher logic.</p>
-              </article>
-              <article class="codebreaker-tier">
-                <span class="status-badge">20</span>
-                <h3>Root access boss</h3>
-                <p>A multi-stage system collapse that rewards a careful route.</p>
-              </article>
-              <article class="codebreaker-tier">
-                <span class="status-badge">21-30</span>
-                <h3>Endgame and mainframe</h3>
-                <p>Randomised challenge rules, very short timers, and the final mainframe fight.</p>
-              </article>
-            </div>
-          </div>
-        </div>
-      </section>
+      <section id="codebreaker-app" class="codebreaker-app" aria-live="polite"></section>
     </main>
 
     <footer class="site-footer shell">
@@ -199,11 +74,10 @@
           <a href="https://github.com/GankByteHQ" target="_blank" rel="noreferrer">GitHub</a>
         </div>
         <a href="mailto:contact@gankbyte.com">contact@gankbyte.com</a>
-        <span>&copy; 2026 GankByte</span>
+        <span>(c) 2026 GankByte</span>
       </div>
     </footer>
-
-    <script src="game.js?v=1"></script>
     <script src="../footer-nav.js?v=5"></script>
+    <script src="main.js?v=1"></script>
   </body>
 </html>
