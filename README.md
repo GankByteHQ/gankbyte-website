@@ -1,4 +1,4 @@
-# GankByte
+﻿# GankByte
 
 Gaming. Memes. Code.
 
@@ -17,6 +17,7 @@ This repository contains the public GankByte landing page. The site is a lightwe
 - `arena-hub.html` - Arena dashboard and recent player results
 - `arena.html` - Byte Rush
 - `glitch-dash.html` - Glitch Dash
+- `symbol-catch/` - Symbol Catch Arena reflex game
 - `profile.html` - personal runs, XP history, challenges, and moderation notes
 - `xp.html` - XP submission and public XP leaderboard
 - `developers.html` / `contributing.html` - project and contribution routes
@@ -48,8 +49,9 @@ Run the site from a local web server so OAuth redirects and module-free browser 
 py -m http.server 8000
 ```
 
-Then open `http://localhost:8000`. A complete manual check should cover both games, mobile touch controls, Discord sign-in, score submission, XP submission, profile history, and admin review.
+Then open `http://localhost:8000`. A complete manual check should cover all three games, mobile touch controls, Discord sign-in, score submission, XP submission, profile history, and admin review.
 
 ## Deployment
 
 The production site is the static content in this directory and is deployed through GitHub Pages at <https://gankbyte.com>. Do not add Supabase service-role keys, database passwords, Discord secrets, wallet keys, or other private credentials to the repository. Browser configuration uses only the publishable Supabase key required by the live client.
+

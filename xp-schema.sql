@@ -1,4 +1,4 @@
--- GankByte XP v0.2
+﻿-- GankByte XP v0.2
 -- Run this once in Supabase SQL Editor. Never put a service-role key in the website.
 
 create table if not exists public.profiles (
@@ -70,9 +70,23 @@ create table if not exists public.glitch_dash_scores (
   reviewed_at timestamptz
 );
 
+create table if not exists public.symbol_catch_scores (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  score integer not null check (score between 0 and 1000000),
+  best_streak integer not null check (best_streak between 0 and 10000),
+  mode text not null default 'classic' check (mode in ('classic', 'switch')),
+  run_seconds integer not null check (run_seconds between 0 and 3600),
+  status text not null default 'approved' check (status in ('pending', 'approved', 'rejected')),
+  reviewer_id uuid references public.profiles(id),
+  reviewer_note text,
+  created_at timestamptz not null default now(),
+  reviewed_at timestamptz
+);
+
 create table if not exists public.moderation_notice_dismissals (
   user_id uuid not null references public.profiles(id) on delete cascade,
-  notice_type text not null check (notice_type in ('submission', 'arena', 'glitch')),
+  notice_type text not null check (notice_type in ('submission', 'arena', 'glitch', 'symbol')),
   notice_id bigint not null,
   dismissed_at timestamptz not null default now(),
   primary key (user_id, notice_type, notice_id)
@@ -93,6 +107,7 @@ create table if not exists public.arena_events (
 -- Arena scores are published automatically for the launch leaderboard.
 update public.arena_scores set status = 'approved' where status = 'pending';
 update public.glitch_dash_scores set status = 'approved' where status = 'pending';
+update public.symbol_catch_scores set status = 'approved' where status = 'pending';
 
 insert into public.challenges (slug, title, category, base_xp, bonus_xp)
 values ('weekend-challenge-001', 'Weekend Challenge #001', 'play', 100, 500)
@@ -142,6 +157,7 @@ alter table public.challenge_submissions enable row level security;
 alter table public.xp_ledger enable row level security;
 alter table public.arena_scores enable row level security;
 alter table public.glitch_dash_scores enable row level security;
+alter table public.symbol_catch_scores enable row level security;
 alter table public.moderation_notice_dismissals enable row level security;
 alter table public.arena_events enable row level security;
 
@@ -153,6 +169,7 @@ grant select, insert, update on public.challenge_submissions to authenticated;
 grant select on public.xp_ledger to anon, authenticated;
 grant select, insert, update on public.arena_scores to authenticated;
 grant select, insert, update on public.glitch_dash_scores to authenticated;
+grant select, insert, update on public.symbol_catch_scores to authenticated;
 grant select, insert, delete on public.moderation_notice_dismissals to authenticated;
 grant select on public.arena_events to anon, authenticated;
 
@@ -191,6 +208,15 @@ create policy "Players see their own Glitch Dash scores" on public.glitch_dash_s
 
 drop policy if exists "Admins review Glitch Dash scores" on public.glitch_dash_scores;
 create policy "Admins review Glitch Dash scores" on public.glitch_dash_scores for update to authenticated using (exists (select 1 from public.profiles where id = auth.uid() and is_admin)) with check (exists (select 1 from public.profiles where id = auth.uid() and is_admin));
+
+drop policy if exists "Players submit their own Symbol Catch scores" on public.symbol_catch_scores;
+create policy "Players submit their own Symbol Catch scores" on public.symbol_catch_scores for insert to authenticated with check (auth.uid() = user_id and status = 'approved');
+
+drop policy if exists "Players see their own Symbol Catch scores" on public.symbol_catch_scores;
+create policy "Players see their own Symbol Catch scores" on public.symbol_catch_scores for select to authenticated using (auth.uid() = user_id or exists (select 1 from public.profiles where id = auth.uid() and is_admin));
+
+drop policy if exists "Admins review Symbol Catch scores" on public.symbol_catch_scores;
+create policy "Admins review Symbol Catch scores" on public.symbol_catch_scores for update to authenticated using (exists (select 1 from public.profiles where id = auth.uid() and is_admin)) with check (exists (select 1 from public.profiles where id = auth.uid() and is_admin));
 
 drop policy if exists "Players see their own dismissed notices" on public.moderation_notice_dismissals;
 create policy "Players see their own dismissed notices" on public.moderation_notice_dismissals for select to authenticated using (auth.uid() = user_id);
@@ -265,6 +291,19 @@ join lateral (
 
 grant select on public.glitch_dash_leaderboard to anon, authenticated;
 
+create or replace view public.symbol_catch_leaderboard as
+select p.id, p.display_name, best.score as best_score, best.best_streak, best.mode, best.created_at as latest_run
+from public.profiles p
+join lateral (
+  select s.score, s.best_streak, s.mode, s.created_at
+  from public.symbol_catch_scores s
+  where s.user_id = p.id and s.status = 'approved'
+  order by s.score desc, s.best_streak desc, s.created_at desc
+  limit 1
+) best on true;
+
+grant select on public.symbol_catch_leaderboard to anon, authenticated;
+
 create or replace view public.arena_weekly_leaderboard as
 select p.id, p.display_name, best.score as best_score, best.wave as best_wave, best.created_at as latest_run
 from public.profiles p
@@ -290,6 +329,19 @@ join lateral (
 ) best on true;
 
 grant select on public.glitch_dash_weekly_leaderboard to anon, authenticated;
+
+create or replace view public.symbol_catch_weekly_leaderboard as
+select p.id, p.display_name, best.score as best_score, best.best_streak, best.mode, best.created_at as latest_run
+from public.profiles p
+join lateral (
+  select s.score, s.best_streak, s.mode, s.created_at
+  from public.symbol_catch_scores s
+  where s.user_id = p.id and s.status = 'approved' and s.created_at >= now() - interval '7 days'
+  order by s.score desc, s.best_streak desc, s.created_at desc
+  limit 1
+) best on true;
+
+grant select on public.symbol_catch_weekly_leaderboard to anon, authenticated;
 
 drop policy if exists "Arena events are public" on public.arena_events;
 create policy "Arena events are public" on public.arena_events for select using (true);
@@ -340,3 +392,4 @@ end;
 $$;
 
 grant execute on function public.approve_arena_score(bigint) to authenticated;
+

@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   --bg: #090a0e;
   --surface: #14161c;
   --line: rgba(244, 242, 234, .14);
@@ -58,6 +58,18 @@ em { color: var(--lime); font-style: normal; }
 .perk-guide { border-top: 1px solid var(--line); display: grid; gap: 20px; grid-template-columns: repeat(3, 1fr); margin-top: 34px; padding-top: 24px; }
 .perk-guide p { color: var(--muted); font-size: 12px; line-height: 1.55; margin: 0; }
 .perk-guide strong { color: var(--lime); font-size: 10px; letter-spacing: .14em; }
+.online-panel { border-top: 1px solid var(--line); display: grid; gap: 28px; grid-template-columns: 1fr 1fr; margin-bottom: 90px; padding-top: 56px; }
+.online-panel h2 { font-size: clamp(38px, 5vw, 62px); letter-spacing: -.08em; line-height: .92; margin: 0 0 16px; }
+.online-panel p:not(.eyebrow) { color: var(--muted); font-size: 14px; line-height: 1.6; max-width: 420px; }
+.online-actions { align-items: flex-start; display: flex; flex-wrap: wrap; gap: 10px; }
+.online-actions > span { color: var(--muted); flex-basis: 100%; font-size: 12px; margin-bottom: 4px; }
+.online-actions .button { background: var(--surface); border: 1px solid var(--line); color: var(--text); }
+.online-actions .button.primary { background: var(--lime); color: #090a0e; }
+.leaderboard-wrap { grid-column: 1 / -1; overflow-x: auto; }
+.leaderboard { border-collapse: collapse; min-width: 560px; width: 100%; }
+.leaderboard th, .leaderboard td { border-bottom: 1px solid var(--line); padding: 13px 12px; text-align: left; }
+.leaderboard th { color: var(--lime); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; }
+.leaderboard td { color: var(--muted); font-size: 13px; }
 @media (max-width: 720px) {
   .shell { padding: 0 20px; }
   .site-header { height: 70px; }
@@ -68,5 +80,6 @@ em { color: var(--lime); font-style: normal; }
   .board { height: 460px; min-height: 0; }
   .controls { align-items: flex-start; flex-direction: column; }
   .touch-controls { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
-  .rule-grid, .perk-guide { grid-template-columns: 1fr; gap: 20px; }
+  .rule-grid, .perk-guide, .online-panel { grid-template-columns: 1fr; gap: 20px; }
 }
+
