@@ -23,6 +23,9 @@
   let currentUser = null;
   let historyPanel = null;
   let challengePanel = null;
+  let submissionHistoryRows = [];
+  let submissionHistoryPage = 1;
+  const submissionHistoryPageSize = 10;
 
   function setStatus(message, error) {
     status.textContent = message || "";
@@ -77,16 +80,29 @@
     if (historyPanel) return historyPanel;
     historyPanel = document.createElement("section");
     historyPanel.className = "xp-submission-history content-card";
-    historyPanel.innerHTML = '<div class="section-heading"><div><p class="eyebrow">YOUR SUBMISSIONS</p><h3>Proof and status.</h3></div><p class="section-intro">Pending, approved, and rejected contributions stay visible here so you always know what needs attention.</p></div><div class="leaderboard-wrap"><table class="leaderboard"><thead><tr><th>Challenge</th><th>Status</th><th>Reason</th><th>Date</th></tr></thead><tbody id="xp-submission-history-body"><tr><td colspan="4">Loading submissions...</td></tr></tbody></table></div>';
+    historyPanel.innerHTML = '<div class="section-heading"><div><p class="eyebrow">YOUR SUBMISSIONS</p><h3>Proof and status.</h3></div><p class="section-intro">Pending, approved, and rejected contributions stay visible here so you always know what needs attention.</p></div><div class="leaderboard-wrap"><table class="leaderboard"><thead><tr><th>Challenge</th><th>Status</th><th>Reason</th><th>Date</th></tr></thead><tbody id="xp-submission-history-body"><tr><td colspan="4">Loading submissions...</td></tr></tbody></table></div><div class="xp-history-pagination" aria-label="Submission history pages"><span id="xp-history-page-label">Showing 0 submissions</span><div><button class="button button-ghost" id="xp-history-previous" type="button">Previous</button><button class="button button-ghost" id="xp-history-next" type="button">Next</button></div></div>';
+    historyPanel.querySelector("#xp-history-previous").addEventListener("click", () => renderSubmissionHistory(submissionHistoryRows, submissionHistoryPage - 1));
+    historyPanel.querySelector("#xp-history-next").addEventListener("click", () => renderSubmissionHistory(submissionHistoryRows, submissionHistoryPage + 1));
     submitPanel.parentElement.insertBefore(historyPanel, submitPanel.nextElementSibling);
     return historyPanel;
   }
 
-  function renderSubmissionHistory(rows) {
+  function renderSubmissionHistory(rows, page = 1) {
     const panel = ensureHistoryPanel();
     const body = panel.querySelector("#xp-submission-history-body");
-    if (!rows?.length) { body.innerHTML = '<tr><td colspan="4">No submissions yet. Your first useful contribution can start the record.</td></tr>'; return; }
-    body.innerHTML = rows.map((row) => {
+    submissionHistoryRows = rows || [];
+    const totalPages = Math.max(1, Math.ceil(submissionHistoryRows.length / submissionHistoryPageSize));
+    submissionHistoryPage = Math.max(1, Math.min(page, totalPages));
+    const start = (submissionHistoryPage - 1) * submissionHistoryPageSize;
+    const visibleRows = submissionHistoryRows.slice(start, start + submissionHistoryPageSize);
+    const label = panel.querySelector("#xp-history-page-label");
+    const previous = panel.querySelector("#xp-history-previous");
+    const next = panel.querySelector("#xp-history-next");
+    if (label) label.textContent = submissionHistoryRows.length ? `Showing ${start + 1}-${Math.min(start + submissionHistoryPageSize, submissionHistoryRows.length)} of ${submissionHistoryRows.length}` : "Showing 0 submissions";
+    if (previous) previous.disabled = submissionHistoryPage <= 1;
+    if (next) next.disabled = submissionHistoryPage >= totalPages;
+    if (!visibleRows.length) { body.innerHTML = '<tr><td colspan="4">No submissions yet. Your first useful contribution can start the record.</td></tr>'; return; }
+    body.innerHTML = visibleRows.map((row) => {
       const statusText = row.status === "approved" ? "Approved" : row.status === "rejected" ? "Rejected" : "Pending";
       const reason = row.reviewer_note || (row.status === "pending" ? "Waiting for review" : row.status === "approved" ? "Added to XP" : "See moderation notes on your profile");
       return `<tr><td>${escapeHtml(row.challenge_slug === contributionChallengeSlug ? "Community contribution" : row.challenge_slug)}</td><td>${statusText}</td><td>${escapeHtml(reason)}</td><td>${new Date(row.created_at).toLocaleDateString(undefined, { day: "2-digit", month: "short" })}</td></tr>`;
@@ -155,7 +171,7 @@
     const displayName = profile.display_name || user.user_metadata?.global_name || user.user_metadata?.full_name || "GankByte Player";
     const [ledgerResult, submissionsResult, challengesResult] = await Promise.all([
       client.from("xp_ledger").select("amount").eq("user_id", user.id),
-      client.from("challenge_submissions").select("challenge_slug,status,reviewer_note,created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(25),
+      client.from("challenge_submissions").select("challenge_slug,status,reviewer_note,created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(500),
       client.from("challenges").select("slug,title,base_xp,bonus_xp").eq("active", true).order("created_at", { ascending: true })
     ]);
     const accountError = [ledgerResult, submissionsResult, challengesResult].find((result) => result?.error);
@@ -235,7 +251,7 @@
     }
     event.target.reset();
     setStatus("Submitted. An admin will review it before XP is added.");
-    const refreshed = await client.from("challenge_submissions").select("challenge_slug,status,reviewer_note,created_at").eq("user_id", currentUser.id).order("created_at", { ascending: false }).limit(25);
+    const refreshed = await client.from("challenge_submissions").select("challenge_slug,status,reviewer_note,created_at").eq("user_id", currentUser.id).order("created_at", { ascending: false }).limit(500);
     renderSubmissionHistory(refreshed.data || []);
   });
 
