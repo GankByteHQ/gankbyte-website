@@ -1229,6 +1229,9 @@
 
   function bindEvents() {
     const root = app;
+    root.querySelectorAll("[data-action]").forEach((el) => {
+      el.onclick = onAction;
+    });
     if (root.dataset.bound !== "true") {
       root.dataset.bound = "true";
       root.addEventListener("click", onRootClick);
@@ -1253,12 +1256,14 @@
   }
 
   function onRootClick(event) {
-    const actionTarget = event.target.closest("[data-action]");
+    const target = event.target instanceof Element ? event.target : null;
+    const actionTarget = target ? target.closest("[data-action]") : null;
     if (!actionTarget || !app.contains(actionTarget)) return;
     onAction({ currentTarget: actionTarget });
   }
   function onAction(event) {
-    const target = event.currentTarget;
+    const target = event.currentTarget || event.target;
+    if (!target || !target.dataset) return;
     const action = target.dataset.action;
     if (action === "menu") {
       state.menuFocus = target.dataset.mode;
