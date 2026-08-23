@@ -29,6 +29,7 @@
 .xp-badge{border:1px solid var(--line);color:#77787c;font-size:9px;letter-spacing:.08em;padding:8px 10px;text-transform:uppercase}
 .xp-badge.is-earned{border-color:rgba(198,255,61,.55);color:var(--lime)}
 .xp-submit-panel{align-items:start;display:grid;gap:40px;grid-template-columns:1fr 1fr;margin-top:14px}
+.xp-submit-panel[hidden]{display:none!important}
 .xp-submit-panel h3{font-size:28px;letter-spacing:-.05em;margin:0 0 10px}
 .xp-submit-panel form{display:grid;gap:8px}
 .xp-submit-panel label,.admin-actions label{color:#77787c;font-size:9px;letter-spacing:.16em;text-transform:uppercase}
