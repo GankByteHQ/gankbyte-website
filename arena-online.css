@@ -4,6 +4,11 @@
 .arena-online button:hover{border-color:var(--lime);color:var(--lime)}
 .arena-online [hidden]{display:none!important}
 .arena-online button:disabled{cursor:not-allowed;opacity:.55}
+.arena-mode-control{background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;gap:8px;margin-top:16px;padding:16px}
+.arena-mode-control label{color:var(--text);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.arena-mode-control select{background:#0a0b0f;border:1px solid var(--line);color:var(--text);font:inherit;padding:10px;width:100%}
+.arena-mode-control select:focus{border-color:var(--lime);outline:none}
+.arena-mode-control small{color:var(--muted);font-size:12px;line-height:1.45}
 .arena-leaderboard-section .leaderboard-wrap{background:var(--surface);border:1px solid var(--line);padding:0 18px}
 .leaderboard-tabs{display:flex;gap:8px;margin-top:18px}.leaderboard-tabs .button{font-size:10px;padding:10px 14px}.leaderboard-tabs .button.is-active{border-color:var(--lime);color:var(--lime)}
 .arena-leaderboard-section{padding-bottom:66px;padding-top:6px}

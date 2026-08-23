@@ -21,6 +21,7 @@ const arenaLogout = document.querySelector("#arena-logout");
 const arenaLeaderboardBody = document.querySelector("#arena-leaderboard-body");
 const arenaScopeButtons = document.querySelectorAll("[data-arena-scope]");
 const arenaEventSelect = document.querySelector("#arena-event-select");
+const arenaModeSelect = document.querySelector("#arena-mode-select");
 const arenaResultCard = document.querySelector("#arena-result-card");
 const arenaResultCardScore = document.querySelector("#arena-result-card-score");
 const arenaResultCardDetail = document.querySelector("#arena-result-card-detail");
@@ -61,12 +62,44 @@ let lastRun = null;
 let serverRunId = null;
 let runAttempt = 0;
 let arenaLeaderboardScope = "all";
+let arenaMode = arenaModeSelect?.value === "walls" ? "walls" : "wrap";
 let arenaGestureStart = null;
 
 function random(min, max) { return Math.random() * (max - min) + min; }
 function distance(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
 function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
 function wrap(value, size) { return (value + size) % size; }
+
+function hitWall() {
+  if (arenaMode !== "walls" || player.invulnerable > 0) return;
+  if (shield) {
+    shield = false;
+    status.textContent = "Shield absorbed the wall impact.";
+  } else {
+    lives -= 1;
+    combo = 0;
+    score = Math.max(0, score - 25);
+    status.textContent = lives ? "Wall impact. Watch the boundary." : "Signal lost.";
+  }
+  player.invulnerable = 1.1;
+  burst(player.x, player.y, "#ff855c", 24);
+  updateHud();
+  if (!lives) finishGame();
+}
+
+function movePlayerBy(dx, dy) {
+  const nextX = player.x + dx;
+  const nextY = player.y + dy;
+  if (arenaMode === "walls") {
+    const hit = nextX < player.radius || nextX > WIDTH - player.radius || nextY < player.radius || nextY > HEIGHT - player.radius;
+    player.x = clamp(nextX, player.radius, WIDTH - player.radius);
+    player.y = clamp(nextY, player.radius, HEIGHT - player.radius);
+    if (hit) hitWall();
+    return;
+  }
+  player.x = wrap(nextX, WIDTH);
+  player.y = wrap(nextY, HEIGHT);
+}
 
 function localBestScore() { return Number(localStorage.getItem(arenaBestKey) || 0); }
 
@@ -234,6 +267,7 @@ function burst(x, y, color, amount = 12) {
 
 function resetGame() {
   runAttempt += 1;
+  if (arenaModeSelect) arenaModeSelect.disabled = false;
   arenaSubmit.hidden = true;
   if (arenaResultActions) arenaResultActions.hidden = true;
   if (arenaResultCard) arenaResultCard.hidden = true;
@@ -283,8 +317,7 @@ function dash() {
   const direction = moveVector();
   const x = direction.moving ? direction.x : Math.cos(player.angle);
   const y = direction.moving ? direction.y : Math.sin(player.angle);
-  player.x = wrap(player.x + x * 105, WIDTH);
-  player.y = wrap(player.y + y * 105, HEIGHT);
+  movePlayerBy(x * 105, y * 105);
   player.invulnerable = .55;
   boosts -= 1;
   burst(player.x, player.y, "#c6ff3d", 18);
@@ -314,8 +347,7 @@ function update(dt) {
 
   const direction = moveVector();
   if (direction.moving) {
-    player.x = wrap(player.x + direction.x * player.speed * dt, WIDTH);
-    player.y = wrap(player.y + direction.y * player.speed * dt, HEIGHT);
+    movePlayerBy(direction.x * player.speed * dt, direction.y * player.speed * dt);
     player.angle = Math.atan2(direction.y, direction.x);
     pointerTarget = null;
   } else if (pointerTarget) {
@@ -325,8 +357,7 @@ function update(dt) {
     if (distanceToTarget < 8) {
       pointerTarget = null;
     } else {
-      player.x = wrap(player.x + (dx / distanceToTarget) * player.speed * dt, WIDTH);
-      player.y = wrap(player.y + (dy / distanceToTarget) * player.speed * dt, HEIGHT);
+      movePlayerBy((dx / distanceToTarget) * player.speed * dt, (dy / distanceToTarget) * player.speed * dt);
       player.angle = Math.atan2(dy, dx);
     }
   }
@@ -450,6 +481,11 @@ function drawGrid() {
   glow.addColorStop(1, "rgba(154,123,255,0)");
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  if (arenaMode === "walls") {
+    ctx.strokeStyle = "rgba(198,255,61,.45)";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(player?.radius || 15, player?.radius || 15, WIDTH - (player?.radius || 15) * 2, HEIGHT - (player?.radius || 15) * 2);
+  }
 }
 
 function drawPickup(pickup) {
@@ -593,6 +629,7 @@ function finishGame() {
   if (arenaResultCardDetail) arenaResultCardDetail.textContent = `Wave ${wave} // ${Math.round(elapsed)} seconds`;
   if (arenaResultCardNote) arenaResultCardNote.textContent = newBest ? "New personal best. Share the run." : "Keep moving. Beat your best next run.";
   if (arenaResultRank) arenaResultRank.textContent = arenaUser ? "Submitting run..." : "Sign in to submit and rank this run.";
+  if (arenaModeSelect) arenaModeSelect.disabled = false;
   status.textContent = newBest ? `New best score: ${score}.` : `Best score on this device: ${Math.max(best, score)}.`;
   submitLastRun();
 }
@@ -600,6 +637,7 @@ function finishGame() {
 function startGame() {
   resetGame();
   running = true;
+  if (arenaModeSelect) arenaModeSelect.disabled = true;
   message.hidden = true;
   startButton.innerHTML = "Restart run  <span>&rarr;</span>";
   status.textContent = "Collect bytes. Dodge glitches.";
@@ -635,13 +673,23 @@ canvas.addEventListener("pointerup", (event) => {
     const dy = event.clientY - arenaGestureStart.y;
     if (Math.hypot(dx, dy) > 28) {
       const length = Math.hypot(dx, dy) || 1;
-      pointerTarget = { x: wrap(player.x + (dx / length) * 260, WIDTH), y: wrap(player.y + (dy / length) * 260, HEIGHT) };
+      const targetX = player.x + (dx / length) * 260;
+      const targetY = player.y + (dy / length) * 260;
+      pointerTarget = arenaMode === "walls"
+        ? { x: clamp(targetX, player.radius, WIDTH - player.radius), y: clamp(targetY, player.radius, HEIGHT - player.radius) }
+        : { x: wrap(targetX, WIDTH), y: wrap(targetY, HEIGHT) };
     }
   }
   arenaGestureStart = null;
 });
 canvas.addEventListener("pointercancel", () => { arenaGestureStart = null; pointerTarget = null; });
 startButton.addEventListener("click", startGame);
+arenaModeSelect?.addEventListener("change", () => {
+  arenaMode = arenaModeSelect.value === "walls" ? "walls" : "wrap";
+  status.textContent = arenaMode === "walls"
+    ? "Solid Walls selected. Boundaries cost one life."
+    : "Wrap Around selected. The arena loops at every edge.";
+});
 arenaLogin.addEventListener("click", async () => {
   if (!arenaClient) return;
   const result = await arenaClient.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: window.location.origin + window.location.pathname } });
