@@ -18,6 +18,7 @@
   const challengeSelect = $("xp-challenge-select");
   const badges = $("xp-badges");
   const contributionChallengeSlug = "community-contribution";
+  const xpPage = document.body.dataset.xpPage || "overview";
   let client = null;
   let currentUser = null;
   let historyPanel = null;
@@ -64,6 +65,7 @@
   }
 
   function renderLeaderboard(rows) {
+    if (!leaderboardBody) return;
     if (!rows || !rows.length) {
       leaderboardBody.innerHTML = '<tr><td colspan="4">No approved XP yet. Be the first to submit.</td></tr>';
       return;
@@ -118,6 +120,7 @@
   }
 
   async function loadLeaderboard() {
+    if (!leaderboardBody) return;
     const result = await client.from("xp_leaderboard").select("display_name,xp_total").order("xp_total", { ascending: false }).limit(25);
     if (result.error) {
       leaderboardBody.innerHTML = '<tr><td colspan="4">The leaderboard is not available yet.</td></tr>';
@@ -135,7 +138,7 @@
       accountCopy.textContent = "Sign in with Discord to submit contributions and track approved XP.";
       loginButton.hidden = false;
       logoutButton.hidden = true;
-      submitPanel.hidden = true;
+      if (submitPanel) submitPanel.hidden = true;
       adminLink.hidden = true;
       if (historyPanel) historyPanel.hidden = true;
       if (challengePanel) challengePanel.hidden = true;
@@ -164,10 +167,12 @@
     accountCopy.textContent = "Your approved community XP is shown below.";
     loginButton.hidden = true;
     logoutButton.hidden = false;
-    submitPanel.hidden = false;
+    if (submitPanel) submitPanel.hidden = xpPage !== "submit";
     adminLink.hidden = !profile.is_admin;
-    ensureHistoryPanel().hidden = false;
-    ensureChallengePanel().hidden = false;
+    if (xpPage === "submit") {
+      ensureHistoryPanel().hidden = false;
+      ensureChallengePanel().hidden = false;
+    }
     total.textContent = xp.toLocaleString();
     level.textContent = "Level " + levelForXp(xp);
     renderBadges(xp);
@@ -186,7 +191,7 @@
       accountTitle.textContent = "XP is ready to connect";
       accountCopy.textContent = "Discord login, submissions, and the leaderboard need the Supabase connection to load here.";
       loginButton.disabled = true;
-      leaderboardBody.innerHTML = '<tr><td colspan="4">Backend setup is required before the leaderboard can load.</td></tr>';
+      if (leaderboardBody) leaderboardBody.innerHTML = '<tr><td colspan="4">Backend setup is required before the leaderboard can load.</td></tr>';
       return;
     }
 
@@ -236,6 +241,6 @@
   init().catch(function () {
     setBadge("Offline", "planned");
     setStatus("XP is temporarily unavailable. You can still play locally and try again later.", true);
-    leaderboardBody.innerHTML = '<tr><td colspan="4">XP services are temporarily unavailable.</td></tr>';
+    if (leaderboardBody) leaderboardBody.innerHTML = '<tr><td colspan="4">XP services are temporarily unavailable.</td></tr>';
   });
 }());
