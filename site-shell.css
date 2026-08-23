@@ -1,16 +1,6 @@
 .skip-link{background:var(--lime);color:#0a0b0f;font-size:11px;font-weight:700;left:16px;letter-spacing:.1em;padding:12px 15px;position:fixed;text-transform:uppercase;top:-80px;transition:top .2s ease;z-index:100}
 .skip-link:focus{top:16px}
 .site-nav a[aria-current="page"]{color:var(--lime)}
-.site-nav-dropdown{position:relative}
-.site-nav-dropdown summary{color:var(--muted);cursor:pointer;list-style:none}
-.site-nav-dropdown summary::-webkit-details-marker{display:none}
-.site-nav-dropdown summary:after{content:"+";font-size:10px;margin-left:5px}
-.site-nav-dropdown[open] summary,.site-nav-dropdown summary:hover{color:var(--lime)}
-.site-nav-dropdown[open] summary:after{content:"-"}
-.site-nav-dropdown summary[aria-current="page"]{color:var(--lime)}
-.site-nav-dropdown-panel{background:var(--surface);border:1px solid var(--line);box-shadow:0 18px 45px rgba(0,0,0,.42);display:grid;gap:0;min-width:190px;padding:8px;position:absolute;right:0;top:calc(100% + 12px);z-index:35}
-.site-nav-dropdown-panel a{color:var(--muted);display:block;padding:11px 12px;white-space:nowrap}
-.site-nav-dropdown-panel a:hover{background:var(--surface-2);color:var(--lime)}
 .site-nav a:focus-visible,.mobile-nav-toggle:focus-visible,.site-account-trigger:focus-visible,.site-account-links a:focus-visible,.site-account-item:focus-visible{outline:2px solid var(--lime);outline-offset:4px}
 .mobile-nav-toggle{align-items:center;appearance:none;background:transparent;border:1px solid var(--line);color:var(--text);cursor:pointer;display:none;font:700 10px/1 Arial,Helvetica,sans-serif;gap:9px;letter-spacing:.1em;padding:12px 13px;text-transform:uppercase}
 .mobile-nav-icon{display:grid;gap:3px;width:13px}
@@ -29,10 +19,6 @@
   .site-nav a:last-child{border-bottom:0}
   .site-nav .mobile-nav-extra{display:block}
   .site-nav .mobile-nav-auth{padding:14px 12px}
-  .site-nav-dropdown{border-bottom:1px solid var(--line)}
-  .site-nav-dropdown summary{padding:14px 12px}
-  .site-nav-dropdown-panel{background:transparent;border:0;box-shadow:none;display:grid;min-width:0;padding:0;position:static}
-  .site-nav-dropdown-panel a{border-top:1px solid var(--line);padding:12px 24px}
   .site-account-trigger{max-width:155px!important}
   .site-account-trigger>span:nth-child(2){max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 }
