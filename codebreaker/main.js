@@ -855,6 +855,7 @@
     const traceClass = state.trace >= 75 ? "trace-warning" : "";
     const prompt = renderPrompt(challenge);
     const answerArea = renderAnswerArea(challenge);
+    const warning = traceWarningMessage(state.trace);
     return `
       <section class="cb-screen ${traceClass}">
         <div class="cb-screen-head">
