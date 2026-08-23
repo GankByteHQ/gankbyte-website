@@ -843,7 +843,7 @@
         </div>
         <div class="cb-actions">
           <button class="cb-button" data-action="goto" data-screen="campaign">Back to map</button>
-          <button class="cb-button primary" data-action="start-level">Start hack</button>
+          <button type="button" class="cb-button primary" data-action="start-level">Start hack</button>
         </div>
       </section>
     `;
@@ -1219,8 +1219,8 @@
           <h3>Start ${title.toLowerCase()}</h3>
           <p>${desc}</p>
           <div class="cb-actions">
-            <button class="cb-button primary" data-action="start-mode" data-mode="${mode}">Start</button>
-            <button class="cb-button" data-action="goto" data-screen="menu">Back</button>
+            <button type="button" class="cb-button primary" data-action="start-mode" data-mode="${mode}">Start</button>
+            <button type="button" class="cb-button" data-action="goto" data-screen="menu">Back</button>
           </div>
         </div>
       </section>
@@ -1229,9 +1229,10 @@
 
   function bindEvents() {
     const root = app;
-    root.querySelectorAll("[data-action]").forEach((el) => {
-      el.addEventListener("click", onAction);
-    });
+    if (root.dataset.bound !== "true") {
+      root.dataset.bound = "true";
+      root.addEventListener("click", onRootClick);
+    }
     const input = root.querySelector("#cb-answer");
     if (input) {
       input.focus();
@@ -1251,6 +1252,11 @@
     }
   }
 
+  function onRootClick(event) {
+    const actionTarget = event.target.closest("[data-action]");
+    if (!actionTarget || !app.contains(actionTarget)) return;
+    onAction({ currentTarget: actionTarget });
+  }
   function onAction(event) {
     const target = event.currentTarget;
     const action = target.dataset.action;
