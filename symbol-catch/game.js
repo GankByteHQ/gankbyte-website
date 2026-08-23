@@ -17,6 +17,7 @@ const symbolColors = ["#c6ff3d", "#55e8ff", "#ff855c", "#9a7bff", "#ffd166", "#f
 const W = canvas.width;
 const H = canvas.height;
 const bestKey = "gankbyte-symbol-catch-best";
+const bestStreakKey = "gankbyte-symbol-catch-best-streak";
 const perks = [
   { name: "MAGNET", description: "Catch range increased", apply: (game) => { game.catchRange += 7; } },
   { name: "OVERDRIVE", description: "Collection score boosted", apply: (game) => { game.scoreMultiplier += .1; } },
@@ -28,6 +29,7 @@ let elapsed = 0;
 let spawnTimer = 0;
 let score = 0;
 let streak = 0;
+let bestStreak = 0;
 let catches = 0;
 let lives = 3;
 let target = symbols[0];
@@ -45,14 +47,14 @@ const keys = { left: false, right: false };
 function updateHud() { scoreEl.textContent = score; streakEl.textContent = streak; livesEl.textContent = lives; targetEl.textContent = target; targetEl.style.color = symbolColors[symbols.indexOf(target)]; perkEl.textContent = currentPerk; }
 function randomTarget() { const previous = target; do { target = symbols[Math.floor(Math.random() * symbols.length)]; } while (symbols.length > 1 && target === previous); }
 function bestScore() { return Number(localStorage.getItem(bestKey) || 0); }
-function reset() { elapsed = 0; spawnTimer = .2; score = 0; streak = 0; catches = 0; lives = 5; catchRange = 0; scoreMultiplier = 1; shield = false; currentPerk = "NONE"; drops = []; particles = []; catcher = { x: W / 2, width: 108, speed: 690 }; randomTarget(); updateHud(); }
+function reset() { elapsed = 0; spawnTimer = .2; score = 0; streak = 0; bestStreak = 0; catches = 0; lives = 5; catchRange = 0; scoreMultiplier = 1; shield = false; currentPerk = "NONE"; drops = []; particles = []; catcher = { x: W / 2, width: 108, speed: 690 }; randomTarget(); updateHud(); }
 function spawnDrop(offset = 0) { const symbol = symbols[Math.floor(Math.random() * symbols.length)]; drops.push({ x: 36 + Math.random() * (W - 72), y: -30 - offset, size: 24 + Math.random() * 8, speed: (105 + elapsed * 2.8 + Math.random() * 50) * 1.15, symbol, color: symbolColors[symbols.indexOf(symbol)] }); }
 function spawn() { spawnDrop(); if (Math.random() < .35) spawnDrop(44 + Math.random() * 70); if (elapsed > 22 && Math.random() < .1) spawnDrop(90 + Math.random() * 70); }
 function burst(x, y, color) { for (let i = 0; i < 12; i++) particles.push({ x, y, dx: (Math.random() - .5) * 180, dy: (Math.random() - .7) * 180, life: .45, color }); }
 function announceTarget() { if (!targetAlert || !targetAlertSymbol) return; targetAlertSymbol.textContent = target; targetAlertSymbol.style.color = symbolColors[symbols.indexOf(target)]; targetAlert.hidden = false; clearTimeout(targetAlertTimer); targetAlertTimer = setTimeout(() => { targetAlert.hidden = true; }, 2000); }
 function awardPerk() { const perk = perks[Math.floor(Math.random() * perks.length)]; perk.apply({ catcher, get catchRange() { return catchRange; }, set catchRange(value) { catchRange = value; }, get scoreMultiplier() { return scoreMultiplier; }, set scoreMultiplier(value) { scoreMultiplier = value; }, get shield() { return shield; }, set shield(value) { shield = value; } }); currentPerk = perk.name; status.textContent = `${perk.name}: ${perk.description}.`; burst(catcher.x, H - 55, "#c6ff3d"); updateHud(); }
-function finish(text) { running = false; const best = bestScore(); if (score > best) localStorage.setItem(bestKey, String(score)); message.innerHTML = `<strong>${text}</strong><span>${score} points // ${streak} final streak // ${currentPerk} active</span>`; message.hidden = false; startButton.textContent = "Run it again \u2192"; status.textContent = score > best ? `New best score: ${score}.` : `Best score on this device: ${Math.max(score, best)}.`; }
-function catchDrop(drop) { const correct = drop.symbol === target; if (correct) { streak++; catches++; score += Math.round((10 + Math.min(50, streak * 2)) * scoreMultiplier); burst(drop.x, H - 54, "#c6ff3d"); if (gameMode === "switch" || catches % 5 === 0) { randomTarget(); announceTarget(); } if (catches % 8 === 0) awardPerk(); } else { lives--; streak = 0; score = Math.max(0, score - 5); burst(drop.x, H - 54, "#ff855c"); status.textContent = "Wrong symbol: one life lost."; if (lives <= 0) finish("SIGNAL LOST"); } updateHud(); }
+function finish(text) { running = false; const best = bestScore(); const savedBestStreak = Number(localStorage.getItem(bestStreakKey) || 0); if (score > best) localStorage.setItem(bestKey, String(score)); if (bestStreak > savedBestStreak) localStorage.setItem(bestStreakKey, String(bestStreak)); message.innerHTML = `<strong>${text}</strong><span>${score} points // ${bestStreak} best streak // ${currentPerk} active</span>`; message.hidden = false; startButton.textContent = "Run it again \u2192"; status.textContent = score > best ? `New best score: ${score}.` : `Best score on this device: ${Math.max(score, best)} // Best streak: ${Math.max(bestStreak, savedBestStreak)}.`; }
+function catchDrop(drop) { const correct = drop.symbol === target; if (correct) { streak++; bestStreak = Math.max(bestStreak, streak); catches++; score += Math.round((10 + Math.min(50, streak * 2)) * scoreMultiplier); burst(drop.x, H - 54, "#c6ff3d"); if (gameMode === "switch" || catches % 5 === 0) { randomTarget(); announceTarget(); } if (catches % 8 === 0) awardPerk(); } else { lives--; streak = 0; score = Math.max(0, score - 5); burst(drop.x, H - 54, "#ff855c"); status.textContent = "Wrong symbol: one life lost."; if (lives <= 0) finish("SIGNAL LOST"); } updateHud(); }
 function update(dt) {
   elapsed += dt;
   if (keys.left) catcher.x -= catcher.speed * dt;

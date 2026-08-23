@@ -55,6 +55,9 @@ em { color: var(--lime); font-style: normal; }
 .rule-grid { display: grid; gap: 28px; grid-template-columns: repeat(3, 1fr); }
 .rule-grid p { color: var(--muted); font-size: 14px; line-height: 1.65; margin: 0; }
 .rule-grid strong { color: var(--text); font-size: 10px; letter-spacing: .14em; }
+.perk-guide { border-top: 1px solid var(--line); display: grid; gap: 20px; grid-template-columns: repeat(3, 1fr); margin-top: 34px; padding-top: 24px; }
+.perk-guide p { color: var(--muted); font-size: 12px; line-height: 1.55; margin: 0; }
+.perk-guide strong { color: var(--lime); font-size: 10px; letter-spacing: .14em; }
 @media (max-width: 720px) {
   .shell { padding: 0 20px; }
   .site-header { height: 70px; }
@@ -65,5 +68,5 @@ em { color: var(--lime); font-style: normal; }
   .board { height: 460px; min-height: 0; }
   .controls { align-items: flex-start; flex-direction: column; }
   .touch-controls { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
-  .rule-grid { grid-template-columns: 1fr; gap: 20px; }
+  .rule-grid, .perk-guide { grid-template-columns: 1fr; gap: 20px; }
 }
