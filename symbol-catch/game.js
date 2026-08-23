@@ -8,6 +8,7 @@ const streakEl = document.querySelector("#streak");
 const livesEl = document.querySelector("#lives");
 const targetEl = document.querySelector("#target");
 const perkEl = document.querySelector("#perk");
+const modeButtons = document.querySelectorAll("[data-mode]");
 
 const symbols = ["\u25c6", "\u25cf", "\u25b2", "\u271a", "\u2726", "\u2b1f"];
 const symbolColors = ["#c6ff3d", "#55e8ff", "#ff855c", "#9a7bff", "#ffd166", "#ff6bb5"];
@@ -29,6 +30,7 @@ let catches = 0;
 let lives = 3;
 let target = symbols[0];
 let currentPerk = "NONE";
+let gameMode = "switch";
 let catchRange = 0;
 let scoreMultiplier = 1;
 let shield = false;
@@ -46,7 +48,7 @@ function spawn() { spawnDrop(); if (Math.random() < .35) spawnDrop(44 + Math.ran
 function burst(x, y, color) { for (let i = 0; i < 12; i++) particles.push({ x, y, dx: (Math.random() - .5) * 180, dy: (Math.random() - .7) * 180, life: .45, color }); }
 function awardPerk() { const perk = perks[Math.floor(Math.random() * perks.length)]; perk.apply({ catcher, get catchRange() { return catchRange; }, set catchRange(value) { catchRange = value; }, get scoreMultiplier() { return scoreMultiplier; }, set scoreMultiplier(value) { scoreMultiplier = value; }, get shield() { return shield; }, set shield(value) { shield = value; } }); currentPerk = perk.name; status.textContent = `${perk.name}: ${perk.description}.`; burst(catcher.x, H - 55, "#c6ff3d"); updateHud(); }
 function finish(text) { running = false; const best = bestScore(); if (score > best) localStorage.setItem(bestKey, String(score)); message.innerHTML = `<strong>${text}</strong><span>${score} points // ${streak} final streak // ${currentPerk} active</span>`; message.hidden = false; startButton.textContent = "Run it again \u2192"; status.textContent = score > best ? `New best score: ${score}.` : `Best score on this device: ${Math.max(score, best)}.`; }
-function catchDrop(drop) { const correct = drop.symbol === target; if (correct) { streak++; catches++; score += Math.round((10 + Math.min(50, streak * 2)) * scoreMultiplier); burst(drop.x, H - 54, "#c6ff3d"); randomTarget(); if (catches % 8 === 0) awardPerk(); } else { streak = 0; score = Math.max(0, score - 5); burst(drop.x, H - 54, "#c6ff3d"); } updateHud(); }
+function catchDrop(drop) { const correct = drop.symbol === target; if (correct) { streak++; catches++; score += Math.round((10 + Math.min(50, streak * 2)) * scoreMultiplier); burst(drop.x, H - 54, "#c6ff3d"); if (gameMode === "switch" || catches % 5 === 0) randomTarget(); if (catches % 8 === 0) awardPerk(); } else { streak = 0; score = Math.max(0, score - 5); burst(drop.x, H - 54, "#c6ff3d"); } updateHud(); }
 function update(dt) {
   elapsed += dt;
   if (keys.left) catcher.x -= catcher.speed * dt;
@@ -68,4 +70,5 @@ document.addEventListener("keydown", (event) => { if (["ArrowLeft", "a", "A"].in
 document.addEventListener("keyup", (event) => { if (["ArrowLeft", "a", "A"].includes(event.key)) keys.left = false; if (["ArrowRight", "d", "D"].includes(event.key)) keys.right = false; });
 canvas.addEventListener("pointermove", (event) => { if (event.buttons) setPointer(event); }); canvas.addEventListener("pointerdown", setPointer); startButton.addEventListener("click", start);
 document.querySelectorAll("[data-move]").forEach((button) => { const side = button.dataset.move; button.addEventListener("pointerdown", () => keys[side] = true); button.addEventListener("pointerup", () => keys[side] = false); button.addEventListener("pointerleave", () => keys[side] = false); });
+modeButtons.forEach((button) => button.addEventListener("click", () => { gameMode = button.dataset.mode; modeButtons.forEach((item) => item.classList.toggle("active", item === button)); status.textContent = gameMode === "classic" ? "Classic mode selected: target changes every 5 catches." : "Quick Switch selected: target changes after every catch."; }));
 reset(); status.textContent = bestScore() ? `Best score on this device: ${bestScore()}.` : "No best score yet. Start a challenge."; requestAnimationFrame(frame);

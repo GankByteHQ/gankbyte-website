@@ -37,6 +37,11 @@ em { color: var(--lime); font-style: normal; }
 .message span { color: var(--muted); font-size: 14px; }
 .controls { align-items: center; display: flex; gap: 22px; justify-content: space-between; margin-top: 18px; }
 .controls p { color: var(--muted); font-size: 12px; margin: 0; }
+.mode-picker { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.mode-picker > span { color: #777980; font-size: 9px; letter-spacing: .16em; margin-right: 6px; }
+.mode-button { background: var(--surface); border: 1px solid var(--line); color: var(--muted); cursor: pointer; font-size: 10px; letter-spacing: .1em; padding: 10px 12px; text-transform: uppercase; }
+.mode-button small { color: #777980; display: block; font-size: 8px; letter-spacing: 0; margin-top: 5px; text-transform: none; }
+.mode-button.active, .mode-button:hover { border-color: var(--lime); color: var(--lime); }
 .button { border: 0; cursor: pointer; font-size: 10px; font-weight: 700; letter-spacing: .12em; padding: 16px 18px; text-transform: uppercase; }
 .primary { background: var(--lime); color: #090a0e; }
 .primary:hover { background: #dcff83; }
