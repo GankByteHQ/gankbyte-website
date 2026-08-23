@@ -49,6 +49,7 @@ create table if not exists public.arena_scores (
   user_id uuid not null references public.profiles(id) on delete cascade,
   score integer not null check (score between 0 and 1000000),
   wave integer not null check (wave between 1 and 4),
+  mode text not null default 'wrap' check (mode in ('wrap', 'walls')),
   run_seconds integer not null check (run_seconds between 0 and 600),
   status text not null default 'approved' check (status in ('pending', 'approved', 'rejected')),
   reviewer_id uuid references public.profiles(id),
@@ -265,15 +266,19 @@ $$;
 revoke execute on function public.update_display_name(text) from public;
 grant execute on function public.update_display_name(text) to authenticated;
 
-create or replace view public.arena_leaderboard as
-select p.id, p.display_name, best.score as best_score, best.wave as best_wave, best.created_at as latest_run
+drop view if exists public.arena_leaderboard;
+drop view if exists public.arena_weekly_leaderboard;
+drop view if exists public.symbol_catch_leaderboard;
+drop view if exists public.symbol_catch_weekly_leaderboard;
+
+create view public.arena_leaderboard as
+select p.id, p.display_name, best.score as best_score, best.wave as best_wave, best.mode, best.created_at as latest_run
 from public.profiles p
 join lateral (
-  select s.score, s.wave, s.created_at
+  select distinct on (s.mode) s.score, s.wave, s.mode, s.created_at
   from public.arena_scores s
   where s.user_id = p.id and s.status = 'approved'
-  order by s.score desc, s.created_at desc
-  limit 1
+  order by s.mode, s.score desc, s.created_at desc
 ) best on true;
 
 grant select on public.arena_leaderboard to anon, authenticated;
@@ -291,28 +296,26 @@ join lateral (
 
 grant select on public.glitch_dash_leaderboard to anon, authenticated;
 
-create or replace view public.symbol_catch_leaderboard as
+create view public.symbol_catch_leaderboard as
 select p.id, p.display_name, best.score as best_score, best.best_streak, best.mode, best.created_at as latest_run
 from public.profiles p
 join lateral (
-  select s.score, s.best_streak, s.mode, s.created_at
+  select distinct on (s.mode) s.score, s.best_streak, s.mode, s.created_at
   from public.symbol_catch_scores s
   where s.user_id = p.id and s.status = 'approved'
-  order by s.score desc, s.best_streak desc, s.created_at desc
-  limit 1
+  order by s.mode, s.score desc, s.best_streak desc, s.created_at desc
 ) best on true;
 
 grant select on public.symbol_catch_leaderboard to anon, authenticated;
 
-create or replace view public.arena_weekly_leaderboard as
-select p.id, p.display_name, best.score as best_score, best.wave as best_wave, best.created_at as latest_run
+create view public.arena_weekly_leaderboard as
+select p.id, p.display_name, best.score as best_score, best.wave as best_wave, best.mode, best.created_at as latest_run
 from public.profiles p
 join lateral (
-  select s.score, s.wave, s.created_at
+  select distinct on (s.mode) s.score, s.wave, s.mode, s.created_at
   from public.arena_scores s
   where s.user_id = p.id and s.status = 'approved' and s.created_at >= now() - interval '7 days'
-  order by s.score desc, s.created_at desc
-  limit 1
+  order by s.mode, s.score desc, s.created_at desc
 ) best on true;
 
 grant select on public.arena_weekly_leaderboard to anon, authenticated;
@@ -334,11 +337,10 @@ create or replace view public.symbol_catch_weekly_leaderboard as
 select p.id, p.display_name, best.score as best_score, best.best_streak, best.mode, best.created_at as latest_run
 from public.profiles p
 join lateral (
-  select s.score, s.best_streak, s.mode, s.created_at
+  select distinct on (s.mode) s.score, s.best_streak, s.mode, s.created_at
   from public.symbol_catch_scores s
   where s.user_id = p.id and s.status = 'approved' and s.created_at >= now() - interval '7 days'
-  order by s.score desc, s.best_streak desc, s.created_at desc
-  limit 1
+  order by s.mode, s.score desc, s.best_streak desc, s.created_at desc
 ) best on true;
 
 grant select on public.symbol_catch_weekly_leaderboard to anon, authenticated;

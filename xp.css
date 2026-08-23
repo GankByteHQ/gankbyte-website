@@ -31,7 +31,8 @@
 .xp-submit-panel h3{font-size:28px;letter-spacing:-.05em;margin:0 0 10px}
 .xp-submit-panel form{display:grid;gap:8px}
 .xp-submit-panel label,.admin-actions label{color:#77787c;font-size:9px;letter-spacing:.16em;text-transform:uppercase}
-.xp-submit-panel input,.xp-submit-panel textarea,.admin-actions select{background:#0d0e12;border:1px solid var(--line);color:var(--text);font:inherit;padding:12px;width:100%}
+.xp-submit-panel input,.xp-submit-panel select,.xp-submit-panel textarea,.admin-actions select{appearance:none;background:#0d0e12;border:1px solid var(--line);color:var(--text);font:inherit;padding:12px;width:100%}
+.xp-submit-panel select option,.admin-actions select option{background:#0d0e12;color:var(--text)}
 .xp-submit-panel textarea{resize:vertical}
 .xp-submit-panel form .button{border:0;cursor:pointer;justify-self:start;margin-top:8px}
 .leaderboard-wrap{overflow-x:auto}

@@ -22,6 +22,7 @@ const arenaLeaderboardBody = document.querySelector("#arena-leaderboard-body");
 const arenaScopeButtons = document.querySelectorAll("[data-arena-scope]");
 const arenaEventSelect = document.querySelector("#arena-event-select");
 const arenaModeSelect = document.querySelector("#arena-mode-select");
+const arenaLeaderboardMode = document.querySelector("#arena-leaderboard-mode");
 const arenaResultCard = document.querySelector("#arena-result-card");
 const arenaResultCardScore = document.querySelector("#arena-result-card-score");
 const arenaResultCardDetail = document.querySelector("#arena-result-card-detail");
@@ -121,7 +122,7 @@ async function loadArenaLeaderboard(scope = "all") {
     return;
   }
   const view = scope === "week" ? "arena_weekly_leaderboard" : "arena_leaderboard";
-  const result = await arenaClient.from(view).select("display_name,best_score,best_wave").order("best_score", { ascending: false }).limit(25);
+  const result = await arenaClient.from(view).select("display_name,best_score,best_wave,mode").eq("mode", arenaLeaderboardMode?.value || arenaMode).order("best_score", { ascending: false }).limit(25);
   if (result.error) {
     arenaLeaderboardBody.innerHTML = '<tr><td colspan="4">Global scores are not available yet.</td></tr>';
     return;
@@ -134,7 +135,7 @@ async function loadArenaRank() {
   if (!arenaUser) { arenaResultRank.textContent = "Sign in to submit and rank this run."; return; }
   if (!arenaClient) { arenaResultRank.textContent = "Leaderboard position unavailable."; return; }
   const view = arenaLeaderboardScope === "week" ? "arena_weekly_leaderboard" : "arena_leaderboard";
-  const result = await arenaClient.from(view).select("id,best_score").order("best_score", { ascending: false }).limit(500);
+  const result = await arenaClient.from(view).select("id,best_score,mode").eq("mode", arenaLeaderboardMode?.value || arenaMode).order("best_score", { ascending: false }).limit(500);
   if (result.error) { arenaResultRank.textContent = "Leaderboard position unavailable."; return; }
   const position = (result.data || []).findIndex((row) => row.id === arenaUser.id);
   arenaResultRank.textContent = position >= 0 ? `Current position: #${position + 1}` : "Your run is not on the board yet.";
@@ -153,7 +154,7 @@ async function beginVerifiedRun() {
   const attempt = ++runAttempt;
   serverRunId = null;
   if (!arenaClient || !arenaUser) return;
-  const result = await arenaClient.rpc("start_arena_run", { p_game_slug: "byte-rush", p_event_slug: arenaEventSelect?.value || null });
+  const result = await arenaClient.rpc("start_arena_run", { p_game_slug: "byte-rush", p_event_slug: arenaEventSelect?.value || null, p_mode: arenaMode });
   if (attempt === runAttempt && !result.error && result.data?.[0]?.run_id) serverRunId = result.data[0].run_id;
 }
 
@@ -177,7 +178,7 @@ async function submitLastRun() {
       return;
     }
   }
-  const result = await arenaClient.from("arena_scores").insert({ user_id: arenaUser.id, score: lastRun.score, wave: lastRun.wave, run_seconds: lastRun.runSeconds });
+  const result = await arenaClient.from("arena_scores").insert({ user_id: arenaUser.id, score: lastRun.score, wave: lastRun.wave, mode: lastRun.mode, run_seconds: lastRun.runSeconds });
   if (result.error) {
     arenaAuthStatus.textContent = "Score could not be submitted. Try again while signed in.";
     return;
@@ -617,7 +618,7 @@ function finishGame() {
   const best = localBestScore();
   const newBest = score > best;
   if (newBest) localStorage.setItem(arenaBestKey, String(score));
-  lastRun = { score, wave, runSeconds: Math.round(elapsed), submitted: false };
+  lastRun = { score, wave, mode: arenaMode, runSeconds: Math.round(elapsed), submitted: false };
   localStorage.setItem("gankbyte-byte-rush-last-played", new Date().toISOString());
   message.hidden = false;
   message.innerHTML = `<strong>${lives ? "RUN COMPLETE" : "SIGNAL LOST"}</strong><span>${score} points // ${xp} XP // wave ${wave}</span>`;
@@ -686,10 +687,13 @@ canvas.addEventListener("pointercancel", () => { arenaGestureStart = null; point
 startButton.addEventListener("click", startGame);
 arenaModeSelect?.addEventListener("change", () => {
   arenaMode = arenaModeSelect.value === "walls" ? "walls" : "wrap";
+  if (arenaLeaderboardMode) arenaLeaderboardMode.value = arenaMode;
   status.textContent = arenaMode === "walls"
     ? "Solid Walls selected. Boundaries cost one life."
     : "Wrap Around selected. The arena loops at every edge.";
+  loadArenaLeaderboard(arenaLeaderboardScope);
 });
+arenaLeaderboardMode?.addEventListener("change", () => loadArenaLeaderboard(arenaLeaderboardScope));
 arenaLogin.addEventListener("click", async () => {
   if (!arenaClient) return;
   const result = await arenaClient.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: window.location.origin + window.location.pathname } });
