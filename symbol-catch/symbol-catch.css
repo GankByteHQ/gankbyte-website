@@ -1,0 +1,26 @@
+.symbol-catch-hero { padding-bottom: 70px; }
+.symbol-catch-wrap { max-width: 900px; }
+.symbol-catch-hud { grid-template-columns: repeat(3, 1fr) 1.25fr 1.25fr; }
+.symbol-catch-hud > div:nth-child(4) strong { font-size: 30px; }
+.symbol-catch-hud > div:nth-child(5) strong { font-size: 15px; letter-spacing: .04em; }
+.symbol-catch-board { background: radial-gradient(circle at 50% 20%, rgba(198,255,61,.08), transparent 42%), #0e1015; min-height: 390px; }
+.symbol-catch-board canvas { display: block; height: 100%; position: relative; touch-action: none; width: 100%; }
+.symbol-catch-board:before { background-image: linear-gradient(rgba(244,242,234,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(244,242,234,.045) 1px, transparent 1px); background-size: 48px 48px; }
+.symbol-catch-board:after { background: linear-gradient(90deg, transparent, var(--lime), transparent); bottom: 36px; box-shadow: 0 0 20px var(--lime); content: ""; height: 1px; left: 4%; opacity: .35; position: absolute; right: 4%; }
+.target-alert { align-items: center; background: rgba(9,10,14,.76); border: 1px solid var(--lime); box-shadow: 0 0 34px rgba(198,255,61,.18); display: flex; flex-direction: column; gap: 5px; left: 50%; padding: 15px 24px 17px; position: absolute; text-align: center; top: 50%; transform: translate(-50%, -50%); z-index: 4; }
+.target-alert[hidden] { display: none; }
+.target-alert span { color: var(--lime); font-size: 9px; font-weight: 700; letter-spacing: .2em; }
+.target-alert strong { font-size: 60px; line-height: 1; }
+.mode-picker { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.mode-picker > span { color: #777980; font-size: 9px; letter-spacing: .16em; margin-right: 6px; }
+.mode-button { background: var(--surface); border: 1px solid var(--line); color: var(--muted); cursor: pointer; font-size: 10px; letter-spacing: .1em; padding: 10px 12px; text-transform: uppercase; }
+.mode-button small { color: #777980; display: block; font-size: 8px; letter-spacing: 0; margin-top: 5px; text-transform: none; }
+.mode-button.active, .mode-button:hover { border-color: var(--lime); color: var(--lime); }
+.symbol-touch-controls { gap: 10px; justify-content: center; margin-top: 16px; }
+.symbol-touch-controls button { min-width: 82px; }
+@media (max-width: 800px) {
+  .symbol-catch-hud { grid-template-columns: repeat(2, 1fr); }
+  .symbol-catch-hud > div:nth-child(4), .symbol-catch-hud > div:nth-child(5) { grid-column: span 2; }
+  .symbol-catch-board { height: 460px; min-height: 0; }
+  .symbol-touch-controls { display: flex; }
+}
