@@ -1,9 +1,4 @@
 .xp-rules{display:grid;gap:14px;grid-template-columns:repeat(3,1fr)}
-.xp-quick-nav{align-items:center;background:rgba(17,21,29,.96);border-bottom:1px solid var(--line);border-top:1px solid var(--line);display:flex;gap:8px;max-width:none;overflow-x:auto;padding:12px 36px;position:sticky;top:0;z-index:6}
-.xp-quick-nav-label{color:var(--lime);font-size:9px;font-weight:800;letter-spacing:.16em;margin-right:8px;white-space:nowrap}
-.xp-quick-nav-link{border:1px solid transparent;color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.1em;padding:10px 13px;text-transform:uppercase;transition:border-color .2s,color .2s,background .2s;white-space:nowrap}
-.xp-quick-nav-link:hover,.xp-quick-nav-link:focus-visible{border-color:var(--lime);color:var(--lime);outline:none}
-.xp-quick-nav-link.is-current{background:var(--lime);color:#080a0e}
 #xp-account,#xp-submit-panel,#xp-leaderboard,#xp-how,#xp-levels{scroll-margin-top:76px}
 .xp-card{background:var(--surface);border:1px solid var(--line);padding:26px;position:relative}
 .xp-card h3{font-size:25px;letter-spacing:-.05em;margin:22px 0 12px}
@@ -75,7 +70,6 @@
 .admin-dialog-actions .button-ghost:hover{background:var(--surface-2)!important;border-color:var(--lime)!important;color:var(--lime)!important}
 @media(max-width:800px){.xp-rules,.level-list{grid-template-columns:1fr}}
 @media(max-width:800px){.xp-console,.xp-submit-panel{display:block}.xp-score-panel{margin-top:14px}.xp-submit-panel form{margin-top:28px}.admin-submission{align-items:flex-start;display:block}.admin-actions{margin-top:22px}}
-@media(max-width:800px){.xp-quick-nav{padding:10px 18px}.xp-quick-nav-label{display:none}.xp-quick-nav-link{font-size:9px;padding:9px 11px}}
 .xp-submission-history{margin-top:14px}.xp-submission-history .section-heading{align-items:start;margin-bottom:22px}.xp-submission-history .section-heading h3{font-size:28px;letter-spacing:-.05em;margin:0}.xp-submission-history .section-intro{font-size:13px;max-width:420px}.xp-submission-history .leaderboard{min-width:680px}
 .xp-challenge-progress{margin-top:14px}.xp-challenge-progress .section-heading{align-items:start;margin-bottom:22px}.xp-challenge-progress .section-heading h3{font-size:28px;letter-spacing:-.05em;margin:0}.xp-challenge-progress .section-intro{font-size:13px;max-width:420px}.xp-challenge-progress .content-grid{margin-top:0}
 .event-admin-form{background:var(--surface);border:1px solid var(--line);padding:24px}.event-admin-form input,.event-admin-form select,.event-admin-form textarea{background:#0d0e12;border:1px solid var(--line);border-radius:0;color:var(--text);font:inherit;padding:12px;width:100%}.event-admin-form label{color:#77787c;display:block;font-size:9px;font-weight:700;letter-spacing:.16em;margin:0 0 8px;text-transform:uppercase}.event-admin-form .field-grid{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:14px}.event-admin-form input:focus-visible,.event-admin-form select:focus-visible,.event-admin-form textarea:focus-visible{border-color:var(--lime);outline:2px solid var(--lime);outline-offset:2px}.event-admin-form code{color:var(--lime)}
