@@ -238,7 +238,7 @@
     return (boss ? 220 : 120) + level * 18;
   }
 
-  function buildTextChallenge({ level, title, code, answer, clue, hint, note, stage = null, boss = false, type = "text", answers = null }) {
+  function buildTextChallenge({ level, title, code, answer, clue, hint, note, stage = null, boss = false, type = "text", category = "text", answers = null }) {
     const canonicalAnswers = (answers || [answer]).map(normalize);
     return {
       level,
@@ -250,13 +250,14 @@
       boss,
       stage,
       type,
+      category,
       answers: canonicalAnswers,
       timeLimit: timeLimitFor(level, boss),
       points: challengePoints(level, boss)
     };
   }
 
-  function buildChoiceChallenge({ level, title, code, options, answerIndex, clue, hint, note, stage = null, boss = false }) {
+  function buildChoiceChallenge({ level, title, code, options, answerIndex, clue, hint, note, stage = null, boss = false, category = "choice" }) {
     const rng = rngFactory(seedFor(level, stage || 0) ^ 0x9E3779B9);
     const shuffled = options.map((value, index) => ({ value, index }));
     for (let i = shuffled.length - 1; i > 0; i -= 1) {
@@ -274,6 +275,7 @@
       boss,
       stage,
       type: "choice",
+      category,
       options: shuffled.map((item) => item.value),
       answerIndex: mappedAnswerIndex,
       timeLimit: timeLimitFor(level, boss),
@@ -292,6 +294,7 @@
       clue: "Read the key backward.",
       hint: `The password is ${word.length} characters long.`,
       note: "Warm-up logic. No punctuation, just a simple reversal.",
+      category: "password",
       stage,
       boss
     });
@@ -308,6 +311,7 @@
       clue: "Turn the binary blocks back into a word.",
       hint: "Each group is one ASCII character.",
       note: "Ignore the spaces between bytes.",
+      category: "binary",
       stage,
       boss
     });
@@ -324,6 +328,7 @@
       clue: "Decode the hex bytes into a phrase.",
       hint: "Convert each pair into ASCII.",
       note: "Spaces are part of the payload.",
+      category: "hex",
       stage,
       boss
     });
@@ -341,6 +346,7 @@
       clue: `Decrypt with a shift of ${shift}.`,
       hint: "Shift the letters backward by the same amount.",
       note: "Case does not matter. Punctuation stays where it is.",
+      category: "cipher",
       stage,
       boss
     });
@@ -361,6 +367,7 @@
       clue: "Continue the repeating symbol pattern.",
       hint: `The sequence cycles every ${set.length} symbols.`,
       note: "The next symbol follows the same cycle.",
+      category: "pattern",
       stage,
       boss
     });
@@ -383,6 +390,7 @@
       clue: "Find the next number in the growing series.",
       hint: `The step increases by one each time.`,
       note: "The numbers are climbing, not looping.",
+      category: "sequence",
       stage,
       boss
     });
@@ -402,6 +410,7 @@
       clue: "How much trace rises in total after the full window?",
       hint: "Multiply the rise by the number of steps.",
       note: "Read the full sentence. The answer is a number.",
+      category: "logic",
       stage,
       boss
     });
@@ -425,6 +434,7 @@
       clue: "Pick the line that would actually run.",
       hint: "One option follows the language rules exactly.",
       note: "The others are close, but broken.",
+      category: "syntax",
       stage,
       boss
     });
@@ -446,6 +456,7 @@
       clue: "How many rows are live?",
       hint: "Ignore draft and archived rows.",
       note: "This is a simple count query in disguise.",
+      category: "database",
       stage,
       boss
     });
@@ -464,6 +475,8 @@
       clue: "Memorise the code before the window closes.",
       hint: "The code will fade after a moment.",
       note: "The answer includes the hyphens.",
+      type: "memory",
+      category: "memory",
       stage,
       boss
     });
@@ -640,12 +653,14 @@
     elements.input.value = "";
     elements.input.disabled = challenge.type === "choice";
     elements.submit.disabled = !state.running;
+    elements.submit.hidden = challenge.type === "choice";
     elements.resultCard.hidden = true;
     if (challenge.type === "choice") {
       challenge.options.forEach((option, index) => {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "codebreaker-option";
+        button.dataset.answerIndex = String(index);
         button.textContent = option;
         button.addEventListener("click", () => submitAnswer(String(index)));
         elements.options.appendChild(button);
@@ -796,7 +811,7 @@
     state.cleanLevelCleared = state.currentLevelMistakes === 0;
     state.maxLevelCleared = Math.max(state.maxLevelCleared, state.level);
     if (state.timeLeft >= 10) state.fastClears += 1;
-    if (challenge.type in state.counts) state.counts[challenge.type] += 1;
+    if (challenge.category in state.counts) state.counts[challenge.category] += 1;
     if (state.level % 5 === 0 || state.level === 30) grantPowerupCharge(state.level);
     checkAchievements();
 
@@ -855,7 +870,27 @@
     const challenge = activeChallenge();
     if (!challenge) return;
     const value = rawValue ?? elements.input.value;
-    if (challenge.type === "choice") return;
+    if (challenge.type === "choice") {
+      const selected = Number(value);
+      if (Number.isNaN(selected)) return;
+      if (selected === challenge.answerIndex) {
+        completeCurrentChallenge(false);
+        return;
+      }
+      state.wrongAnswers += 1;
+      state.currentLevelMistakes += 1;
+      state.trace = Math.min(100, state.trace + 22);
+      state.score = Math.max(0, state.score - 20);
+      const wrongButton = elements.options.querySelector(`[data-answer-index="${selected}"]`);
+      if (wrongButton) wrongButton.classList.add("is-wrong");
+      setFeedback("ACCESS DENIED. Wrong answer. Trace increased.", true);
+      if (state.trace >= 100) {
+        loseLife("TRACE overload burned a life.");
+        return;
+      }
+      updateHud();
+      return;
+    }
     const normalized = normalize(value);
     if (!normalized) {
       setFeedback("Type an answer before submitting.", true);
