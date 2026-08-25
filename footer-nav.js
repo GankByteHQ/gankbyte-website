@@ -25,7 +25,7 @@
   if (header && mainNav && !header.querySelector(".mobile-nav-toggle")) {
     const page = window.location.pathname.split("/").pop() || "index.html";
     const activePage = page === "arena.html" || page === "glitch-dash.html" || page === "arena-hub.html" ? "arena-hub.html"
-      : page === "projects.html" || page === "contributing.html" || page === "project-submit.html" ? "developers.html"
+      : page === "projects.html" || page === "contributing.html" || page === "project-submit.html" || page === "tools.html" || page === "fivem.html" ? "developers.html"
       : page === "challenges.html" ? "community.html"
       : page === "xp-admin.html" || page === "xp-submit.html" || page === "xp-leaderboard.html" ? "xp.html"
       : page;
@@ -51,6 +51,26 @@
       });
       dropdown.append(summary, panel);
       xpLink.replaceWith(dropdown);
+    }
+    const developerLink = mainNav.querySelector('a[href$="developers.html"]');
+    if (developerLink && !developerLink.parentElement.classList.contains("site-nav-dropdown")) {
+      const baseHref = developerLink.getAttribute("href");
+      const dropdown = document.createElement("details");
+      dropdown.className = "site-nav-dropdown";
+      const summary = document.createElement("summary");
+      summary.textContent = "Developers";
+      if (developerLink.getAttribute("aria-current")) summary.setAttribute("aria-current", "page");
+      const panel = document.createElement("div");
+      panel.className = "site-nav-dropdown-panel";
+      [[baseHref, "Developer Hub"], ["projects.html", "Public Projects"], ["contributing.html", "Contribute"], ["https://github.com/GankByteHQ", "GitHub"]].forEach(([href, label]) => {
+        const link = document.createElement("a");
+        link.href = href;
+        link.textContent = label;
+        if (href.startsWith("http")) { link.target = "_blank"; link.rel = "noreferrer"; }
+        panel.append(link);
+      });
+      dropdown.append(summary, panel);
+      developerLink.replaceWith(dropdown);
     }
     [["profile.html", "Profile"], ["account.html", "Account"], ["challenges.html", "Challenges"]].forEach(([href, label]) => {
       if (mainNav.querySelector(`a[href="${href}"]`)) return;
