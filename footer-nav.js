@@ -62,7 +62,7 @@
       if (developerLink.getAttribute("aria-current")) summary.setAttribute("aria-current", "page");
       const panel = document.createElement("div");
       panel.className = "site-nav-dropdown-panel";
-      [[baseHref, "Developer Hub"], ["projects.html", "Public Projects"], ["contributing.html", "Contribute"], ["https://github.com/GankByteHQ", "GitHub"]].forEach(([href, label]) => {
+      [[baseHref, "Developer Hub"], ["tools.html", "Tools"], ["fivem.html", "FiveM"], ["projects.html", "Public Projects"], ["contributing.html", "Contribute"], ["https://github.com/GankByteHQ", "GitHub"]].forEach(([href, label]) => {
         const link = document.createElement("a");
         link.href = href;
         link.textContent = label;
