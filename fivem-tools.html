@@ -90,6 +90,18 @@ input[type=range]{width:100%;height:5px;appearance:none;background:#252b27;borde
 </section>
 </div>
 
+<section class="file-workspace panel" aria-labelledby="file-workspace-title">
+<div class="file-workspace-head">
+<div><div class="section-title" id="file-workspace-title">Resource file workspace</div><p class="section-intro">Load a complete vehicle data folder and edit its text files live. Every text value in the loaded file is editable; binary assets are listed safely but are not changed.</p></div>
+<div class="file-workspace-actions"><button id="chooseFiles" class="btn primary" type="button">Load resource files</button><input id="resourceFiles" type="file" multiple webkitdirectory hidden></div>
+</div>
+<div class="file-workspace-note">Works with <code>handling.meta</code>, <code>vehicles.meta</code>, <code>carcols.meta</code>, <code>carvariations.meta</code>, <code>fxmanifest.lua</code>, Lua, JSON, CFG, XML, text, and other resource files. Choose the complete <code>data</code> folder to load everything together.</div>
+<div class="file-workspace-grid">
+<div id="fileList" class="file-list" aria-label="Loaded resource files"><p class="file-empty">No resource files loaded yet.</p></div>
+<div class="file-editor-wrap"><div class="file-editor-head"><strong id="activeFileName">No file selected</strong><span id="fileEditStatus">Choose files to begin.</span></div><textarea id="fileEditor" class="file-editor" disabled spellcheck="false" aria-label="Selected file editor" placeholder="Loaded text files will appear here for live editing."></textarea><div class="file-editor-actions"><button id="downloadFile" class="btn primary" type="button" disabled>Download edited file</button><button id="downloadAllFiles" class="btn" type="button" disabled>Download all files</button></div></div>
+</div>
+</section>
+
 </div>
 
 </main>
@@ -120,6 +132,23 @@ html, body { background: var(--bg); color: var(--text); font-family: Arial, Helv
 .code { background: var(--bg); border-color: var(--line); border-radius: 0; }
 .actions { align-items: center; flex-wrap: wrap; }
 .load-status { color: var(--muted); font-size: 11px; margin-top: 10px; min-height: 1.4em; }
+.file-workspace { margin-top: 14px; }
+.file-workspace-head { align-items: start; display: flex; gap: 18px; justify-content: space-between; }
+.file-workspace-head .section-intro { line-height: 1.5; margin: 7px 0 0; max-width: 700px; }
+.file-workspace-note { border-left: 2px solid var(--lime); color: var(--muted); font-size: 11px; line-height: 1.55; margin-top: 18px; padding-left: 12px; }
+.file-workspace-note code, .file-editor-wrap code { color: var(--lime); }
+.file-workspace-grid { display: grid; gap: 14px; grid-template-columns: minmax(190px, .32fr) minmax(0, 1fr); margin-top: 20px; }
+.file-list { border: 1px solid var(--line); min-height: 230px; padding: 7px; }
+.file-list button { background: transparent; border: 0; color: var(--muted); cursor: pointer; display: block; font: 11px/1.35 ui-monospace, monospace; overflow: hidden; padding: 10px; text-align: left; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
+.file-list button:hover, .file-list button.active { background: var(--surface-2); color: var(--lime); }
+.file-empty { color: var(--muted); font-size: 11px; line-height: 1.5; padding: 10px; }
+.file-editor-wrap { min-width: 0; }
+.file-editor-head { align-items: center; display: flex; gap: 12px; justify-content: space-between; margin-bottom: 8px; }
+.file-editor-head strong { color: var(--text); font: 12px ui-monospace, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-editor-head span { color: var(--muted); font-size: 11px; }
+.file-editor { background: var(--bg); border: 1px solid var(--line); border-radius: 0; color: var(--text); display: block; font: 12px/1.55 ui-monospace, monospace; min-height: 300px; padding: 14px; resize: vertical; width: 100%; }
+.file-editor:focus { border-color: var(--lime); box-shadow: 0 0 0 2px rgba(198,255,61,.1); outline: 0; }
+.file-editor-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .site-header .brand { font-size: 14px; gap: 11px; letter-spacing: .12em; }
 .site-header .brand-mark { height: 30px; width: 34px; }
 .site-header .brand span:not(.brand-mark) { color: var(--text); }
@@ -128,6 +157,8 @@ html, body { background: var(--bg); color: var(--text); font-family: Arial, Helv
   .tool-page-hero { padding-bottom: 22px; padding-top: 24px; }
   .tool-page-hero h1 { font-size: clamp(46px, 13vw, 68px); }
   .tool-workspace { padding-bottom: 45px; }
+  .file-workspace-head, .file-editor-head { align-items: flex-start; flex-direction: column; }
+  .file-workspace-grid { grid-template-columns: 1fr; }
 }
 </style>
 
@@ -229,14 +260,14 @@ function renderFlags(){
 function hexFlags(list){return "0x"+list.reduce((n,f)=>n+(flagState[f[0]]?f[2]:0),0).toString(16).toUpperCase().padStart(8,"0")}
 function buildHandling(){
  const m=$("model").value.trim()||"vehicle";
- let x=`<?xml version="1.0" encoding="UTF-8"?>\n<HandlingDataMgr>\n  <HandlingData>\n    <Item type="CHandlingData">\n      <handlingName>${m.toUpperCase()}</handlingName>\n`;
+ let x=`<?xml version="1.0" encoding="UTF-8"?>\n<!-- Edited by GankByte, https://gankbyte.com/fivem-tools.html -->\n<HandlingDataMgr>\n  <HandlingData>\n    <Item type="CHandlingData">\n      <handlingName>${m.toUpperCase()}</handlingName>\n`;
  defs.forEach(s=>s[2].forEach(d=>x+=`      <${d[0]} value="${fmt(state[d[0]],d)}" />\n`));
  x+=`      <strHandlingFlags>${hexFlags(hFlags)}</strHandlingFlags>\n      <strModelFlags>${hexFlags(mFlags)}</strModelFlags>\n    </Item>\n  </HandlingData>\n</HandlingDataMgr>`;
  return x;
 }
 function buildLua(){
  const m=$("model").value.trim()||"vehicle";
- let x=`-- Generated FiveM handling override for ${m}\nlocal vehicle = GetVehiclePedIsIn(PlayerPedId(), false)\nif vehicle ~= 0 then\n`;
+ let x=`-- Edited by GankByte, https://gankbyte.com/fivem-tools.html\n-- Generated FiveM handling override for ${m}\nlocal vehicle = GetVehiclePedIsIn(PlayerPedId(), false)\nif vehicle ~= 0 then\n`;
  defs.forEach(s=>s[2].forEach(d=>{
   const typ=d[7]==="int"?"Int":"Float";
   x+=`    SetVehicleHandling${typ}(vehicle, '${d[0]}', ${Number(state[d[0]])})\n`;
@@ -246,7 +277,7 @@ function buildLua(){
 }
 function buildCarcols(){
  const kit=$("kitName").value.trim()||"vehicle_modkit",id=$("kitId").value||1;
- return `<?xml version="1.0" encoding="UTF-8"?>\n<CVehicleModelInfoVarGlobal>\n  <Kits>\n    <Item>\n      <kitName>${kit}</kitName>\n      <id value="${id}"/>\n      <visibleMods/>\n      <linkMods/>\n      <statMods/>\n      <slotNames/>\n      <liveryNames/>\n    </Item>\n  </Kits>\n</CVehicleModelInfoVarGlobal>`;
+ return `<?xml version="1.0" encoding="UTF-8"?>\n<!-- Edited by GankByte, https://gankbyte.com/fivem-tools.html -->\n<CVehicleModelInfoVarGlobal>\n  <Kits>\n    <Item>\n      <kitName>${kit}</kitName>\n      <id value="${id}"/>\n      <visibleMods/>\n      <linkMods/>\n      <statMods/>\n      <slotNames/>\n      <liveryNames/>\n    </Item>\n  </Kits>\n</CVehicleModelInfoVarGlobal>`;
 }
 function profile(){
  const norm=(v,a,b)=>Math.round((v-a)/(b-a)*100);
@@ -293,6 +324,64 @@ document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
  $("carcolsPanel").classList.toggle("hidden",b.dataset.tab!=="carcols");
 });
 $("model").addEventListener("input",refresh);$("kitName").addEventListener("input",refresh);$("kitId").addEventListener("input",refresh);
+const loadedFiles=[];let activeFile=-1;
+function fileMarker(name){
+ const ext=name.toLowerCase().split(".").pop();
+ if(["meta","xml","ytyp","ymap","html","htm"].includes(ext))return "<!-- Edited by GankByte, https://gankbyte.com/fivem-tools.html -->\n";
+ if(["lua","luau"].includes(ext))return "-- Edited by GankByte, https://gankbyte.com/fivem-tools.html\n";
+ if(["py","pyw","sh","bash","cfg","ini","toml","txt","md"].includes(ext))return "# Edited by GankByte, https://gankbyte.com/fivem-tools.html\n";
+ if(["js","jsx","ts","tsx","java","cs","css","scss"].includes(ext))return "// Edited by GankByte, https://gankbyte.com/fivem-tools.html\n";
+ return "";
+}
+function markedFileText(entry){
+ if(!entry.editable||entry.text.includes("Edited by GankByte"))return entry.text;
+ const marker=fileMarker(entry.name);if(!marker)return entry.text;
+ if(marker.startsWith("<!--")&&/^\s*<\?xml[^>]*\?>/i.test(entry.text))return entry.text.replace(/^(\s*<\?xml[^>]*\?>)/i,"$1\n"+marker);
+ return marker+entry.text;
+}
+function renderFileList(){
+ const box=$("fileList");
+ if(!loadedFiles.length){box.innerHTML='<p class="file-empty">No resource files loaded yet.</p>';return}
+ box.innerHTML=loadedFiles.map((f,i)=>'<button type="button" class="'+(i===activeFile?"active":"")+'" data-file-index="'+i+'" title="'+f.name+'">'+f.name+(f.editable?"":" [binary]")+'</button>').join("");
+ box.querySelectorAll("[data-file-index]").forEach(b=>b.onclick=()=>selectFile(Number(b.dataset.fileIndex)));
+}
+function selectFile(index){
+ activeFile=index;const f=loadedFiles[index];renderFileList();
+ $("activeFileName").textContent=f?f.name:"No file selected";
+ $("fileEditor").disabled=!f||!f.editable;$("downloadFile").disabled=!f;
+ if(!f){$("fileEditor").value="";$("fileEditStatus").textContent="Choose files to begin.";return}
+ if(f.editable){$("fileEditor").value=f.text;$("fileEditStatus").textContent="Live editing enabled."}
+ else{$("fileEditor").value="Binary file - preserved for download, but not editable as text.";$("fileEditStatus").textContent="Binary file - not edited."}
+}
+async function readResourceFile(file){
+ const sample=new Uint8Array(await file.slice(0,4096).arrayBuffer());
+ const editable=!sample.includes(0);
+ return {name:file.webkitRelativePath||file.name,editable,text:editable?await file.text():"",blob:file};
+}
+$("chooseFiles").onclick=()=>$("resourceFiles").click();
+$("resourceFiles").addEventListener("change",async e=>{
+ const files=[...e.target.files];loadedFiles.length=0;
+ for(const file of files)loadedFiles.push(await readResourceFile(file));
+ activeFile=loadedFiles.length?0:-1;renderFileList();selectFile(activeFile);$("downloadAllFiles").disabled=!loadedFiles.length;
+ $("fileEditStatus").textContent=loadedFiles.length+" file"+(loadedFiles.length===1?"":"s")+" loaded.";
+ e.target.value="";
+});
+$("fileEditor").addEventListener("input",e=>{
+ if(activeFile<0||!loadedFiles[activeFile].editable)return;
+ loadedFiles[activeFile].text=e.target.value;$("fileEditStatus").textContent="Unsaved live edits.";
+});
+function saveBlob(name,content){
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([content],{type:"text/plain"}));a.download=name.split(/[\\\\/]/).pop();a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+$("downloadFile").onclick=()=>{
+ if(activeFile<0)return;const f=loadedFiles[activeFile];
+ saveBlob(f.name,markedFileText(f));$("fileEditStatus").textContent="Downloaded with the GankByte edit note.";
+};
+$("downloadAllFiles").onclick=()=>{
+ if(!loadedFiles.length)return;
+ loadedFiles.forEach((f,i)=>setTimeout(()=>saveBlob(f.name,f.editable?markedFileText(f):f.blob),i*180));
+ $("fileEditStatus").textContent="Downloading "+loadedFiles.length+" files.";
+};
 $("loadFileButton").onclick=()=>$("loadFile").click();
 $("loadFile").addEventListener("change",async e=>{
  const file=e.target.files&&e.target.files[0]; if(!file)return;
