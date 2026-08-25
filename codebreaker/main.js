@@ -1200,6 +1200,14 @@
           <button class="cb-button" data-action="goto" data-screen="campaign">Back to map</button>
           <button type="button" class="cb-button primary" data-action="start-level">Start hack</button>
         </div>
+        <div class="arena-event-control">
+          <label for="codebreaker-version-select">Run type</label>
+          <select id="codebreaker-version-select" onchange="if (this.value) window.location.href = this.value;">
+            <option value="./" selected>V1</option>
+            <option value="../codebreaker_v2/">V2</option>
+          </select>
+          <small>Choose the build you want to play. Both versions stay linked from the same page.</small>
+        </div>
       </section>
     `;
   }
