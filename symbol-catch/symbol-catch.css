@@ -11,13 +11,13 @@
 .target-alert[hidden] { display: none; }
 .target-alert span { color: var(--lime); font-size: 9px; font-weight: 700; letter-spacing: .2em; }
 .target-alert strong { font-size: 60px; line-height: 1; }
-.mode-picker { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.mode-picker { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; position: relative; z-index: 1; }
 .mode-picker > span { color: #777980; font-size: 9px; letter-spacing: .16em; margin-right: 6px; }
-.mode-button { background: var(--surface); border: 1px solid var(--line); color: var(--muted); cursor: pointer; font-size: 10px; letter-spacing: .1em; padding: 10px 12px; text-transform: uppercase; }
+.mode-button { background: var(--surface); border: 1px solid var(--line); color: var(--muted); cursor: pointer; font-size: 10px; letter-spacing: .1em; padding: 10px 12px; text-transform: uppercase; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .mode-button small { color: #777980; display: block; font-size: 8px; letter-spacing: 0; margin-top: 5px; text-transform: none; }
 .mode-button.active, .mode-button:hover { border-color: var(--lime); color: var(--lime); }
-.symbol-touch-controls { gap: 10px; justify-content: center; margin-top: 16px; }
-.symbol-touch-controls button { min-width: 82px; }
+.symbol-touch-controls { gap: 10px; justify-content: center; margin-top: 16px; position: relative; z-index: 1; }
+.symbol-touch-controls button { min-width: 82px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 @media (max-width: 800px) {
   .symbol-catch-hud { grid-template-columns: repeat(2, 1fr); }
   .symbol-catch-hud > div:nth-child(4), .symbol-catch-hud > div:nth-child(5) { grid-column: span 2; }

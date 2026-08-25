@@ -12,6 +12,11 @@
 .site-nav-dropdown-panel a{color:var(--muted);display:block;padding:11px 12px;white-space:nowrap}
 .site-nav-dropdown-panel a:hover{background:var(--surface-2);color:var(--lime)}
 .site-nav a:focus-visible,.mobile-nav-toggle:focus-visible,.site-account-trigger:focus-visible,.site-account-links a:focus-visible,.site-account-item:focus-visible{outline:2px solid var(--lime);outline-offset:4px}
+.button,.text-link,.site-nav a,.mobile-nav-toggle,.site-account-trigger,.site-account-links a,.site-account-item{
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.button{pointer-events:auto;position:relative;z-index:1}
 .mobile-nav-toggle{align-items:center;appearance:none;background:transparent;border:1px solid var(--line);color:var(--text);cursor:pointer;display:none;font:700 10px/1 Arial,Helvetica,sans-serif;gap:9px;letter-spacing:.1em;padding:12px 13px;text-transform:uppercase}
 .mobile-nav-icon{display:grid;gap:3px;width:13px}
 .mobile-nav-icon i{background:currentColor;display:block;height:1px;transition:transform .2s ease,opacity .2s ease;width:13px}
@@ -72,6 +77,10 @@
 .game-result-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
 .game-result-actions[hidden]{display:none!important}
 .game-result-actions .button{font-size:10px;padding:12px 14px}
+.game-actions,.hero-actions,.project-actions,.dashboard-links,.leaderboard-filters,.arena-online,.touch-controls,.symbol-touch-controls,.codebreaker-actions,.powerup-bar,.cb-actions,.cb-tab-row,.cb-page-controls,.cb-menu-list,.cb-grid-2,.cb-grid-3,.cb-grid-4{
+  position:relative;
+  z-index:1;
+}
 .arena-event-control{align-items:start;display:grid;gap:8px;margin-top:18px;max-width:420px}.arena-event-control label{color:var(--text);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}.arena-event-control select{appearance:none;background:var(--surface);border:1px solid var(--line);border-radius:0;color:var(--text);font:inherit;font-size:13px;padding:13px 14px;width:100%}.arena-event-control select:focus-visible{border-color:var(--lime);outline:2px solid var(--lime);outline-offset:2px}.arena-event-control small{color:var(--muted);font-size:11px;line-height:1.5}.arena-result-card{background:linear-gradient(135deg,rgba(198,255,61,.12),rgba(154,123,255,.08));border:1px solid rgba(198,255,61,.42);display:grid;gap:8px;margin-top:18px;padding:20px 22px;position:relative}.arena-result-card[hidden]{display:none!important}.arena-result-card .eyebrow{font-size:9px;margin:0}.arena-result-card strong{color:var(--lime);font-size:42px;letter-spacing:-.08em;line-height:1}.arena-result-card span:not(.eyebrow){color:var(--text);font-size:13px}.arena-result-card small{color:var(--muted);font-size:12px}.score-rules-note{color:var(--muted);font-size:12px;line-height:1.6;margin:18px 0 0}.score-rules-note .text-link{font-size:10px;margin-top:0}
 .game-mode-control{align-items:start;display:grid;gap:8px;margin-top:18px;max-width:420px}.game-mode-control label{color:var(--text);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}.game-mode-control select{appearance:none;background:var(--surface);border:1px solid var(--line);border-radius:0;color:var(--text);font:inherit;font-size:13px;padding:13px 14px;width:100%}.game-mode-control select:focus-visible{border-color:var(--lime);outline:2px solid var(--lime);outline-offset:2px}.game-mode-control small{color:var(--muted);font-size:11px;line-height:1.5}.leaderboard-filters{align-items:end;display:flex;flex-wrap:wrap;gap:16px;margin-top:12px}.leaderboard-filters .game-mode-control{margin-top:0;min-width:190px}.leaderboard-filters .leaderboard-tabs{margin-top:0}
 .page-status{border-left:2px solid var(--lime);color:var(--muted);font-size:13px;line-height:1.6;margin:22px 0 0;padding-left:16px}

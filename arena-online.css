@@ -1,6 +1,6 @@
-.arena-online{align-items:center;display:flex;gap:16px;justify-content:space-between;margin-top:16px}
+.arena-online{align-items:center;display:flex;gap:16px;justify-content:space-between;margin-top:16px;position:relative;z-index:1}
 .arena-online span{color:var(--muted);font-size:12px;line-height:1.5}
-.arena-online button{background:transparent;color:var(--text);border:1px solid var(--line);cursor:pointer}
+.arena-online button{background:transparent;color:var(--text);border:1px solid var(--line);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .arena-online button:hover{border-color:var(--lime);color:var(--lime)}
 .arena-online [hidden]{display:none!important}
 .arena-online button:disabled{cursor:not-allowed;opacity:.55}
@@ -10,11 +10,11 @@
 .arena-mode-control select:focus{border-color:var(--lime);outline:none}
 .arena-mode-control small{color:var(--muted);font-size:12px;line-height:1.45}
 .arena-leaderboard-section .leaderboard-wrap{background:var(--surface);border:1px solid var(--line);padding:0 18px}
-.leaderboard-tabs{display:flex;gap:8px;margin-top:18px}.leaderboard-tabs .button{font-size:10px;padding:10px 14px}.leaderboard-tabs .button.is-active{border-color:var(--lime);color:var(--lime)}
+.leaderboard-tabs{display:flex;gap:8px;margin-top:18px;position:relative;z-index:1}.leaderboard-tabs .button{font-size:10px;padding:10px 14px}.leaderboard-tabs .button.is-active{border-color:var(--lime);color:var(--lime)}
 .arena-leaderboard-section{padding-bottom:66px;padding-top:6px}
 .arena-howto-section{padding-bottom:66px;padding-top:6px}
 .arena-howto-section .split-section{gap:64px}
 .arena-howto-section .perk-list{margin-top:18px}
-.arena-game-switcher{border:1px solid var(--line);margin-top:30px;padding:20px}.arena-game-switcher .eyebrow{margin-bottom:12px}.arena-game-switcher p:not(.eyebrow){color:var(--muted);font-size:13px;line-height:1.55;margin-bottom:16px}.arena-game-switcher .button{margin-top:0}
+.arena-game-switcher{border:1px solid var(--line);margin-top:30px;padding:20px;position:relative;z-index:1}.arena-game-switcher .eyebrow{margin-bottom:12px}.arena-game-switcher p:not(.eyebrow){color:var(--muted);font-size:13px;line-height:1.55;margin-bottom:16px}.arena-game-switcher .button{margin-top:0}
 @media(max-width:800px){.arena-online{align-items:flex-start;display:block}.arena-online button{margin-top:12px}}
 @media(max-width:800px){.arena-leaderboard-section{padding-bottom:34px;padding-top:6px}.arena-howto-section{padding-bottom:34px;padding-top:6px}.arena-howto-section .split-section{gap:28px}}
