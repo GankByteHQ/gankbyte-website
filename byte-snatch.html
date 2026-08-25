@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a0b0f" />
+    <meta name="description" content="Play Byte Snatch in GankByte Arena. Bank your score before the glitches gank you." />
+    <link rel="icon" href="gb-logo.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="site-spacing.css" />
+    <link rel="stylesheet" href="page-compact.css" />
+    <link rel="stylesheet" href="arena-online.css" />
+    <link rel="stylesheet" href="game-controls.css" />
+    <link rel="stylesheet" href="auth-controls.css" />
+    <title>Byte Snatch &mdash; GankByte Arena</title>
+    <link rel="canonical" href="https://gankbyte.com/byte-snatch.html" />
+    <meta property="og:title" content="Byte Snatch &mdash; GankByte Arena" />
+    <meta property="og:description" content="Collect Bytes, build your multiplier, and bank your score before you get ganked." />
+    <meta property="og:url" content="https://gankbyte.com/byte-snatch.html" />
+    <meta property="og:site_name" content="GankByte" />
+    <meta property="og:image" content="https://gankbyte.com/gankbyte-og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="stylesheet" href="site-shell.css?v=7" data-site-shell-style="true" />
+    <style>
+      .snatch-bank { margin-top: 14px; display:flex; justify-content:center; }
+      .snatch-bank button { min-width: 180px; }
+      .snatch-rules { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:18px; }
+      .snatch-rules .content-card { padding:16px; }
+      @media (max-width:700px) { .snatch-rules { grid-template-columns:1fr; } }
+    </style>
+  </head>
+  <body>
+    <header class="site-header shell">
+      <a class="brand" href="index.html" aria-label="GankByte home"><span class="brand-mark">GB</span><span>GANKBYTE</span></a>
+      <nav class="site-nav" aria-label="Main navigation"><a href="games.html">Games</a><a href="arena-hub.html" aria-current="page">Arena</a><a href="developers.html">Developers</a><a href="community.html">Community</a><a href="xp.html">XP</a><a href="roadmap.html">Roadmap</a></nav>
+      <a class="header-cta" href="https://discord.gg/CpWjZkjtjJ" target="_blank" rel="noreferrer">Join Discord <span>&nearr;</span></a>
+    </header>
+    <main>
+      <section class="page-hero shell arena-hero"><p class="page-label">GANKBYTE ARENA // GAME 04</p><h1>Byte<br /><em>Snatch.</em></h1><p class="hero-lede">Collect Bytes, build your multiplier, and bank the score before the glitches take it back.</p></section>
+      <section class="section shell"><div class="arena-wrap">
+        <div class="arena-hud"><div><span class="hud-label">BANKED</span><strong id="score">0</strong></div><div><span class="hud-label">AT RISK</span><strong id="risk">0</strong></div><div><span class="hud-label">TIME</span><strong id="time">60</strong></div><div><span class="hud-label">MULTI</span><strong id="combo">x1</strong></div><div><span class="hud-label">LIVES</span><strong id="lives">3</strong></div><div><span class="hud-label">XP</span><strong id="xp">0</strong></div><div><span class="hud-label">POWER</span><strong id="power-status">NONE</strong></div></div>
+        <div class="arena-board" id="arena-board"><canvas id="snatch-canvas" width="960" height="520" tabindex="0" aria-label="Byte Snatch game arena"></canvas><div class="arena-message" id="arena-message"><strong>READY?</strong><span>Move with WASD or arrow keys. Collect Bytes. Bank before you get ganked.</span></div></div>
+        <p class="touch-hint">On mobile: swipe or drag inside the arena to move. Use the buttons below to move, bank, or activate a power-up.</p>
+        <div class="snatch-bank"><button class="button button-primary" id="bank-button" type="button">Bank at-risk score <span>&uarr;</span></button></div>
+        <div class="arena-controls"><div class="game-actions"><button class="button button-primary" id="start-button" type="button">Start run <span>&rarr;</span></button><a class="button button-ghost" href="xp-submit.html" hidden id="arena-submit">Submit this run for XP <span>&nearr;</span></a></div><div class="game-result-actions" id="arena-result-actions" hidden><span class="game-rank" id="arena-result-rank" aria-live="polite"></span><button class="button button-ghost" id="arena-share-result" type="button">Share result <span>&uarr;</span></button><a class="button button-ghost" href="#leaderboard">View leaderboard <span>&darr;</span></a><a class="button button-ghost" href="profile.html">View profile <span>&nearr;</span></a></div><p id="game-status" aria-live="polite">No best score yet. Start a run.</p></div>
+        <div class="arena-online"><span id="arena-auth-status">Sign in with Discord to submit scores.</span><button class="button button-ghost" id="arena-login" type="button">Sign in with Discord <span>&nearr;</span></button><button class="button button-ghost" id="arena-logout" type="button" hidden>Sign out</button></div>
+        <div class="arena-result-card" id="arena-result-card" hidden aria-live="polite"><span class="eyebrow">RUN RESULT // BYTE SNATCH</span><strong id="arena-result-card-score">0</strong><span id="arena-result-card-detail">0 banked // 0 seconds</span><small id="arena-result-card-note">Keep moving.</small></div>
+        <div class="touch-controls" aria-label="Touch controls"><button type="button" data-dir="up" aria-label="Move up">&uarr;</button><div><button type="button" data-dir="left" aria-label="Move left">&larr;</button><button type="button" data-dir="bank" aria-label="Bank score">BANK</button><button type="button" data-dir="right" aria-label="Move right">&rarr;</button></div><button type="button" data-dir="down" aria-label="Move down">&darr;</button></div>
+      </div></section>
+      <section class="section shell snatch-rules"><article class="content-card"><span class="status-badge">Collect</span><h3>Build the risk.</h3><p>Bytes increase your at-risk score and multiplier. Bigger streaks mean bigger payouts.</p></article><article class="content-card"><span class="status-badge">Bank</span><h3>Make it safe.</h3><p>Bank whenever you want. Banked score survives hits and stays on your run.</p></article><article class="content-card"><span class="status-badge">Survive</span><h3>Don't get ganked.</h3><p>Getting hit wipes your at-risk score and costs a life. The run ends when time or lives run out.</p></article></section>
+      <section class="section section-dark" id="leaderboard"><div class="shell"><div class="section-heading"><div><p class="eyebrow">GLOBAL SCORES</p><h2>Best snatches.<br /><em>Public proof.</em></h2></div><p class="section-intro">Each player's highest approved Byte Snatch score appears here, ordered highest first.</p></div><div class="leaderboard-wrap"><table class="leaderboard"><thead><tr><th>#</th><th>Player</th><th>Best score</th><th>Best multi</th></tr></thead><tbody id="arena-leaderboard-body"><tr><td colspan="4">Loading global scores...</td></tr></tbody></table></div></div></section>
+    </main>
+    <footer class="site-footer shell"><div class="footer-top"><a class="brand" href="index.html"><span class="brand-mark">GB</span><span>GANKBYTE</span></a><p>Gaming. Memes. Code.</p><p class="footer-motto">BUILD. PLAY. GANK.</p></div><div class="footer-bottom"><div class="social-links"><a href="https://x.com/GankByte" target="_blank" rel="noreferrer">X</a><a href="https://www.youtube.com/@GankByte" target="_blank" rel="noreferrer">YouTube</a><a href="https://www.tiktok.com/@GankByte" target="_blank" rel="noreferrer">TikTok</a><a href="https://www.instagram.com/GankByte" target="_blank" rel="noreferrer">Instagram</a><a href="https://www.reddit.com/user/GankByteHQ" target="_blank" rel="noreferrer">Reddit</a><a href="https://github.com/GankByteHQ" target="_blank" rel="noreferrer">GitHub</a></div><a href="mailto:contact@gankbyte.com">contact@gankbyte.com</a><span>&copy; 2026 GankByte</span></div></footer>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="xp-config.js"></script><script src="byte-snatch.js?v=1"></script><script src="footer-nav.js?v=5"></script>
+  </body>
+</html>
