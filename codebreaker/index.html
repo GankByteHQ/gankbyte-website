@@ -52,13 +52,16 @@
             <span>TRACE // 100%</span>
             <span>LIVES // 5</span>
           </div>
-          <div class="hero-actions" style="margin-top:16px">
-            <span class="status-badge">Mode</span>
-            <a class="button button-primary" href="./" aria-current="page">V1</a>
-            <a class="button button-ghost" href="../codebreaker_v2/">V2</a>
-          </div>
+        <div class="game-mode-control" style="margin-top:16px">
+          <label for="codebreaker-version-select">Mode type</label>
+          <select id="codebreaker-version-select">
+            <option value="./" selected>V1</option>
+            <option value="../codebreaker_v2/">V2</option>
+          </select>
+          <small>Pick the version you want to play. This keeps both builds in one place.</small>
         </div>
-      </section>
+      </div>
+    </section>
 
       <section id="codebreaker-app" class="codebreaker-app" aria-live="polite"></section>
     </main>
@@ -84,5 +87,14 @@
     </footer>
     <script src="../footer-nav.js?v=5"></script>
     <script src="main.js?v=3"></script>
+    <script>
+      (function () {
+        const select = document.getElementById("codebreaker-version-select");
+        if (!select) return;
+        select.addEventListener("change", () => {
+          if (select.value) window.location.href = select.value;
+        });
+      })();
+    </script>
   </body>
 </html>
