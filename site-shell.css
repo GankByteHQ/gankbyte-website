@@ -2,7 +2,7 @@
 .skip-link:focus{top:16px}
 .site-nav a[aria-current="page"]{color:var(--lime)}
 .site-nav-dropdown{position:relative}
-.site-nav-dropdown summary{color:var(--muted);cursor:pointer;font:inherit;letter-spacing:inherit;line-height:inherit;list-style:none;padding:0;text-transform:inherit}
+.site-nav-dropdown summary{color:var(--muted);cursor:pointer;font:11px/1 Arial,Helvetica,sans-serif;letter-spacing:.1em;list-style:none;padding:0;text-transform:uppercase}
 .site-nav-dropdown summary::-webkit-details-marker{display:none}
 .site-nav-dropdown[open] summary,.site-nav-dropdown summary:hover{color:var(--lime)}
 .site-nav-dropdown summary[aria-current="page"]{color:var(--lime)}
