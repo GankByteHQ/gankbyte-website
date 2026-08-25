@@ -266,6 +266,13 @@
     return x - Math.floor(x);
   }
 
+  function pick(items, random = Math.random) {
+    if (!Array.isArray(items) || items.length === 0) return undefined;
+    const value = Number(random(items.length));
+    const index = Number.isFinite(value) ? Math.floor(value) % items.length : 0;
+    return items[index < 0 ? index + items.length : index];
+  }
+
   function registerBaseAchievements() {
     const preset = [
       ["first_breach", "First Breach"],
