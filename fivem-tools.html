@@ -1,23 +1,269 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0a0b0f" />
-    <meta name="description" content="GankByte FiveM vehicle handling editor with sliders, behaviour flags, driving profile, and handling.meta, Lua, and carcols exports." />
-    <link rel="icon" href="gb-logo.png" /><link rel="stylesheet" href="styles.css" /><link rel="stylesheet" href="site-spacing.css" /><link rel="stylesheet" href="page-compact.css" /><link rel="stylesheet" href="fivem-tools.css?v=2" /><link rel="stylesheet" href="site-shell.css?v=8" data-site-shell-style="true" />
-    <link rel="canonical" href="https://gankbyte.com/fivem-tools.html" />
-    <meta property="og:title" content="FiveM Vehicle Handling Editor - GankByte" /><meta property="og:description" content="Tune FiveM vehicle physics with plain-English controls, a live driving profile, and export-ready files." /><meta property="og:url" content="https://gankbyte.com/fivem-tools.html" /><meta property="og:site_name" content="GankByte" /><meta property="og:image" content="https://gankbyte.com/gankbyte-og.png" /><meta name="twitter:card" content="summary_large_image" /><meta name="twitter:title" content="FiveM Vehicle Handling Editor - GankByte" /><meta name="twitter:description" content="Tune FiveM vehicle physics with GankByte tools." /><meta name="twitter:image" content="https://gankbyte.com/gankbyte-og.png" />
-    <title>FiveM Vehicle Handling Editor &mdash; GankByte</title>
-  </head>
-  <body>
-    <header class="site-header shell"><a class="brand" href="index.html" aria-label="GankByte home"><span class="brand-mark">GB</span><span>GANKBYTE</span></a><nav class="site-nav" aria-label="Main navigation"><a href="games.html">Games</a><a href="arena-hub.html">Arena</a><a href="developers.html" aria-current="page">Developers</a><a href="community.html">Community</a><a href="xp.html">XP</a><a href="roadmap.html">Roadmap</a></nav><a class="header-cta" href="https://discord.gg/CpWjZkjtjJ" target="_blank" rel="noreferrer">Join Discord <span>&nearr;</span></a></header>
-    <main>
-      <section class="page-hero shell"><p class="page-label">DEVELOPERS // FIVEM TOOLS</p><h1>Vehicle handling<br /><em>editor.</em></h1><p class="hero-lede">Tune vehicle physics, behaviour flags, and Carcols settings with readable controls, a live driving profile, and export-ready FiveM files.</p></section>
-      <section class="section shell fivem-editor-section"><div class="fivem-editor"><div class="fivem-tabs" role="tablist" aria-label="Vehicle editor sections"><button class="fivem-tab active" type="button" role="tab" aria-selected="true" data-vtab="handling">Handling (Physics)</button><button class="fivem-tab" type="button" role="tab" aria-selected="false" data-vtab="flags">Behaviour Flags</button><button class="fivem-tab" type="button" role="tab" aria-selected="false" data-vtab="carcols">Carcols (Mod Kit)</button></div><div class="fivem-grid"><div class="fivem-panel fivem-controls"><div class="vehicle-field"><label for="modelName">Vehicle model / handling name</label><input id="modelName" value="gankbyte_runner" autocomplete="off" spellcheck="false" /><p>The vehicle spawn or handling name used by your resource.</p></div><div id="panel-handling"><div class="preset-heading"><div><label>Start from a preset</label><p>A preset gives you a sensible starting point to fine-tune.</p></div><div id="presets" class="preset-list"></div></div><div id="handlingFields" class="handling-fields"></div></div><div id="panel-flags" class="fivem-hidden"><p class="panel-intro">Flags are on/off switches that can dramatically change vehicle behaviour. Toggle one and the correct flag value is included in your export.</p><div id="flagGroups" class="flag-groups"></div></div><div id="panel-carcols" class="fivem-hidden carcols-fields"><div class="vehicle-field"><label for="kitName">Mod kit name</label><input id="kitName" value="gankbyte_runner_modkit" /></div><div class="vehicle-field"><label for="kitId">Kit ID</label><input id="kitId" type="number" min="0" max="65535" value="1" /></div><p>Kit IDs must be unique across the vehicles on your server.</p></div></div><div class="fivem-output-column"><div class="fivem-panel profile-panel"><div class="panel-title-row"><h2>Driving profile</h2><span id="profileSummary"></span></div><div id="profileBars" class="profile-bars"></div><div id="warnings" class="warnings"></div></div><div class="fivem-panel output-panel"><div class="panel-title-row output-head"><div id="outputTabs" class="output-tabs"></div><div class="output-actions"><button id="copyBtn" type="button" class="fivem-button secondary">Copy</button><button id="downloadBtn" type="button" class="fivem-button">Download</button></div></div><pre class="code-output"><code id="output"></code></pre></div></div></div></div></section>
-      <section class="section shell section-dark"><div class="split-section"><div><p class="eyebrow">USE IT SAFELY</p><h2>Read the values.<br /><em>Own the build.</em></h2></div><div><p class="section-intro">This editor generates a starting point. Review every value, test it in a safe resource, document dependencies, and follow the rules of the platform and server where you use it.</p><details class="fivem-faq"><summary>Where does handling.meta go?</summary><p>Put it inside the vehicle resource and reference it from fxmanifest.lua with a HANDLING_FILE data entry.</p></details><details class="fivem-faq"><summary>What can I export?</summary><p>You can copy or download handling.meta, a Lua runtime override, or a Carcols mod-kit file from the output panel.</p></details></div></div></section>
-    </main>
-    <footer class="site-footer shell"><div class="footer-top"><a class="brand" href="index.html"><span class="brand-mark">GB</span><span>GANKBYTE</span></a><p>Gaming. Memes. Code.</p><p class="footer-motto">BUILD. PLAY. GANK.</p></div><div class="footer-bottom"><div class="social-links"><a href="https://x.com/GankByte" target="_blank" rel="noreferrer">X</a><a href="https://discord.gg/CpWjZkjtjJ" target="_blank" rel="noreferrer">Discord</a><a href="https://github.com/GankByteHQ" target="_blank" rel="noreferrer">GitHub</a></div><a href="mailto:contact@gankbyte.com">contact@gankbyte.com</a><span>&copy; 2026 GankByte</span></div></footer>
-    <script src="fivem-tools.js?v=2"></script><script src="footer-nav.js?v=6"></script>
-  </body>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FiveM Vehicle Handling Editor</title>
+<link rel="icon" href="gb-logo.png">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="site-spacing.css">
+<link rel="stylesheet" href="page-compact.css">
+<link rel="stylesheet" href="site-shell.css?v=8" data-site-shell-style="true">
+<style>
+:root{--bg:#080909;--panel:#101211;--panel2:#0c0e0d;--border:#242925;--muted:#8b948d;--text:#f1f4f1;--accent:#b7ff3c;--accent2:#91d51f;--danger:#ff7070}
+*{box-sizing:border-box}html{background:var(--bg)}body{margin:0;background:radial-gradient(900px 450px at 50% -120px,rgba(183,255,60,.09),transparent 65%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}
+button,input{font:inherit}.wrap{max-width:1440px;margin:auto;padding:0 28px}.top{height:72px;border-bottom:1px solid #1d211e;background:rgba(8,9,9,.88);backdrop-filter:blur(12px);display:flex;align-items:center}.brand{font-weight:900;letter-spacing:-.03em;font-size:19px}.brand span{color:var(--accent)}.brand small{display:block;color:#657067;font-size:9px;letter-spacing:.22em;text-transform:uppercase;margin-top:3px}
+.hero{padding:52px 0 30px}.eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:800}.hero h1{font-size:clamp(34px,5vw,58px);letter-spacing:-.055em;margin:9px 0 8px;line-height:1}.hero h1 span{color:var(--accent)}.hero p{max-width:850px;color:#89918b;margin:0;line-height:1.65}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}.tab{border:1px solid #292e2a;background:#0e100f;color:#8e968f;padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:700;font-size:13px}.tab:hover{border-color:#3b443d;color:#dce2dd}.tab.active{background:var(--accent);border-color:var(--accent);color:#080a08}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:20px}.panel{background:linear-gradient(180deg,rgba(17,19,18,.94),rgba(12,14,13,.94));border:1px solid var(--border);border-radius:10px;padding:22px}.sticky{position:sticky;top:92px}.label{font-size:13px;color:#d8ded9;font-weight:700;margin-bottom:7px;display:block}.help{font-size:11px;color:#68716a;line-height:1.5;margin-top:6px}.input{width:100%;background:#090b0a;border:1px solid #2a302b;border-radius:7px;color:#e9eee9;padding:10px 12px;outline:none}.input:focus{border-color:#628a31;box-shadow:0 0 0 2px rgba(183,255,60,.08)}
+.section{margin-top:25px}.section:first-child{margin-top:0}.section-head{display:flex;justify-content:space-between;gap:12px;align-items:end;margin-bottom:10px}.section-title{font-size:13px;text-transform:uppercase;letter-spacing:.1em;font-weight:850}.section-intro{font-size:11px;color:#68716a;margin-top:4px}
+.field{padding:13px 0;border-top:1px solid #1d211e}.field:first-child{border-top:0}.field-top{display:flex;justify-content:space-between;gap:12px;align-items:center}.fname{font-size:13px;font-weight:700}.fkey{font:11px ui-monospace,SFMono-Regular,Menlo,monospace;color:#59635b}.desc{font-size:11px;color:#727c74;margin:4px 0 9px}.controls{display:grid;grid-template-columns:1fr 92px;gap:10px;align-items:center}.num{width:92px;background:#080a09;border:1px solid #2b302c;color:#e8eee9;border-radius:6px;padding:7px 8px;font:12px ui-monospace,monospace}
+input[type=range]{width:100%;height:5px;appearance:none;background:#252b27;border-radius:99px;outline:0}input[type=range]::-webkit-slider-thumb{appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);border:3px solid #111411;box-shadow:0 0 0 1px #76a927;cursor:pointer}input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--accent);border:3px solid #111411;cursor:pointer}
+.preset-row{display:flex;gap:7px;flex-wrap:wrap}.preset{padding:8px 11px;border:1px solid #2a302c;background:#0b0d0c;color:#aeb7af;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700}.preset:hover{border-color:#5b783b;color:#dfe8df}.preset.active{background:rgba(183,255,60,.1);border-color:#739b3c;color:var(--accent)}
+.profile{display:grid;grid-template-columns:1fr 1fr;gap:12px 22px}.metric{display:grid;grid-template-columns:125px 1fr 42px;gap:9px;align-items:center;font-size:11px}.bar{height:5px;background:#202521;border-radius:99px;overflow:hidden}.fill{height:100%;background:var(--accent);border-radius:99px;transition:width .12s}.metric b{text-align:right;color:#cbd2cc;font:11px ui-monospace,monospace}.output-tabs{display:flex;gap:6px}.outtab{border:1px solid #292e2a;background:#0b0d0c;color:#7f8981;padding:8px 10px;border-radius:6px;font-size:11px;font-weight:800;cursor:pointer}.outtab.active{color:#080a08;background:var(--accent);border-color:var(--accent)}.actions{display:flex;gap:7px}.btn{border:1px solid #2b312c;background:#111411;color:#dbe2dc;border-radius:7px;padding:8px 12px;cursor:pointer;font-size:12px;font-weight:800}.btn:hover{border-color:#52624f}.btn.primary{background:var(--accent);border-color:var(--accent);color:#080a08}.code{margin-top:14px;background:#060706;border:1px solid #202420;border-radius:7px;min-height:390px;max-height:650px;overflow:auto;padding:17px;color:#cbd5cc;font:12px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre}
+.flag-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.flag{display:flex;align-items:center;gap:9px;padding:11px;border:1px solid #252a26;border-radius:7px;background:#0b0d0c;cursor:pointer}.flag input{accent-color:var(--accent)}.flag strong{font-size:12px}.flag small{display:block;color:#68716b;font-size:10px;margin-top:2px}
+.hidden{display:none!important}.warning{margin-top:12px;border:1px solid #594c27;background:rgba(100,82,25,.12);padding:10px;border-radius:7px;color:#c9b978;font-size:11px}.summary{color:#737d75;font:11px ui-monospace,monospace}.footer{padding:40px 0 55px;color:#505951;font-size:11px;text-align:center}
+@media(max-width:950px){.grid{grid-template-columns:1fr}.sticky{position:static}.profile{grid-template-columns:1fr}.flag-grid{grid-template-columns:1fr}.wrap{padding:0 16px}}
+</style>
+</head>
+<body>
+<header class="site-header shell"><a class="brand" href="index.html" aria-label="GankByte home"><span class="brand-mark">GB</span><span>GANKBYTE</span></a><nav class="site-nav" aria-label="Main navigation"><a href="games.html">Games</a><a href="arena-hub.html">Arena</a><a href="developers.html" aria-current="page">Developers</a><a href="community.html">Community</a><a href="xp.html">XP</a><a href="roadmap.html">Roadmap</a></nav><a class="header-cta" href="https://discord.gg/CpWjZkjtjJ" target="_blank" rel="noreferrer">Join Discord <span>&nearr;</span></a></header>
+
+<main class="wrap">
+<section class="hero">
+<div class="eyebrow">Developers // FiveM</div>
+<h1>Vehicle handling <span>editor.</span></h1>
+<p>Tune vehicle physics, behaviour flags and suspension with live values, a live driving profile and export-ready <code>handling.meta</code>, Lua and <code>carcols.meta</code>.</p>
+</section>
+
+<div class="tabs">
+<button class="tab active" data-tab="handling">Handling (Physics)</button>
+<button class="tab" data-tab="flags">Behaviour Flags</button>
+<button class="tab" data-tab="carcols">Carcols (Mod Kit)</button>
+</div>
+
+<div class="grid">
+<section class="panel">
+<div>
+<label class="label">Vehicle model / handling name</label>
+<input id="model" class="input" value="adder" spellcheck="false">
+<div class="help">The vehicle's spawn name. This is used in the generated XML and Lua.</div>
+</div>
+
+<div id="handlingPanel">
+<div class="section">
+<div class="section-head"><div><div class="section-title">Start from a preset</div><div class="section-intro">Set sensible values, then fine-tune every slider.</div></div></div>
+<div class="preset-row" id="presets"></div>
+</div>
+<div id="fields"></div>
+</div>
+
+<div id="flagsPanel" class="hidden">
+<div class="section"><div class="section-title">Behaviour flags</div><div class="section-intro">Toggle impactful vehicle behaviours. The generated hexadecimal values update instantly.</div></div>
+<div class="section"><div class="section-title">Handling flags</div><div id="handlingFlags" class="flag-grid"></div></div>
+<div class="section"><div class="section-title">Model flags</div><div id="modelFlags" class="flag-grid"></div></div>
+</div>
+
+<div id="carcolsPanel" class="hidden">
+<div class="section"><div class="section-title">Mod kit</div></div>
+<label class="label">Mod kit name</label><input id="kitName" class="input" value="adder_modkit">
+<div class="section"><label class="label">Kit ID</label><input id="kitId" class="input" type="number" min="0" max="65535" value="1"></div>
+<div class="help">The generated carcols.meta contains a clean mod kit skeleton.</div>
+</div>
+</section>
+
+<section>
+<div class="panel" style="margin-bottom:20px">
+<div class="section-head"><div class="section-title">Driving profile</div><div id="summary" class="summary"></div></div>
+<div id="profile" class="profile"></div><div id="warnings"></div>
+</div>
+
+<div class="panel sticky">
+<div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
+<div id="outputTabs" class="output-tabs"></div>
+<div class="actions"><button id="copy" class="btn">Copy</button><button id="download" class="btn primary">Download</button></div>
+</div>
+<pre id="output" class="code"></pre>
+</div>
+</section>
+</div>
+
+</main>
+
+<footer class="site-footer shell"><div class="footer-top"><a class="brand" href="index.html"><span class="brand-mark">GB</span><span>GANKBYTE</span></a><p>Gaming. Memes. Code.</p><p class="footer-motto">BUILD. PLAY. GANK.</p></div><div class="footer-bottom"><div class="social-links"><a href="https://x.com/GankByte" target="_blank" rel="noreferrer">X</a><a href="https://discord.gg/CpWjZkjtjJ" target="_blank" rel="noreferrer">Discord</a><a href="https://github.com/GankByteHQ" target="_blank" rel="noreferrer">GitHub</a></div><a href="mailto:contact@gankbyte.com">contact@gankbyte.com</a><span>&copy; 2026 GankByte</span></div></footer>
+<script src="footer-nav.js?v=6"></script>
+
+<script>
+const defs=[
+["Weight & Aerodynamics","The basics - they influence everything else.",[
+["fMass","Weight","kg",1600,200,10000,10,"float","Vehicle mass."],
+["fInitialDragCoeff","Air resistance","",8.5,0.5,60,.1,"float","Aerodynamic drag."],
+["fDownforceModifier","Downforce","",1,0,15,.1,"float","Aero force pressing the car into the road."]
+]],
+["Engine & Drivetrain","Power and how it reaches the road.",[
+["fInitialDriveForce","Engine power","",.30,.05,1.5,.01,"float","Primary acceleration factor."],
+["nInitialDriveGears","Gears","",6,1,12,1,"int","Number of forward gears."],
+["fInitialDriveMaxFlatVel","Top speed","m/s",160,40,400,1,"float","Maximum flat-road speed value."],
+["fDriveInertia","Throttle response","",1,.05,2,.05,"float","Engine response/inertia."],
+["fClutchChangeRateScaleUpShift","Upshift speed","",1,.1,5,.05,"float","How quickly the gearbox shifts up."],
+["fClutchChangeRateScaleDownShift","Downshift speed","",1,.1,5,.05,"float","How quickly the gearbox shifts down."]
+]],
+["Brakes & Grip","Stopping power and tyre contact.",[
+["fBrakeForce","Brake force","",1,.05,3,.01,"float","Overall braking strength."],
+["fBrakeBiasFront","Brake bias","",.65,.1,.9,.01,"float","Front/rear brake distribution."],
+["fHandBrakeForce","Handbrake","",.8,.05,3,.01,"float","Parking/emergency brake strength."],
+["fTractionCurveMax","Max traction","",2.5,.2,5,.01,"float","Peak tyre grip."],
+["fTractionCurveMin","Min traction","",2.2,.1,5,.01,"float","Grip while sliding."],
+["fTractionCurveLateral","Lateral grip","",22,5,40,.1,"float","Side-to-side tyre response."],
+["fTractionSpringDeltaMax","Traction delta","",.15,.01,1,.01,"float","Grip loss under load."]
+]],
+["Suspension","Ride height, stiffness and stability.",[
+["fSuspensionForce","Suspension force","",2.5,.1,8,.05,"float","Spring strength."],
+["fSuspensionCompDamp","Compression damping","",1.5,.05,5,.05,"float","Resistance on compression."],
+["fSuspensionReboundDamp","Rebound damping","",1.8,.05,5,.05,"float","Resistance on rebound."],
+["fSuspensionUpperLimit","Upper limit","",.1,.01,1,.01,"float","Suspension travel above neutral."],
+["fSuspensionLowerLimit","Lower limit","",-0.1,-1,0,.01,"float","Suspension travel below neutral."],
+["fSuspensionRaise","Ride height","",-0.0,-1,1,.01,"float","Vehicle body height."],
+["fAntiRollBarForce","Anti-roll force","",.8,0,5,.01,"float","Resistance to body roll."],
+["fAntiRollBarBiasFront","Anti-roll bias","",.5,0,1,.01,"float","Front/rear anti-roll balance."]
+]],
+["Steering & Stability","How the vehicle turns and recovers.",[
+["fSteeringLock","Steering lock","deg",35,5,60,.5,"float","Maximum steering angle."],
+["fTractionBiasFront","Traction bias","",.48,0,1,.01,"float","Front/rear traction distribution."],
+["fCollisionDamageMult","Collision damage","",1,0,5,.05,"float","Damage multiplier from impacts."],
+["fWeaponDamageMult","Weapon damage","",1,0,5,.05,"float","Damage multiplier from weapons."],
+["fDeformationDamageMult","Deformation","",1,0,5,.05,"float","Visual deformation multiplier."]
+]]
+];
+
+const presets={
+"Balanced":{},
+"Street":{fInitialDriveForce:.34,fInitialDriveMaxFlatVel:175,fBrakeForce:1.05,fTractionCurveMax:2.45,fTractionCurveMin:2.15,fSteeringLock:35},
+"Sport":{fInitialDriveForce:.48,fInitialDriveMaxFlatVel:205,fBrakeForce:1.25,fTractionCurveMax:2.7,fTractionCurveMin:2.35,fSuspensionForce:3.1,fAntiRollBarForce:1.25},
+"Track":{fInitialDriveForce:.62,fInitialDriveMaxFlatVel:240,fBrakeForce:1.55,fTractionCurveMax:3.05,fTractionCurveMin:2.75,fTractionCurveLateral:26,fSuspensionForce:4,fAntiRollBarForce:2},
+"Off-road":{fInitialDriveForce:.38,fInitialDriveMaxFlatVel:145,fTractionCurveMax:2.15,fTractionCurveMin:1.85,fSuspensionForce:2.2,fSuspensionUpperLimit:.22,fSuspensionLowerLimit:-.25,fSuspensionRaise:.12}
+};
+
+const hFlags=[
+["HF_BULLET_PROOF_TYRES","Bulletproof tyres",1<<0],["HF_SMOOTH_TERRAIN","Smooth terrain",1<<1],["HF_TYRES_CAN_BURST","Tyres can burst",1<<6],["HF_OFFROAD","Off-road behaviour",1<<8],["HF_AWD","All-wheel drive",1<<12],["HF_REVERSE_BIAS","Reverse bias",1<<13],["HF_AVOID_BRAKING","Avoid braking",1<<16],["HF_FORMULA","Formula/open-wheel",1<<18]
+];
+const mFlags=[
+["MF_SPORT","Sport model",1<<0],["MF_HAS_ROLL_CAGE","Roll cage",1<<5],["MF_NO_WHEEL_BURST","No wheel burst",1<<7],["MF_INDESTRUCTIBLE","Indestructible",1<<9],["MF_HAS_EXTRAS","Has extras",1<<12],["MF_REDUCED_GRIP","Reduced grip",1<<16]
+];
+
+const state={};
+defs.forEach(s=>s[2].forEach(d=>state[d[0]]=d[3]));
+const flagState={}; hFlags.concat(mFlags).forEach(f=>flagState[f[0]]=false);
+let outputType="handling";
+
+const $=id=>document.getElementById(id);
+function fmt(v,d){return d[7]==="int"?String(Math.round(v)):Number(v).toFixed(6)}
+function clamp(v,a,b){return Math.min(b,Math.max(a,v))}
+function renderFields(){
+ let out="";
+ defs.forEach(s=>{
+  out+=`<div class="section"><div class="section-head"><div><div class="section-title">${s[0]}</div><div class="section-intro">${s[1]}</div></div></div>`;
+  s[2].forEach(d=>{
+   const k=d[0],v=state[k];
+   out+=`<div class="field"><div class="field-top"><div><div class="fname">${d[1]} <span class="fkey">${k}</span></div><div class="desc">${d[8]}</div></div><span style="color:#667067;font-size:10px">${d[2]}</span></div>
+   <div class="controls"><input type="range" data-k="${k}" min="${d[4]}" max="${d[5]}" step="${d[6]}" value="${v}"><input class="num" data-num="${k}" type="number" min="${d[4]}" max="${d[5]}" step="${d[6]}" value="${v}"></div></div>`;
+  });
+  out+="</div>";
+ });
+ $("fields").innerHTML=out;
+ document.querySelectorAll('input[type=range]').forEach(x=>x.addEventListener('input',e=>setVal(e.target.dataset.k,e.target.value)));
+ document.querySelectorAll('[data-num]').forEach(x=>x.addEventListener('input',e=>setVal(e.target.dataset.num,e.target.value)));
+}
+function setVal(k,v){
+ const d=defs.flatMap(s=>s[2]).find(x=>x[0]===k); if(!d)return;
+ let n=Number(v); if(!Number.isFinite(n))return;
+ n=clamp(n,d[4],d[5]); if(d[7]==="int")n=Math.round(n);
+ state[k]=n;
+ const r=document.querySelector(`[data-k="${k}"]`),num=document.querySelector(`[data-num="${k}"]`);
+ if(r)r.value=n;if(num)num.value=n;
+ refresh();
+}
+function renderFlags(){
+ function group(id,list){$(id).innerHTML=list.map(f=>`<label class="flag"><input type="checkbox" data-flag="${f[0]}"><span><strong>${f[1]}</strong><small>${f[0]}</small></span></label>`).join("")}
+ group("handlingFlags",hFlags);group("modelFlags",mFlags);
+ document.querySelectorAll('[data-flag]').forEach(x=>x.addEventListener('change',e=>{flagState[e.target.dataset.flag]=e.target.checked;refresh()}));
+}
+function hexFlags(list){return "0x"+list.reduce((n,f)=>n+(flagState[f[0]]?f[2]:0),0).toString(16).toUpperCase().padStart(8,"0")}
+function buildHandling(){
+ const m=$("model").value.trim()||"vehicle";
+ let x=`<?xml version="1.0" encoding="UTF-8"?>\n<HandlingDataMgr>\n  <HandlingData>\n    <Item type="CHandlingData">\n      <handlingName>${m.toUpperCase()}</handlingName>\n`;
+ defs.forEach(s=>s[2].forEach(d=>x+=`      <${d[0]} value="${fmt(state[d[0]],d)}" />\n`));
+ x+=`      <strHandlingFlags>${hexFlags(hFlags)}</strHandlingFlags>\n      <strModelFlags>${hexFlags(mFlags)}</strModelFlags>\n    </Item>\n  </HandlingData>\n</HandlingDataMgr>`;
+ return x;
+}
+function buildLua(){
+ const m=$("model").value.trim()||"vehicle";
+ let x=`-- Generated FiveM handling override for ${m}\nlocal vehicle = GetVehiclePedIsIn(PlayerPedId(), false)\nif vehicle ~= 0 then\n`;
+ defs.forEach(s=>s[2].forEach(d=>{
+  const typ=d[7]==="int"?"Int":"Float";
+  x+=`    SetVehicleHandling${typ}(vehicle, '${d[0]}', ${Number(state[d[0]])})\n`;
+ }));
+ x+="end";
+ return x;
+}
+function buildCarcols(){
+ const kit=$("kitName").value.trim()||"vehicle_modkit",id=$("kitId").value||1;
+ return `<?xml version="1.0" encoding="UTF-8"?>\n<CVehicleModelInfoVarGlobal>\n  <Kits>\n    <Item>\n      <kitName>${kit}</kitName>\n      <id value="${id}"/>\n      <visibleMods/>\n      <linkMods/>\n      <statMods/>\n      <slotNames/>\n      <liveryNames/>\n    </Item>\n  </Kits>\n</CVehicleModelInfoVarGlobal>`;
+}
+function profile(){
+ const norm=(v,a,b)=>Math.round((v-a)/(b-a)*100);
+ const get=k=>state[k];
+ const vals=[
+ ["Acceleration",norm(get("fInitialDriveForce"),.05,1.5)],
+ ["Top speed",norm(get("fInitialDriveMaxFlatVel"),40,400)],
+ ["Braking",norm(get("fBrakeForce"),.05,3)],
+ ["Grip",norm(get("fTractionCurveMax"),.2,5)],
+ ["Cornering",norm(get("fTractionCurveLateral"),5,40)],
+ ["Stability",100-Math.min(100,Math.abs(get("fSuspensionRaise"))*60)],
+ ["Steering",norm(get("fSteeringLock"),5,60)],
+ ["Downforce",norm(get("fDownforceModifier"),0,15)]
+ ];
+ $("profile").innerHTML=vals.map(v=>`<div class="metric"><span>${v[0]}</span><div class="bar"><div class="fill" style="width:${clamp(v[1],0,100)}%"></div></div><b>${clamp(v[1],0,100)}%</b></div>`).join("");
+ let w=[];
+ if(get("fBrakeBiasFront")>.78)w.push("Very front-biased braking can make the rear stable but reduce stopping efficiency.");
+ if(get("fTractionCurveMin")>get("fTractionCurveMax"))w.push("Minimum traction is above maximum traction; check the tyre values.");
+ if(get("fSuspensionRaise")>.4)w.push("Large ride-height increase can reduce stability.");
+ $("warnings").innerHTML=w.map(t=>`<div class="warning">${t}</div>`).join("");
+ $("summary").textContent=`${get("nInitialDriveGears")} gears | ${get("fInitialDriveMaxFlatVel")} top-speed value | ${get("fMass")} kg`;
+}
+function build(){
+ const out=outputType==="handling"?buildHandling():outputType==="lua"?buildLua():buildCarcols();
+ $("output").textContent=out;
+}
+function refresh(){profile();build()}
+function renderOutputTabs(){
+ const arr=[["handling","handling.meta"],["lua","Lua override"],["carcols","carcols.meta"]];
+ $("outputTabs").innerHTML=arr.map(a=>`<button class="outtab ${a[0]===outputType?"active":""}" data-out="${a[0]}">${a[1]}</button>`).join("");
+ document.querySelectorAll("[data-out]").forEach(b=>b.onclick=()=>{outputType=b.dataset.out;renderOutputTabs();build()});
+}
+function renderPresets(){
+ $("presets").innerHTML=Object.keys(presets).map(p=>`<button class="preset" data-preset="${p}">${p}</button>`).join("");
+ document.querySelectorAll("[data-preset]").forEach(b=>b.onclick=()=>{
+  Object.entries(presets[b.dataset.preset]).forEach(([k,v])=>state[k]=v);
+  renderFields();refresh();
+ });
+}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
+ document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");
+ $("handlingPanel").classList.toggle("hidden",b.dataset.tab!=="handling");
+ $("flagsPanel").classList.toggle("hidden",b.dataset.tab!=="flags");
+ $("carcolsPanel").classList.toggle("hidden",b.dataset.tab!=="carcols");
+});
+$("model").addEventListener("input",refresh);$("kitName").addEventListener("input",refresh);$("kitId").addEventListener("input",refresh);
+$("copy").onclick=async()=>{await navigator.clipboard.writeText($("output").textContent);$("copy").textContent="Copied";setTimeout(()=>$("copy").textContent="Copy",900)};
+$("download").onclick=()=>{
+ const ext=outputType==="handling"?"handling.meta":outputType==="lua"?"handling_override.lua":"carcols.meta";
+ const blob=new Blob([$("output").textContent],{type:"text/plain"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=ext;a.click();URL.revokeObjectURL(a.href);
+};
+renderFields();renderFlags();renderPresets();renderOutputTabs();refresh();
+</script>
+</body>
 </html>
+
+
+
