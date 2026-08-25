@@ -1120,14 +1120,6 @@
             </div>
           </div>
         </div>
-        <div class="arena-event-control">
-          <label for="codebreaker-version-select">Run type</label>
-          <select id="codebreaker-version-select">
-            <option value="./" selected>V1</option>
-            <option value="../codebreaker_v2/">V2</option>
-          </select>
-          <small>Choose the build you want to play. Both versions stay linked from the same breach menu.</small>
-        </div>
       </section>
     `;
   }
@@ -1713,10 +1705,7 @@
     if (action === "menu") {
       state.menuFocus = target.dataset.mode;
       if (target.dataset.mode === "campaign") startCampaign(state.campaignProgress || 0);
-      else if (target.dataset.mode === "daily") setScreen("daily");
-      else if (target.dataset.mode === "quick") setScreen("quick");
-      else if (target.dataset.mode === "endless") setScreen("endless");
-      else if (target.dataset.mode === "speedrun") setScreen("speedrun");
+      else startMode(target.dataset.mode);
       render();
       return;
     }
