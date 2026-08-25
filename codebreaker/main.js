@@ -381,7 +381,9 @@
         : mode === "endless"
           ? ["Keep going until you fail", "Build the highest score", "Use powerups carefully"]
           : ["Clear the quickest random hack"];
-    const challengeCount = mode === "quick" ? 5 : mode === "daily" ? 10 : mode === "speedrun" ? 12 : 999;
+    // Endless grows as the player clears gates. Do not build a huge array on
+    // selection: that can make the mode transition unresponsive on slower devices.
+    const challengeCount = mode === "quick" ? 5 : mode === "daily" ? 10 : mode === "speedrun" ? 12 : 1;
     state.levelChallenges = Array.from({ length: challengeCount }, (_, i) => {
       const seed = hashString(`${mode}-${state.dailySeed}-${i}`);
       const type = challengeTypes[seed % challengeTypes.length];
@@ -402,6 +404,10 @@
   }
 
   function startLevel() {
+    if (!state.levelChallenges.length) {
+      startMode(state.mode || "quick");
+      return;
+    }
     state.screen = "play";
     state.currentChallengeIndex = 0;
     state.levelScore = 0;
@@ -775,6 +781,12 @@
       }
       saveProgression();
       state.currentChallengeIndex += 1;
+    if (state.currentChallengeIndex >= state.levelChallenges.length && state.mode === "endless") {
+      const i = state.levelChallenges.length;
+      const seed = hashString(`${state.mode}-${state.dailySeed}-${i}`);
+      const type = challengeTypes[seed % challengeTypes.length];
+      state.levelChallenges.push(makeChallenge(type, seed + i, i + 1, false, state.mode));
+    }
     if (state.currentChallengeIndex >= state.levelChallenges.length) {
       finishLevel(true);
     } else {
@@ -1698,7 +1710,6 @@
       state.menuFocus = target.dataset.mode;
       if (target.dataset.mode === "campaign") startCampaign(state.campaignProgress || 0);
       else startMode(target.dataset.mode);
-      render();
       return;
     }
     if (action === "goto") {
@@ -1708,17 +1719,14 @@
         return;
       }
       if (next === "campaign") {
-        state.screen = "campaign";
-        render();
+        setScreen("campaign");
         return;
       }
       if (next === "menu") {
-        state.screen = "menu";
-        render();
+        setScreen("menu");
         return;
       }
-      state.screen = next;
-      render();
+      setScreen(next);
       return;
     }
     if (action === "start-level") {
