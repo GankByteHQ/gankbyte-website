@@ -1662,10 +1662,10 @@
     const root = app;
     root.querySelectorAll("[data-action]").forEach((el) => {
       el.onclick = onAction;
+      el.onpointerup = onAction;
     });
     if (root.dataset.bound !== "true") {
       root.dataset.bound = "true";
-      root.addEventListener("click", onRootClick);
     }
     if (root.dataset.keyBound !== "true") {
       root.dataset.keyBound = "true";
@@ -1682,17 +1682,11 @@
             answerChallenge(input.value);
           }
         });
-      }
-      root.querySelectorAll("[data-action=\"order-pick\"]").forEach((el) => {
-        el.onclick = onAction;
-      });
     }
-
-  function onRootClick(event) {
-    const target = event.target instanceof Element ? event.target : null;
-    const actionTarget = target ? target.closest("[data-action]") : null;
-    if (!actionTarget || !app.contains(actionTarget)) return;
-    onAction({ currentTarget: actionTarget });
+    root.querySelectorAll("[data-action=\"order-pick\"]").forEach((el) => {
+      el.onclick = onAction;
+      el.onpointerup = onAction;
+    });
   }
 
   function onRootKeyDown(event) {
