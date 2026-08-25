@@ -1,6 +1,8 @@
 (() => {
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+  const handlingPane = $("#handling-pane");
+  if (handlingPane) handlingPane.insertAdjacentHTML("afterbegin", '<div class="tool-pane-heading"><div><p class="eyebrow">FIVEM // VEHICLE TOOL</p><h2>Vehicle Handling Editor</h2><p class="tool-pane-lede">Tune a driving profile in plain English, then export the files you need.</p></div><span class="tool-status">LOCAL ONLY</span></div>');
   const handling = {
     preset: { balanced: [1500, 32, 0.78, 8.5, 2.1, 0.28], street: [1450, 27, 0.68, 7, 1.8, 0.24], drift: [1350, 42, 0.62, 5.5, 2.8, 0.18], offroad: [1700, 24, 0.58, 6.5, 1.6, 0.42] },
     flags: { AWD: 0, bulletproof: 1, armour: 2, offroad: 4, openwheel: 8, indestructible: 16 }
