@@ -1161,7 +1161,7 @@
           </div>
           <div class="cb-actions">
             <button class="cb-button" data-action="goto" data-screen="menu">Main menu</button>
-            <button class="cb-button primary" data-action="goto" data-screen="levelIntro" data-start-campaign="true">Enter system</button>
+            <button type="button" class="cb-button primary" data-action="start-campaign">Enter system</button>
           </div>
         </div>
         <div class="cb-map">
@@ -1731,6 +1731,10 @@
     }
     if (action === "start-level") {
       startLevel();
+      return;
+    }
+    if (action === "start-campaign") {
+      startCampaign(state.campaignProgress || 0);
       return;
     }
     if (action === "start-mode") {
