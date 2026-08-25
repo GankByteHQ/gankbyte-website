@@ -1123,7 +1123,7 @@
   }
 
   function menuButton(key, title, desc) {
-    return `<button class="cb-button block" data-action="menu" data-mode="${key}"><span>${title}</span><span>${desc}</span></button>`;
+    return `<button type="button" class="cb-button block" data-action="menu" data-mode="${key}"><span>${title}</span><span>${desc}</span></button>`;
   }
 
   function renderCampaign() {
@@ -1650,12 +1650,9 @@
 
   function bindEvents() {
     const root = app;
-    root.querySelectorAll("[data-action]").forEach((el) => {
-      el.onclick = onAction;
-      el.onpointerup = onAction;
-    });
     if (root.dataset.bound !== "true") {
       root.dataset.bound = "true";
+      root.addEventListener("click", onAction);
     }
     if (root.dataset.keyBound !== "true") {
       root.dataset.keyBound = "true";
@@ -1673,10 +1670,6 @@
           }
         });
     }
-    root.querySelectorAll("[data-action=\"order-pick\"]").forEach((el) => {
-      el.onclick = onAction;
-      el.onpointerup = onAction;
-    });
   }
 
   function onRootKeyDown(event) {
@@ -1697,8 +1690,9 @@
   }
 
   function onAction(event) {
-    const target = event.currentTarget || event.target;
+    const target = event.target instanceof Element ? event.target.closest("[data-action]") : null;
     if (!target || !target.dataset) return;
+    event.preventDefault();
     const action = target.dataset.action;
     if (action === "menu") {
       state.menuFocus = target.dataset.mode;
