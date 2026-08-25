@@ -160,7 +160,6 @@
   };
 
   const app = document.getElementById("codebreaker-app");
-  const connectionState = document.getElementById("kb-connection-state");
   let canvasRaf = 0;
 
   boot();
@@ -168,7 +167,6 @@
   function boot() {
     registerBaseAchievements();
     render();
-    if (connectionState) connectionState.textContent = "LOCAL SESSION";
   }
 
   function createPowerupState() {
@@ -1805,9 +1803,6 @@
   }
 
   function updateHud() {
-    if (connectionState) {
-      connectionState.textContent = state.screen === "play" ? "IN RUN" : "LOCAL SESSION";
-    }
   }
 
   function syncCanvas() {
