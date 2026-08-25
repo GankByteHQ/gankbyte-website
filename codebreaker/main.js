@@ -5,6 +5,10 @@
     runLog: "gankbyte-codebreaker-runs",
     settings: "gankbyte-codebreaker-settings",
     achievements: "gankbyte-codebreaker-achievements",
+    totalXp: "gankbyte-codebreaker-total-xp",
+    bestStars: "gankbyte-codebreaker-best-stars",
+    dailyStreak: "gankbyte-codebreaker-daily-streak",
+    dailyLastDate: "gankbyte-codebreaker-daily-last-date",
   };
 
   const levelNames = [
@@ -40,12 +44,23 @@
     "GankByte Mainframe",
   ];
 
-  const challengeTypes = ["code", "editor", "binary", "bughunt", "logic", "memory", "reaction"];
+  const challengeTypes = ["code", "editor", "order", "binary", "bughunt", "logic", "memory", "reaction"];
+  const rankDefs = [
+    { name: "Script Kiddie", xp: 0 },
+    { name: "Scanner", xp: 150 },
+    { name: "Intruder", xp: 450 },
+    { name: "Operator", xp: 950 },
+    { name: "Specialist", xp: 1700 },
+    { name: "Ghost", xp: 2800 },
+    { name: "Root", xp: 4300 },
+    { name: "Mainframe", xp: 6200 },
+  ];
   const powerupDefs = {
-    overclock: { label: "Overclock", desc: "+5 seconds", uses: 1 },
-    assist: { label: "AI Assist", desc: "Remove 2 wrong answers", uses: 1 },
-    firewall: { label: "Firewall", desc: "Block next mistake", uses: 1 },
-    ghost: { label: "Ghost", desc: "Freeze TRACE for 5 seconds", uses: 1 },
+    skip: { label: "Skip", desc: "Skip the current challenge", uses: 1 },
+    freeze: { label: "Freeze", desc: "Pause the timer for 5 seconds", uses: 1 },
+    reveal: { label: "Reveal", desc: "Show the answer or clue", uses: 1 },
+    shield: { label: "Shield", desc: "Block the next mistake", uses: 1 },
+    wipe: { label: "Trace Wipe", desc: "Reset TRACE to zero", uses: 1 },
   };
 
   const challengeModifierDefs = [
@@ -114,16 +129,23 @@
     bestCombo: 0,
     levelScore: 0,
     levelXp: 0,
+    totalXp: Number(localStorage.getItem(storageKeys.totalXp) || 0),
+    bestStars: loadJSON(storageKeys.bestStars, {}),
+    dailyStreak: Number(localStorage.getItem(storageKeys.dailyStreak) || 0),
+    dailyLastDate: localStorage.getItem(storageKeys.dailyLastDate) || "",
     levelTrace: 0,
+    currentLevelMistakes: 0,
     levelTitle: "",
     objectives: [],
     statusMessage: "Break the code before the system finds you.",
     inputValue: "",
     memoryVisible: false,
+    shieldArmed: false,
     memoryReveal: "",
     reactionPhase: 0,
     reactionHistory: [],
     reactionOptions: [],
+    orderSelection: [],
     powerups: createPowerupState(),
     runStart: Date.now(),
     traceWarningsShown: { 50: false, 75: false, 90: false },
@@ -134,10 +156,12 @@
     settings: loadJSON(storageKeys.settings, { sound: true, compactHud: false, reducedGlow: false }),
     achievements: new Set(loadJSON(storageKeys.achievements, [])),
     runLog: loadJSON(storageKeys.runLog, []),
+    canvasReady: false,
   };
 
   const app = document.getElementById("codebreaker-app");
   const connectionState = document.getElementById("kb-connection-state");
+  let canvasRaf = 0;
 
   boot();
 
@@ -149,6 +173,46 @@
 
   function createPowerupState() {
     return Object.fromEntries(Object.entries(powerupDefs).map(([key, value]) => [key, { ...value }]));
+  }
+
+  function todayKey() {
+    const now = new Date();
+    return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-${String(now.getUTCDate()).padStart(2, "0")}`;
+  }
+
+  function isConsecutiveDay(previousKey, currentKey) {
+    if (!previousKey || !currentKey) return false;
+    const previous = Date.parse(`${previousKey}T00:00:00Z`);
+    const current = Date.parse(`${currentKey}T00:00:00Z`);
+    return Number.isFinite(previous) && Number.isFinite(current) && current - previous === 86400000;
+  }
+
+  function rankForXp(totalXp) {
+    let current = rankDefs[0];
+    for (const rank of rankDefs) {
+      if (totalXp >= rank.xp) current = rank;
+    }
+    const next = rankDefs.find((rank) => rank.xp > totalXp) || null;
+    const minXp = current.xp;
+    const maxXp = next ? next.xp : current.xp + 1000;
+    const progress = next ? (totalXp - minXp) / Math.max(1, maxXp - minXp) : 1;
+    return { current, next, progress: Math.max(0, Math.min(1, progress)) };
+  }
+
+  function saveProgression() {
+    localStorage.setItem(storageKeys.totalXp, String(state.totalXp));
+    saveJSON(storageKeys.bestStars, state.bestStars);
+    localStorage.setItem(storageKeys.dailyStreak, String(state.dailyStreak));
+    localStorage.setItem(storageKeys.dailyLastDate, state.dailyLastDate);
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
   function loadJSON(key, fallback) {
@@ -211,6 +275,12 @@
       ["combo_10", "Combo x10"],
       ["trace_survivor", "Trace Survivor"],
       ["campaign_clear", "Campaign Clear"],
+      ["campaign_halfway", "Halfway Through"],
+      ["quick_clear", "Quick Clear"],
+      ["perfect_run", "Perfect Run"],
+      ["daily_streak_3", "Daily Streak x3"],
+      ["powerup_master", "Powerup Master"],
+      ["mainframe_access", "Mainframe Access"],
     ];
     for (const [id, label] of preset) {
       if (!state.achievements.has(id) && id === "first_breach" && Number(localStorage.getItem(storageKeys.bestScore) || 0) > 0) {
@@ -248,14 +318,18 @@
     state.levelScore = 0;
     state.levelXp = 0;
     state.levelTrace = 0;
+    state.currentLevelMistakes = 0;
     state.inputValue = "";
     state.memoryVisible = false;
+    state.shieldArmed = false;
     state.reactionPhase = 0;
     state.reactionHistory = [];
+    state.orderSelection = [];
     state.statusMessage = "Break the code before the system finds you.";
     state.traceWarningsShown = { 50: false, 75: false, 90: false };
     state.powerups = createPowerupState();
     state.runStart = Date.now();
+    state.canvasReady = false;
   }
 
   function levelData(index) {
@@ -362,6 +436,7 @@
     state.challengeStart = Date.now();
     state.challengeTimer = challenge.timeLimit;
     state.inputValue = "";
+    state.orderSelection = [];
     state.memoryVisible = challenge.type === "memory";
     state.reactionPhase = 0;
     state.reactionHistory = [];
@@ -385,7 +460,7 @@
       const correctIndex = rng(1) % operators.length;
       return applyChallengeModifiers({
         type,
-        title: boss ? "BOSS: Restore access logic" : "Repair access script",
+        title: boss ? "BOSS: Restore access logic" : "Code repair",
         subtitle: "Select the operator that keeps the program valid.",
         prompt: `function unlock(password) {\n  if (password ___ "GANK") {\n    accessGranted();\n  }\n}`,
         answer: operators[correctIndex],
@@ -396,40 +471,64 @@
       }, seed, levelIndex, boss, mode);
     }
     if (type === "editor") {
-      const answers = ["return true;", 'grantAccess();', 'access = 1;', 'console.log("OK");'];
-      const correct = answers[rng(2) % answers.length];
-      const snippet = [
+      const blocks = [
         "function access(key) {",
         '  if (key === "GANKBYTE") {',
-        "    _____________",
+        "    return true;",
         "  }",
         "}",
-      ].join("\n");
+      ];
+      const shuffled = shuffle(blocks, seed);
       return applyChallengeModifiers({
         type,
-        title: boss ? "BOSS: Patch the source" : "Repair source code",
-        subtitle: "Complete the missing line exactly.",
-        prompt: snippet,
-        answer: correct,
+        title: boss ? "BOSS: Rebuild the source" : "Code order",
+        subtitle: "Arrange the lines in the correct order.",
+        prompt: "The source is scrambled. Put it back together.",
+        answer: blocks.join("\n"),
+        lines: shuffled,
+        correctLines: blocks,
         timeLimit: boss ? 12 : 10 - Math.min(3, levelIndex * 0.03),
         points: boss ? 900 : 650 + levelIndex * 20,
         xp: boss ? 70 : 30,
       }, seed, levelIndex, boss, mode);
     }
+    if (type === "order") {
+      const answer = pick(["GANKBYTE", "ROOTACCESS", "TRACEWIPE", "NEONBYTE", "SYNTAXPATCH"], rng);
+      const clues = [
+        `Length ${answer.length}`,
+        `First letter ${answer[0]}`,
+        `Contains ${answer.includes("BYTE") ? "BYTE" : answer.includes("TRACE") ? "TRACE" : answer.slice(1, 4)}`,
+      ];
+      return applyChallengeModifiers({
+        type: "order",
+        title: boss ? "BOSS: Crack the key" : "Password",
+        subtitle: "Use the hints to type the password.",
+        prompt: answer,
+        answer,
+        hintStages: clues,
+        hintIndex: 0,
+        timeLimit: boss ? 11 : 9.5,
+        points: boss ? 875 : 625 + levelIndex * 18,
+        xp: boss ? 68 : 30,
+      }, seed, levelIndex, boss, mode);
+    }
     if (type === "binary") {
-      const words = ["GANK", "BYTE", "CODE", "ROOT", "SYNC", "LOCK"];
-      const word = words[rng(3) % words.length];
-      const bin = word
-        .split("")
-        .map((ch) => ch.charCodeAt(0).toString(2).padStart(8, "0"))
-        .join(" ");
-      const options = shuffle([word, "BETA", "TRACE", "NODE"], seed);
+      const value = 16 + (rng(3) % 224);
+      const useHex = boss || levelIndex >= 12;
+      const encoded = useHex ? `0x${value.toString(16).toUpperCase()}` : value.toString(2);
+      const answer = String(value);
+      const options = shuffle([
+        answer,
+        String(value + 4),
+        String(Math.max(0, value - 3)),
+        String(value + 12)
+      ], seed);
       return applyChallengeModifiers({
         type,
-        title: boss ? "BOSS: Decode the intercept" : "Data intercept",
-        subtitle: "Decode the binary message.",
-        prompt: bin,
-        answer: word,
+        title: boss ? "BOSS: Decode the intercept" : useHex ? "Hex decode" : "Binary decode",
+        subtitle: useHex ? "Decode the hex payload into a decimal value." : "Decode the binary message into a decimal value.",
+        prompt: encoded,
+        answer,
         options,
         timeLimit: boss ? 9 : 7,
         points: boss ? 850 : 550 + levelIndex * 16,
@@ -448,7 +547,7 @@
       ];
       return applyChallengeModifiers({
         type,
-        title: boss ? "BOSS: Hunt the fault" : "Debugging required",
+        title: boss ? "BOSS: Hunt the fault" : "Bug hunt",
         subtitle: "Choose the line that breaks the logic.",
         prompt: lines.join("\n"),
         answer: String([2, 3, 5, 6][wrongLine - 1] || 5),
@@ -459,10 +558,60 @@
       }, seed, levelIndex, boss, mode);
     }
     if (type === "logic") {
+      const modes = ["network", "logic", "binary", "pattern"];
+      const kind = modes[rng(5) % modes.length];
+      if (kind === "network") {
+        const hops = 2 + (rng(6) % 4);
+        const latency = 3 + (rng(7) % 7);
+        const answer = String(hops * latency);
+        return applyChallengeModifiers({
+          type,
+          title: boss ? "BOSS: System logic" : "Network math",
+          subtitle: "Calculate total latency across the chain.",
+          prompt: `${hops} hops at ${latency}ms each. What is the total latency?`,
+          answer,
+          options: shuffle([answer, String(Number(answer) + latency), String(Math.max(1, Number(answer) - latency)), String(Number(answer) + 10)], seed),
+          timeLimit: boss ? 9 : 7.5,
+          points: boss ? 800 : 575 + levelIndex * 18,
+          xp: boss ? 65 : 28,
+        }, seed, levelIndex, boss, mode);
+      }
+      if (kind === "binary") {
+        const a = 2 + (rng(8) % 6);
+        const b = 1 + (rng(9) % 4);
+        const answer = String(a & b);
+        return applyChallengeModifiers({
+          type,
+          title: boss ? "BOSS: System logic" : "Logic gate",
+          subtitle: "What does the gate output?",
+          prompt: `A = ${a.toString(2)}\nB = ${b.toString(2)}\nA AND B = ? (decimal answer)`,
+          answer,
+          options: shuffle([answer, String((a | b) + 1), String((a ^ b)), String((a & b) + 2)], seed),
+          timeLimit: boss ? 9 : 7.5,
+          points: boss ? 800 : 575 + levelIndex * 18,
+          xp: boss ? 65 : 28,
+        }, seed, levelIndex, boss, mode);
+      }
+      if (kind === "pattern") {
+        const start = 3 + (rng(10) % 5);
+        const step = 2 + (rng(11) % 4);
+        const seq = [start, start + step, start + step * 2, start + step * 3];
+        const answer = String(start + step * 4);
+        return applyChallengeModifiers({
+          type,
+          title: boss ? "BOSS: System logic" : "Number pattern",
+          subtitle: "Find the next value in the sequence.",
+          prompt: `${seq.join(", ")}, ?`,
+          answer,
+          options: shuffle([answer, String(Number(answer) + step), String(Number(answer) - step), String(Number(answer) + step * 2)], seed),
+          timeLimit: boss ? 9 : 7.5,
+          points: boss ? 800 : 575 + levelIndex * 18,
+          xp: boss ? 65 : 28,
+        }, seed, levelIndex, boss, mode);
+      }
       const a = 4 + (rng(5) % 4);
       const b = 6 + (rng(6) % 5);
-      const c = a + b;
-      const d = c + 2;
+      const d = a + b + 2;
       const answer = String(d);
       return applyChallengeModifiers({
         type,
@@ -481,8 +630,8 @@
       const answer = words[rng(7) % words.length];
       return applyChallengeModifiers({
         type,
-        title: boss ? "BOSS: Memorise the key" : "Memorise key",
-        subtitle: "Memorise the key, then type it back.",
+        title: boss ? "BOSS: Memorise the key" : "Password",
+        subtitle: "Memorise the password, then type it back.",
         prompt: answer,
         answer,
         timeLimit: boss ? 12 : 9,
@@ -496,7 +645,7 @@
     const third = colors[(rng(10) + 2) % colors.length];
     return applyChallengeModifiers({
       type: "reaction",
-      title: boss ? "BOSS: Security response" : "Security response",
+      title: boss ? "BOSS: Security response" : "Reaction",
       subtitle: "React to changing instructions.",
       prompt: [first, second, third],
       answer: first,
@@ -608,21 +757,26 @@
     }
   }
 
-  function completeChallenge() {
+  function completeChallenge(skipped = false) {
     const challenge = state.currentChallenge;
     const elapsed = (Date.now() - state.challengeStart) / 1000;
     const bonus = Math.max(0, Math.round((challenge.timeLimit - elapsed) * 35));
     const fastBonus = challenge.fastBonus ? Math.round((challenge.points + bonus) * challenge.fastBonus) : 0;
     const cleanBonus = challenge.cleanBonus && state.currentLevelMistakes === 0 ? Math.round((challenge.points + bonus) * challenge.cleanBonus) : 0;
-    const earned = challenge.points + bonus + state.combo * 10 + fastBonus + cleanBonus;
+    const earned = skipped ? Math.max(20, Math.floor((challenge.points + bonus + state.combo * 10) * 0.45)) : challenge.points + bonus + state.combo * 10 + fastBonus + cleanBonus;
     state.score += earned;
     state.levelScore += earned;
-    state.levelXp += challenge.xp;
-    state.combo += 1;
-    state.bestCombo = Math.max(state.bestCombo, state.combo);
-    state.statusMessage = "Access granted.";
-    if (state.combo >= 10) unlockAchievement("combo_10", "Combo x10");
-    state.currentChallengeIndex += 1;
+      state.levelXp += skipped ? Math.max(5, Math.floor(challenge.xp / 2)) : challenge.xp;
+      state.totalXp += skipped ? Math.max(5, Math.floor(challenge.xp / 2)) : challenge.xp;
+      state.combo += 1;
+      state.bestCombo = Math.max(state.bestCombo, state.combo);
+      state.statusMessage = "Access granted.";
+      if (state.combo >= 10) unlockAchievement("combo_10", "Combo x10");
+      if (!skipped && state.currentLevelMistakes === 0 && state.trace < 25 && state.lives === state.maxLives) {
+        unlockAchievement("perfect_run", "Perfect Run");
+      }
+      saveProgression();
+      state.currentChallengeIndex += 1;
     if (state.currentChallengeIndex >= state.levelChallenges.length) {
       finishLevel(true);
     } else {
@@ -632,24 +786,25 @@
   }
 
   function wrongAnswer() {
-    const block = state.powerups.firewall.uses > 0;
-    const frozen = Date.now() < state.traceFreezeUntil;
-    const challenge = state.currentChallenge;
-    const traceGain = frozen ? 0 : block ? 4 : (challenge?.tracePenalty || 12);
-    if (block) {
-      state.powerups.firewall.uses -= 1;
-      state.statusMessage = frozen ? "Trace frozen. Firewall held the line." : "Firewall blocked that mistake.";
-    } else {
-      state.statusMessage = frozen ? "Trace frozen." : "Syntax error. TRACE increased.";
-    }
+      const block = state.shieldArmed;
+      const frozen = Date.now() < state.traceFreezeUntil;
+      const challenge = state.currentChallenge;
+      const traceGain = frozen ? 0 : block ? 4 : (challenge?.tracePenalty || 12);
+      if (block) {
+        state.shieldArmed = false;
+        state.statusMessage = frozen ? "Trace frozen. Shield held the line." : "Shield blocked that mistake.";
+      } else {
+        state.statusMessage = frozen ? "Trace frozen." : "Syntax error. TRACE increased.";
+      }
     if (!frozen) {
       state.trace += traceGain;
       state.levelTrace += traceGain;
     }
-    if (!block) {
-      state.combo = 0;
-      loseLife(frozen ? "Mistake hit a frozen trace." : "Mistake exposed the system.", frozen ? 0 : 8);
-    }
+      if (!block) {
+        state.combo = 0;
+        state.currentLevelMistakes += 1;
+        loseLife(frozen ? "Mistake hit a frozen trace." : "Mistake exposed the system.", frozen ? 0 : 8);
+      }
     if (state.trace >= 100 || state.lives <= 0) {
       finishLevel(false);
       return;
@@ -680,23 +835,49 @@
   function finishLevel(won) {
     clearInterval(state.timerHandle);
     state.timerHandle = null;
-    if (won) {
-      state.levelXp += 40;
-      state.score += 250;
-      state.statusMessage = "System breached.";
+      if (won) {
+        state.levelXp += 40;
+        state.score += 250;
+        state.totalXp += 40;
+        state.statusMessage = "System breached.";
+      const stars = state.currentLevelMistakes === 0 && state.trace < 35 && state.lives === state.maxLives
+        ? 3
+        : state.currentLevelMistakes === 0 || state.trace < 50
+          ? 2
+          : 1;
+      const levelKey = String(state.selectedLevel + 1).padStart(2, "0");
+      state.bestStars[levelKey] = Math.max(Number(state.bestStars[levelKey] || 0), stars);
       if ([9, 19, 29].includes(state.selectedLevel)) unlockAchievement("boss_breaker", "Boss Breaker");
       if (state.selectedLevel === 29) unlockAchievement("campaign_clear", "Campaign Clear");
-      if (state.trace < 50) unlockAchievement("trace_survivor", "Trace Survivor");
-      updateBestScore();
-      logRun(true);
-      if (state.mode === "campaign") {
-        state.campaignProgress = Math.max(state.campaignProgress, state.selectedLevel + 1);
-      }
-      state.screen = "complete";
-    } else {
+        if (state.trace < 50) unlockAchievement("trace_survivor", "Trace Survivor");
+        if (state.mode === "daily") {
+          const today = todayKey();
+          if (state.dailyLastDate === today) {
+            // already counted today
+        } else if (isConsecutiveDay(state.dailyLastDate, today)) {
+          state.dailyStreak += 1;
+          state.dailyLastDate = today;
+          } else {
+            state.dailyStreak = 1;
+            state.dailyLastDate = today;
+          }
+          if (state.dailyStreak >= 3) unlockAchievement("daily_streak_3", "Daily Streak x3");
+        }
+        updateBestScore();
+        logRun(true);
+        if (state.mode === "campaign") {
+          state.campaignProgress = Math.max(state.campaignProgress, state.selectedLevel + 1);
+          if (state.selectedLevel >= 14) unlockAchievement("campaign_halfway", "Halfway Through");
+          if (state.selectedLevel === 29) unlockAchievement("mainframe_access", "Mainframe Access");
+        }
+        if (state.mode === "quick") unlockAchievement("quick_clear", "Quick Clear");
+        saveProgression();
+        state.screen = "complete";
+      } else {
       state.statusMessage = "System locked.";
       updateBestScore();
       logRun(false);
+      saveProgression();
       state.screen = "gameover";
     }
     render();
@@ -735,27 +916,103 @@
     state.statusMessage = `${label} unlocked.`;
   }
 
+  function skipChallenge() {
+    if (!state.currentChallenge) return;
+    completeChallenge(true);
+  }
+
+  function revealHint(fromPowerup = false) {
+    const challenge = state.currentChallenge;
+    if (!challenge) return;
+    if (challenge.type === "order" && challenge.hintStages?.length) {
+      challenge.hintIndex = Math.min((challenge.hintIndex || 0) + 1, challenge.hintStages.length - 1);
+      state.statusMessage = challenge.hintStages[challenge.hintIndex];
+      if (fromPowerup) render();
+      return;
+    }
+    if (challenge.type === "memory") {
+      state.memoryVisible = true;
+      state.statusMessage = "Memory window opened.";
+      if (fromPowerup) render();
+      return;
+    }
+    if (challenge.hint) {
+      state.statusMessage = challenge.hint;
+      if (fromPowerup) render();
+      return;
+    }
+    if (challenge.options && challenge.options.length > 2) {
+      shaveWrongOptions();
+    }
+    if (fromPowerup) render();
+  }
+
+  function shaveWrongOptions() {
+      const challenge = state.currentChallenge;
+      if (!challenge || !challenge.options || challenge.options.length <= 2) return;
+      const buttons = Array.from(app.querySelectorAll(".cb-choice"));
+      const wrongButtons = buttons.filter((button) => button.dataset.value !== String(challenge.answer));
+      wrongButtons.slice(0, Math.max(1, wrongButtons.length - 2)).forEach((button) => {
+        button.disabled = true;
+        button.style.opacity = ".35";
+      });
+  }
+
+  function pickOrderLine(line) {
+    const challenge = state.currentChallenge;
+    if (!challenge || challenge.type !== "editor") return;
+    if (state.orderSelection.includes(line)) return;
+    state.orderSelection = state.orderSelection.concat(line);
+    render();
+  }
+
+  function clearOrderSelection() {
+    state.orderSelection = [];
+    render();
+  }
+
+  function submitOrderSelection() {
+    const challenge = state.currentChallenge;
+    if (!challenge || challenge.type !== "editor") return;
+    if (state.orderSelection.length !== (challenge.correctLines?.length || 0)) {
+      state.statusMessage = "Arrange every line before submitting.";
+      render();
+      return;
+    }
+    const attempt = state.orderSelection.join("\n");
+    const expected = (challenge.correctLines || []).join("\n");
+    if (attempt === expected) {
+      completeChallenge(false);
+      return;
+    }
+    state.orderSelection = [];
+    wrongAnswer();
+  }
+
   function usePowerup(key) {
     const powerup = state.powerups[key];
     if (!powerup || powerup.uses <= 0 || !state.currentChallenge) return;
     powerup.uses -= 1;
-    if (key === "overclock") {
-      state.currentChallenge.timeLimit += 5;
-      state.statusMessage = "+5 seconds applied.";
-    } else if (key === "assist") {
-      const challenge = state.currentChallenge;
-      if (challenge.options && challenge.options.length > 2) {
-        const correct = challenge.answer;
-        const wrong = challenge.options.find((opt) => opt !== correct);
-        challenge.options = [correct, wrong].filter(Boolean).slice(0, 2);
-      }
-      state.statusMessage = "Two wrong answers removed.";
-    } else if (key === "firewall") {
-      state.statusMessage = "Firewall armed.";
-    } else if (key === "ghost") {
+    if (key === "skip") {
+      skipChallenge();
+      state.statusMessage = "Challenge skipped.";
+    } else if (key === "freeze") {
       state.traceFreezeUntil = Date.now() + 5000;
-      state.statusMessage = "Trace frozen for 5 seconds.";
+      state.statusMessage = "Timer frozen for 5 seconds.";
+    } else if (key === "reveal") {
+      revealHint(true);
+      state.statusMessage = "Answer revealed.";
+      } else if (key === "shield") {
+        state.shieldArmed = true;
+        state.statusMessage = "Shield armed.";
+      } else if (key === "wipe") {
+        state.trace = 0;
+        state.statusMessage = "TRACE wiped.";
+      }
+    if (Object.values(state.powerups).every((item) => item.uses <= 0)) {
+      unlockAchievement("powerup_master", "Powerup Master");
     }
+    saveProgression();
     render();
   }
 
@@ -767,6 +1024,7 @@
     app.innerHTML = screens()[state.screen] ? screens()[state.screen]() : screens().menu();
     bindEvents();
     updateHud();
+    syncCanvas();
   }
 
   function screens() {
@@ -791,6 +1049,8 @@
   function renderMenu() {
     const best = Number(localStorage.getItem(storageKeys.bestScore) || 0);
     const runs = loadJSON(storageKeys.runLog, []);
+    const rank = rankForXp(state.totalXp);
+    const bestStars = Object.values(state.bestStars).reduce((sum, value) => sum + Number(value || 0), 0);
     const activeLabel = modeLabel(state.menuFocus);
     return `
       <section class="cb-screen">
@@ -813,38 +1073,49 @@
             ${menuButton("endless", "Endless", "Keep playing until you fail.")}
             ${menuButton("speedrun", "Speedrun", "Tight timers, high score pressure.")}
           </div>
-          <div class="cb-card">
-            <p class="cb-kicker">PROFILE SNAPSHOT</p>
-            <h3>Root user</h3>
-            <div class="cb-stats">
-              <div class="cb-stat"><span>Best score</span><strong>${best.toLocaleString()}</strong></div>
-              <div class="cb-stat"><span>Runs logged</span><strong>${runs.length}</strong></div>
-              <div class="cb-stat"><span>Achievements</span><strong>${state.achievements.size}</strong></div>
-            </div>
-            <div class="cb-actions" style="margin-top:16px">
-              <button class="cb-button primary" data-action="goto" data-screen="leaderboard">Leaderboards</button>
-              <button class="cb-button" data-action="goto" data-screen="profile">Profile</button>
-              <button class="cb-button" data-action="goto" data-screen="achievements">Achievements</button>
-            </div>
+            <div class="cb-card">
+              <p class="cb-kicker">PROFILE SNAPSHOT</p>
+              <h3>${rank.current.name}</h3>
+              <div class="cb-meter">
+                <div class="cb-meter-head"><span>XP</span><strong>${state.totalXp.toLocaleString()}</strong></div>
+                <div class="cb-bar"><span style="width:${Math.round(rank.progress * 100)}%"></span></div>
+                <p class="cb-small">${rank.next ? `${rank.current.name} → ${rank.next.name}` : "Max rank reached."}</p>
+              </div>
+              <div class="cb-stats">
+                <div class="cb-stat"><span>Best score</span><strong>${best.toLocaleString()}</strong></div>
+                <div class="cb-stat"><span>Runs logged</span><strong>${runs.length}</strong></div>
+                <div class="cb-stat"><span>Achievements</span><strong>${state.achievements.size}</strong></div>
+              </div>
+              <div class="cb-stats" style="margin-top:10px">
+                <div class="cb-stat"><span>Best stars</span><strong>${bestStars}</strong></div>
+                <div class="cb-stat"><span>Daily streak</span><strong>${state.dailyStreak}</strong></div>
+                <div class="cb-stat"><span>Rank</span><strong>${rank.current.name}</strong></div>
+              </div>
+              <div class="cb-actions" style="margin-top:16px">
+                <button class="cb-button primary" data-action="goto" data-screen="leaderboard">Leaderboards</button>
+                <button class="cb-button" data-action="goto" data-screen="profile">Profile</button>
+                <button class="cb-button" data-action="goto" data-screen="achievements">Achievements</button>
+              </div>
           </div>
         </div>
         <div class="cb-grid-2">
           <div class="cb-card">
-            <p class="cb-kicker">FEATURES</p>
-            <ul class="cb-list">
-              <li>30 level campaign with boss systems at 10, 20, and 30.</li>
-              <li>Code, editor, binary, bug hunt, logic, memory, and reaction challenges.</li>
-              <li>Run modifiers change the timer, trace pressure, and score reward.</li>
-              <li>Five lives, trace pressure, combo scoring, and powerups.</li>
-              <li>Local leaderboard, profile stats, and saved achievements.</li>
-            </ul>
+              <p class="cb-kicker">FEATURES</p>
+              <ul class="cb-list">
+                <li>30 level campaign with boss systems at 10, 20, and 30.</li>
+                <li>Eight challenge types: code, code order, password, binary, bug hunt, logic, memory, and reaction.</li>
+                <li>Run modifiers change the timer, trace pressure, and score reward.</li>
+                <li>Five lives, trace pressure, combo scoring, powerups, and daily streaks.</li>
+                <li>Eight ranks, ten achievements, saved best stars, and local progression.</li>
+                <li>Local leaderboard, profile stats, and saved achievements.</li>
+              </ul>
           </div>
           <div class="cb-card">
             <p class="cb-kicker">GAME FLOW</p>
             <div class="cb-progress">
               <div class="cb-message"><strong>CONNECT</strong><p>Choose a mode.</p></div>
               <div class="cb-message"><strong>START HACK</strong><p>Read the target and objective.</p></div>
-              <div class="cb-message"><strong>SOLVE</strong><p>Type, click, decode, or react. Modifiers can change the rules.</p></div>
+                <div class="cb-message"><strong>SOLVE</strong><p>Type, click, decode, order, or react. Modifiers can change the rules.</p></div>
               <div class="cb-message"><strong>BREACH</strong><p>Reach level complete before trace hits 100%.</p></div>
             </div>
           </div>
@@ -895,6 +1166,7 @@
     const isBoss = level.isBoss;
     const colorClass = isBoss ? "boss" : "active";
     const threat = isBoss ? "EXTREME" : level.security;
+    const rank = rankForXp(state.totalXp);
     return `
       <section class="cb-screen">
         <div class="cb-screen-head">
@@ -914,14 +1186,15 @@
           </div>
           <div class="cb-card">
             <p class="cb-kicker">RUN RULES</p>
-            <div class="cb-progress">
-              <div class="cb-message"><strong>LIVES</strong><p>${state.lives} available</p></div>
-              <div class="cb-message"><strong>TRACE LIMIT</strong><p>100%</p></div>
-              <div class="cb-message"><strong>MODIFIERS</strong><p>Run conditions can change per gate.</p></div>
-              <div class="cb-message"><strong>POWERUPS</strong><p>Overclock, AI Assist, Firewall, Ghost</p></div>
-              <div class="cb-message"><strong>MODE</strong><p>${modeLabel(state.mode)}</p></div>
+              <div class="cb-progress">
+                <div class="cb-message"><strong>LIVES</strong><p>${state.lives} available</p></div>
+                <div class="cb-message"><strong>TRACE LIMIT</strong><p>100%</p></div>
+                <div class="cb-message"><strong>MODIFIERS</strong><p>Run conditions can change per gate.</p></div>
+                <div class="cb-message"><strong>POWERUPS</strong><p>Skip, Freeze, Reveal, Shield, Trace Wipe</p></div>
+                <div class="cb-message"><strong>RANK</strong><p>${rank.current.name} // ${state.totalXp.toLocaleString()} XP</p></div>
+                <div class="cb-message"><strong>MODE</strong><p>${modeLabel(state.mode)}</p></div>
+              </div>
             </div>
-          </div>
         </div>
         <div class="cb-actions">
           <button class="cb-button" data-action="goto" data-screen="campaign">Back to map</button>
@@ -934,6 +1207,7 @@
   function renderPlay() {
     const challenge = state.currentChallenge || state.levelChallenges[state.currentChallengeIndex];
     const level = levelData(state.selectedLevel);
+    const rank = rankForXp(state.totalXp);
     const traceClass = state.trace >= 75 ? "trace-warning" : "";
     const prompt = renderPrompt(challenge);
     const answerArea = renderAnswerArea(challenge);
@@ -951,23 +1225,28 @@
           </div>
           <div class="cb-status ${state.trace >= 75 ? "boss" : "active"}">${modeLabel(state.mode)}</div>
         </div>
-        <div class="cb-hud">
-          <div class="cb-stat"><span>Score</span><strong>${state.score.toLocaleString()}</strong></div>
-          <div class="cb-stat"><span>Combo</span><strong>x${state.combo}</strong></div>
-          <div class="cb-stat"><span>Time</span><strong>${formatTime(state.challengeTimer)}</strong></div>
-          <div class="cb-stat trace"><span>Trace</span><strong>${pct(state.trace)}</strong></div>
-          <div class="cb-stat danger"><span>Lives</span><strong>${"♥".repeat(state.lives) || "0"}</strong></div>
-        </div>
-        ${warning ? `<div class="cb-boss-banner"><p class="cb-kicker">TRACE WARNING</p><h3>${warning.title}</h3><p>${warning.copy}</p></div>` : ""}
-        <div class="cb-play-shell">
-          <div class="cb-terminal">
-            <div class="cb-prompt">
-              <strong>${subtitle}</strong>
-              <p>${level.system} // ${level.security} security // ${level.isBoss ? "Boss phase" : "Operation live"}</p>
-            </div>
-            ${challenge.modifiers?.length ? `
-              <div class="cb-modifiers">
-                ${challenge.modifiers.map((modifier) => `
+          <div class="cb-hud">
+            <div class="cb-stat"><span>Score</span><strong>${state.score.toLocaleString()}</strong></div>
+            <div class="cb-stat"><span>Combo</span><strong>x${state.combo}</strong></div>
+            <div class="cb-stat"><span>Time</span><strong>${formatTime(state.challengeTimer)}</strong></div>
+            <div class="cb-stat trace"><span>Trace</span><strong>${pct(state.trace)}</strong></div>
+            <div class="cb-stat danger"><span>Lives</span><strong>${"♥".repeat(state.lives) || "0"}</strong></div>
+            <div class="cb-stat"><span>Rank</span><strong>${rank.current.name}</strong></div>
+          </div>
+          ${warning ? `<div class="cb-boss-banner"><p class="cb-kicker">TRACE WARNING</p><h3>${warning.title}</h3><p>${warning.copy}</p></div>` : ""}
+          <div class="cb-play-shell">
+            <div class="cb-terminal">
+              <div class="cb-prompt">
+                <strong>${subtitle}</strong>
+                <p>${level.system} // ${level.security} security // ${level.isBoss ? "Boss phase" : "Operation live"}</p>
+              </div>
+              <div class="cb-canvas-wrap">
+                <canvas id="cb-canvas" class="cb-canvas" width="1000" height="360" aria-hidden="true"></canvas>
+                <div class="cb-canvas-label">CRT / TRACE FEED</div>
+              </div>
+              ${challenge.modifiers?.length ? `
+                <div class="cb-modifiers">
+                  ${challenge.modifiers.map((modifier) => `
                   <div class="cb-modifier">
                     <strong>${modifier.label}</strong>
                     <span>${modifier.description}</span>
@@ -979,14 +1258,18 @@
             <div class="cb-answer-area">${answerArea}</div>
             <div class="cb-helpbar">Use the powerups below if you need a margin. Wrong answers raise trace and can cost lives.</div>
           </div>
-          <div class="cb-sidepanel">
-            <div class="cb-message">
-              <strong>System terminal</strong>
-              <p>${level.objectives?.[0] || "Maintain access and survive the trace."}</p>
-            </div>
-            <div class="cb-rail">
-              <label>TRACE</label>
-              <div class="cb-bar"><span style="width:${pct(state.trace)}"></span></div>
+            <div class="cb-sidepanel">
+              <div class="cb-message">
+                <strong>System terminal</strong>
+                <p>${level.objectives?.[0] || "Maintain access and survive the trace."}</p>
+              </div>
+              <div class="cb-message">
+                <strong>Progress</strong>
+                <p>${rank.current.name} // ${state.totalXp.toLocaleString()} XP // ${Object.values(state.bestStars).reduce((sum, value) => sum + Number(value || 0), 0)} stars</p>
+              </div>
+              <div class="cb-rail">
+                <label>TRACE</label>
+                <div class="cb-bar"><span style="width:${pct(state.trace)}"></span></div>
             </div>
             <div>
               <p class="cb-kicker">POWERUPS</p>
@@ -1004,8 +1287,15 @@
       const step = challenge.sequence[state.reactionPhase] || challenge.sequence[challenge.sequence.length - 1];
       return `SECURITY RESPONSE\n\n${step.text}\n\nChoose quickly before the trace rises.`;
     }
+    if (challenge.type === "editor") {
+      return `CODE ORDER\n\n${challenge.prompt}`;
+    }
     if (challenge.type === "memory") {
       return state.memoryVisible ? `MEMORISE THE KEY\n\n${challenge.prompt}` : `MEMORY LOCK\n\nKEY HIDDEN`;
+    }
+    if (challenge.type === "order") {
+      const hint = challenge.hintStages?.[Math.min(challenge.hintIndex || 0, challenge.hintStages.length - 1)] || "Use the password hints.";
+      return `PASSWORD LOCK\n\n${hint}`;
     }
     return challenge.prompt;
   }
@@ -1022,9 +1312,21 @@
     }
     if (challenge.type === "editor") {
       return `
-        <div class="cb-input-row">
-          <input class="cb-input" id="cb-answer" value="${escapeAttr(state.inputValue)}" placeholder="Complete the missing line exactly" autocomplete="off" />
-          <button class="cb-button primary" data-action="submit-input">Run code</button>
+        <div class="cb-order">
+          <div class="cb-order-pool">
+            ${(challenge.lines || []).map((line) => `
+              <button class="cb-choice cb-order-line" data-action="order-pick" data-line="${escapeAttr(line)}" ${state.orderSelection.includes(line) ? "disabled" : ""}>${escapeHtml(line)}</button>
+            `).join("")}
+          </div>
+          <div class="cb-order-picked">
+            ${state.orderSelection.length
+              ? state.orderSelection.map((line, index) => `<span class="cb-order-chip">${index + 1}. ${escapeHtml(line)}</span>`).join("")
+              : '<span class="cb-order-empty">Click the lines in order.</span>'}
+          </div>
+          <div class="cb-actions">
+            <button class="cb-button primary" data-action="order-submit">Submit order</button>
+            <button class="cb-button" data-action="order-clear">Clear</button>
+          </div>
         </div>
       `;
     }
@@ -1056,8 +1358,9 @@
   }
 
   function renderComplete() {
+    const rank = rankForXp(state.totalXp);
     return `
-      <section class="cb-screen">
+        <section class="cb-screen">
         <div class="cb-screen-head">
           <div>
             <p class="cb-kicker">LEVEL COMPLETE</p>
@@ -1066,24 +1369,27 @@
           </div>
           <div class="cb-status active">Approved</div>
         </div>
-        <div class="cb-final">
-          <div class="cb-stat"><span>Score</span><strong>${state.score.toLocaleString()}</strong></div>
-          <div class="cb-stat"><span>XP</span><strong>+${state.levelXp}</strong></div>
-          <div class="cb-stat"><span>Best combo</span><strong>x${state.bestCombo}</strong></div>
-          <div class="cb-stat"><span>Trace</span><strong>${pct(state.trace)}</strong></div>
-        </div>
-        <div class="cb-actions">
-          <button class="cb-button primary" data-action="next-level">${state.mode === "campaign" && state.selectedLevel < 29 ? "Next system" : "Play again"}</button>
-          <button class="cb-button" data-action="goto" data-screen="leaderboard">Leaderboards</button>
-          <button class="cb-button" data-action="goto" data-screen="menu">Main menu</button>
-        </div>
-      </section>
+          <div class="cb-final">
+            <div class="cb-stat"><span>Score</span><strong>${state.score.toLocaleString()}</strong></div>
+            <div class="cb-stat"><span>XP</span><strong>+${state.levelXp}</strong></div>
+            <div class="cb-stat"><span>Best combo</span><strong>x${state.bestCombo}</strong></div>
+            <div class="cb-stat"><span>Trace</span><strong>${pct(state.trace)}</strong></div>
+            <div class="cb-stat"><span>Rank</span><strong>${rank.current.name}</strong></div>
+          </div>
+          <div class="cb-actions">
+            <button class="cb-button primary" data-action="next-level">${state.mode === "campaign" && state.selectedLevel < 29 ? "Next system" : "Play again"}</button>
+            <button class="cb-button" data-action="goto" data-screen="leaderboard">Leaderboards</button>
+            <button class="cb-button" data-action="goto" data-screen="profile">Profile</button>
+            <button class="cb-button" data-action="goto" data-screen="menu">Main menu</button>
+          </div>
+        </section>
     `;
   }
 
   function renderGameOver() {
+    const rank = rankForXp(state.totalXp);
     return `
-      <section class="cb-screen">
+        <section class="cb-screen">
         <div class="cb-screen-head">
           <div>
             <p class="cb-kicker">GAME OVER</p>
@@ -1092,18 +1398,20 @@
           </div>
           <div class="cb-status boss">Locked</div>
         </div>
-        <div class="cb-final">
-          <div class="cb-stat"><span>Score</span><strong>${state.score.toLocaleString()}</strong></div>
-          <div class="cb-stat"><span>Level</span><strong>${String(state.selectedLevel + 1).padStart(2, "0")}</strong></div>
-          <div class="cb-stat"><span>Best combo</span><strong>x${state.bestCombo}</strong></div>
-          <div class="cb-stat"><span>Trace</span><strong>${pct(state.trace)}</strong></div>
-        </div>
-        <div class="cb-actions">
-          <button class="cb-button primary" data-action="restart">Try again</button>
-          <button class="cb-button" data-action="goto" data-screen="leaderboard">Submit score</button>
-          <button class="cb-button" data-action="goto" data-screen="menu">Main menu</button>
-        </div>
-      </section>
+          <div class="cb-final">
+            <div class="cb-stat"><span>Score</span><strong>${state.score.toLocaleString()}</strong></div>
+            <div class="cb-stat"><span>Level</span><strong>${String(state.selectedLevel + 1).padStart(2, "0")}</strong></div>
+            <div class="cb-stat"><span>Best combo</span><strong>x${state.bestCombo}</strong></div>
+            <div class="cb-stat"><span>Trace</span><strong>${pct(state.trace)}</strong></div>
+            <div class="cb-stat"><span>Rank</span><strong>${rank.current.name}</strong></div>
+          </div>
+          <div class="cb-actions">
+            <button class="cb-button primary" data-action="restart">Try again</button>
+            <button class="cb-button" data-action="goto" data-screen="leaderboard">Submit score</button>
+            <button class="cb-button" data-action="goto" data-screen="profile">Profile</button>
+            <button class="cb-button" data-action="goto" data-screen="menu">Main menu</button>
+          </div>
+        </section>
     `;
   }
 
@@ -1196,8 +1504,11 @@
     const best = Number(localStorage.getItem(storageKeys.bestScore) || 0);
     const runs = loadJSON(storageKeys.runLog, []);
     const systems = Math.min(30, state.campaignProgress || (best > 0 ? 1 : 0));
+    const rank = rankForXp(state.totalXp);
+    const bestStars = Object.values(state.bestStars).reduce((sum, value) => sum + Number(value || 0), 0);
+    const bestLevel = Math.max(0, ...Object.entries(state.bestStars).filter(([, value]) => Number(value) > 0).map(([key]) => Number(key)));
     return `
-      <section class="cb-screen">
+        <section class="cb-screen">
         <div class="cb-screen-head">
           <div>
             <p class="cb-kicker">PROFILE</p>
@@ -1206,27 +1517,37 @@
           </div>
           <div class="cb-status active">Online</div>
         </div>
-        <div class="cb-grid-2">
-          <div class="cb-card">
-            <p class="cb-kicker">STATS</p>
-            <div class="cb-stats">
-              <div class="cb-stat"><span>Level</span><strong>20</strong></div>
-              <div class="cb-stat"><span>Best score</span><strong>${best.toLocaleString()}</strong></div>
-              <div class="cb-stat"><span>Systems</span><strong>${systems}/30</strong></div>
+          <div class="cb-grid-2">
+            <div class="cb-card">
+              <p class="cb-kicker">STATS</p>
+              <div class="cb-meter" style="margin-bottom:14px">
+                <div class="cb-meter-head"><span>Rank</span><strong>${rank.current.name}</strong></div>
+                <div class="cb-bar"><span style="width:${Math.round(rank.progress * 100)}%"></span></div>
+                <p class="cb-small">${state.totalXp.toLocaleString()} XP total${rank.next ? ` // next: ${rank.next.name}` : ""}</p>
+              </div>
+              <div class="cb-stats">
+                <div class="cb-stat"><span>Rank</span><strong>${rank.current.name}</strong></div>
+                <div class="cb-stat"><span>Best score</span><strong>${best.toLocaleString()}</strong></div>
+                <div class="cb-stat"><span>Systems</span><strong>${systems}/30</strong></div>
+              </div>
+              <div class="cb-stats" style="margin-top:12px">
+                <div class="cb-stat"><span>Runs</span><strong>${runs.length}</strong></div>
+                <div class="cb-stat"><span>Achievements</span><strong>${state.achievements.size}</strong></div>
+                <div class="cb-stat"><span>Best combo</span><strong>x${state.bestCombo || 0}</strong></div>
+              </div>
+              <div class="cb-stats" style="margin-top:12px">
+                <div class="cb-stat"><span>Best stars</span><strong>${bestStars}</strong></div>
+                <div class="cb-stat"><span>Daily streak</span><strong>${state.dailyStreak}</strong></div>
+                <div class="cb-stat"><span>Top level</span><strong>${bestLevel ? String(bestLevel).padStart(2, "0") : "--"}</strong></div>
+              </div>
             </div>
-            <div class="cb-stats" style="margin-top:12px">
-              <div class="cb-stat"><span>Runs</span><strong>${runs.length}</strong></div>
-              <div class="cb-stat"><span>Achievements</span><strong>${state.achievements.size}</strong></div>
-              <div class="cb-stat"><span>Best combo</span><strong>x${state.bestCombo || 0}</strong></div>
-            </div>
-          </div>
-          <div class="cb-card">
-            <p class="cb-kicker">PERSISTENCE</p>
-            <p class="cb-small">Best score, last played timestamp, run history, and achievements are stored in localStorage for this browser session.</p>
-            <div class="cb-actions" style="margin-top:16px">
-              <button class="cb-button" data-action="goto" data-screen="leaderboard">Leaderboards</button>
-              <button class="cb-button" data-action="goto" data-screen="achievements">Achievements</button>
-              <button class="cb-button primary" data-action="goto" data-screen="campaign">Campaign map</button>
+            <div class="cb-card">
+              <p class="cb-kicker">PERSISTENCE</p>
+              <p class="cb-small">Best score, XP, rank, streak, last played timestamp, run history, and achievements are stored in localStorage for this browser session.</p>
+              <div class="cb-actions" style="margin-top:16px">
+                <button class="cb-button" data-action="goto" data-screen="leaderboard">Leaderboards</button>
+                <button class="cb-button" data-action="goto" data-screen="achievements">Achievements</button>
+                <button class="cb-button primary" data-action="goto" data-screen="campaign">Campaign map</button>
             </div>
           </div>
         </div>
@@ -1274,6 +1595,12 @@
       ["combo_10", "Combo x10", "Hold a 10-hit chain."],
       ["trace_survivor", "Trace Survivor", "Finish with trace below 50%."],
       ["campaign_clear", "Campaign Clear", "Reach system 30."],
+      ["campaign_halfway", "Halfway Through", "Clear system 15."],
+      ["quick_clear", "Quick Clear", "Clear a Quick Hack run."],
+      ["perfect_run", "Perfect Run", "Win a level with no mistakes."],
+      ["daily_streak_3", "Daily Streak x3", "Win three Daily Hacks across three days."],
+      ["powerup_master", "Powerup Master", "Use every powerup at least once."],
+      ["mainframe_access", "Mainframe Access", "Finish the full campaign."],
     ];
     return `
       <section class="cb-screen">
@@ -1332,24 +1659,26 @@
       root.dataset.bound = "true";
       root.addEventListener("click", onRootClick);
     }
+    if (root.dataset.keyBound !== "true") {
+      root.dataset.keyBound = "true";
+      root.addEventListener("keydown", onRootKeyDown);
+    }
     const input = root.querySelector("#cb-answer");
     if (input) {
       input.focus();
       input.addEventListener("input", (e) => {
         state.inputValue = e.target.value;
       });
-      input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          const challenge = state.currentChallenge;
-          if (challenge?.type === "memory" || challenge?.type === "editor") {
-            answerChallenge(input.value);
-          } else {
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
             answerChallenge(input.value);
           }
-        }
+        });
+      }
+      root.querySelectorAll("[data-action=\"order-pick\"]").forEach((el) => {
+        el.onclick = onAction;
       });
     }
-  }
 
   function onRootClick(event) {
     const target = event.target instanceof Element ? event.target : null;
@@ -1357,6 +1686,24 @@
     if (!actionTarget || !app.contains(actionTarget)) return;
     onAction({ currentTarget: actionTarget });
   }
+
+  function onRootKeyDown(event) {
+    if (state.screen !== "play") return;
+    if (event.key === "Enter") {
+      const challenge = state.currentChallenge;
+      if (challenge?.type === "editor") {
+        event.preventDefault();
+        submitOrderSelection();
+      } else if (event.target instanceof HTMLInputElement && event.target.id === "cb-answer") {
+        answerChallenge(event.target.value);
+      }
+    }
+    if (event.key === "Backspace" && state.currentChallenge?.type === "editor" && !(event.target instanceof HTMLInputElement)) {
+      state.orderSelection = state.orderSelection.slice(0, -1);
+      render();
+    }
+  }
+
   function onAction(event) {
     const target = event.currentTarget || event.target;
     if (!target || !target.dataset) return;
@@ -1411,14 +1758,26 @@
       answerChallenge(target.dataset.value);
       return;
     }
-    if (action === "powerup") {
-      usePowerup(target.dataset.key);
-      return;
-    }
-    if (action === "next-level") {
-      if (state.mode === "campaign" && state.selectedLevel < 29) {
-        state.campaignProgress = Math.max(state.campaignProgress, state.selectedLevel + 1);
-        startCampaign(state.selectedLevel + 1);
+      if (action === "powerup") {
+        usePowerup(target.dataset.key);
+        return;
+      }
+      if (action === "order-pick") {
+        pickOrderLine(target.dataset.line);
+        return;
+      }
+      if (action === "order-submit") {
+        submitOrderSelection();
+        return;
+      }
+      if (action === "order-clear") {
+        clearOrderSelection();
+        return;
+      }
+      if (action === "next-level") {
+        if (state.mode === "campaign" && state.selectedLevel < 29) {
+          state.campaignProgress = Math.max(state.campaignProgress, state.selectedLevel + 1);
+          startCampaign(state.selectedLevel + 1);
       } else {
         state.screen = "menu";
         render();
@@ -1458,6 +1817,90 @@
     if (connectionState) {
       connectionState.textContent = state.screen === "play" ? "IN RUN" : "LOCAL SESSION";
     }
+  }
+
+  function syncCanvas() {
+    if (canvasRaf) {
+      cancelAnimationFrame(canvasRaf);
+      canvasRaf = 0;
+    }
+    const canvas = app.querySelector("#cb-canvas");
+    if (!canvas || state.screen !== "play") {
+      state.canvasReady = false;
+      return;
+    }
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const draw = () => {
+      if (state.screen !== "play") {
+        canvasRaf = 0;
+        return;
+      }
+      drawCanvas(ctx, canvas);
+      canvasRaf = requestAnimationFrame(draw);
+    };
+    state.canvasReady = true;
+    draw();
+  }
+
+  function drawCanvas(ctx, canvas) {
+    const w = canvas.width;
+    const h = canvas.height;
+    const t = Date.now() / 1000;
+    ctx.clearRect(0, 0, w, h);
+    const bg = ctx.createLinearGradient(0, 0, w, h);
+    bg.addColorStop(0, "#10131a");
+    bg.addColorStop(0.5, "#0b0d12");
+    bg.addColorStop(1, "#111723");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.strokeStyle = "rgba(198,255,61,0.12)";
+    ctx.lineWidth = 1;
+    for (let x = 0; x < w; x += 28) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+      ctx.stroke();
+    }
+    for (let y = 0; y < h; y += 28) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+    }
+
+    const challenge = state.currentChallenge;
+    const seed = hashString(`${state.mode}-${state.selectedLevel}-${state.currentChallengeIndex}`);
+    const dots = challenge ? 14 : 10;
+    for (let i = 0; i < dots; i++) {
+      const x = (seededRand(seed, i * 11.3) * 0.92 + 0.04) * w;
+      const y = (seededRand(seed, i * 7.7 + 2) * 0.8 + 0.1) * h;
+      const size = 2 + seededRand(seed, i * 3.9 + 4) * 5;
+      const pulse = 0.35 + Math.sin(t * 2 + i) * 0.15;
+      ctx.fillStyle = i % 3 === 0 ? `rgba(198,255,61,${pulse})` : i % 3 === 1 ? `rgba(154,123,255,${pulse})` : `rgba(255,133,92,${pulse})`;
+      ctx.fillRect(x, y, size, size);
+    }
+
+    const targetText = challenge ? challenge.title : "CODEBREAKER";
+    ctx.fillStyle = "rgba(219, 219, 226, 0.95)";
+    ctx.font = "bold 28px Consolas, monospace";
+    ctx.fillText(targetText.toUpperCase(), 24, 52);
+    ctx.font = "12px Consolas, monospace";
+    ctx.fillStyle = "rgba(143,147,157,0.95)";
+    ctx.fillText(`TRACE ${pct(state.trace)}  //  LIVES ${state.lives}  //  XP ${state.totalXp}`, 24, 78);
+
+    const bars = Math.min(16, 4 + (challenge?.modifiers?.length || 0) + Math.floor((state.score % 5)));
+    for (let i = 0; i < bars; i++) {
+      const height = 14 + seededRand(seed, i * 2 + 7) * 98;
+      const x = 28 + i * 56;
+      const y = h - 28 - height;
+      ctx.fillStyle = i % 2 === 0 ? "rgba(198,255,61,0.7)" : "rgba(154,123,255,0.55)";
+      ctx.fillRect(x, y, 22, height);
+    }
+
+    ctx.strokeStyle = "rgba(198,255,61,0.24)";
+    ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
   }
 
   function traceWarningMessage(trace) {

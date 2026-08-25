@@ -56,13 +56,16 @@
 .cb-objective{background:#0f1318;border:1px solid var(--line);padding:14px}
 .cb-objective strong{display:block;font-size:13px;letter-spacing:-.03em;margin-bottom:6px}
 .cb-objective span{color:var(--muted);font-size:12px;line-height:1.55}
-.cb-hud{display:grid;gap:12px;grid-template-columns:repeat(5,minmax(0,1fr))}
+.cb-hud{display:grid;gap:12px;grid-template-columns:repeat(6,minmax(0,1fr))}
 .cb-hud .cb-stat strong{font-size:26px}
 .cb-hud .trace strong{color:var(--lime)}
 .cb-hud .danger strong{color:var(--orange)}
 .cb-play-shell{display:grid;gap:14px;grid-template-columns:1.1fr .9fr}
 .cb-terminal,.cb-sidepanel{background:#0f1318;border:1px solid var(--line);min-height:420px;padding:18px}
 .cb-terminal{display:grid;gap:16px;grid-template-rows:auto auto 1fr auto}
+.cb-canvas-wrap{position:relative;background:#07090d;border:1px solid rgba(198,255,61,.18);min-height:220px;overflow:hidden}
+.cb-canvas{display:block;height:auto;width:100%}
+.cb-canvas-label{bottom:12px;color:#8f939d;font-size:9px;letter-spacing:.18em;position:absolute;right:14px;text-transform:uppercase}
 .cb-terminal pre{background:transparent;color:#d9d9d2;font-family:Consolas,monospace;font-size:16px;line-height:1.6;margin:0;white-space:pre-wrap}
 .cb-prompt{background:rgba(198,255,61,.05);border:1px solid rgba(198,255,61,.22);padding:16px}
 .cb-prompt strong{display:block;font-size:22px;letter-spacing:-.04em;margin-bottom:8px}
@@ -75,6 +78,11 @@
 .cb-choices{display:grid;gap:10px;grid-template-columns:repeat(2,minmax(0,1fr))}
 .cb-choice{background:#171b22;border:1px solid var(--line);color:var(--text);cursor:pointer;font:inherit;font-size:13px;padding:14px 16px;text-align:left}
 .cb-choice:hover,.cb-choice:focus-visible{border-color:var(--lime);color:var(--lime)}
+.cb-order{display:grid;gap:12px}
+.cb-order-pool,.cb-order-picked{display:grid;gap:10px}
+.cb-order-picked{background:#11151b;border:1px solid var(--line);padding:14px}
+.cb-order-chip,.cb-order-empty{color:var(--muted);font-size:12px;line-height:1.6}
+.cb-order-chip{color:var(--text)}
 .cb-input-row{display:flex;flex-wrap:wrap;gap:10px}
 .cb-input,.cb-select{appearance:none;background:#171b22;border:1px solid var(--line);color:var(--text);font:inherit;font-size:13px;min-width:0;padding:14px 15px}
 .cb-input{flex:1 1 230px}
@@ -147,6 +155,7 @@
   .cb-mobile-note{display:block}
   .cb-choices .cb-choice{width:100%}
   .cb-button,.cb-tab,.cb-page-button,.cb-link{width:100%}
+  .cb-canvas-wrap{min-height:180px}
 }
 
 @media (prefers-reduced-motion: reduce){
