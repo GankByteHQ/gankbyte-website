@@ -5,7 +5,7 @@
   if (!document.querySelector('link[data-site-shell-style]')) {
   const style = document.createElement("link");
     style.rel = "stylesheet";
-    style.href = "site-shell.css?v=7";
+    style.href = "/site-shell.css?v=7";
     style.dataset.siteShellStyle = "true";
     document.head.append(style);
   }
@@ -168,13 +168,13 @@
   if (!document.querySelector('link[data-site-auth-style]')) {
     const style = document.createElement("link");
     style.rel = "stylesheet";
-    style.href = "site-auth.css?v=5";
+    style.href = "/site-auth.css?v=5";
     style.dataset.siteAuthStyle = "true";
     document.head.append(style);
   }
   if (!document.querySelector('script[data-site-auth]')) {
     const script = document.createElement("script");
-    script.src = "site-auth.js?v=6";
+    script.src = "/site-auth.js?v=6";
     script.dataset.siteAuth = "true";
     document.body.append(script);
   }
