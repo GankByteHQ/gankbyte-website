@@ -48,6 +48,49 @@
     ghost: { label: "Ghost", desc: "Freeze TRACE for 5 seconds", uses: 1 },
   };
 
+  const challengeModifierDefs = [
+    {
+      id: "tight-window",
+      label: "Tight window",
+      description: "Timer reduced by 15%.",
+      apply(challenge) {
+        challenge.timeLimit = Math.max(4, Math.round(challenge.timeLimit * 0.85 * 10) / 10);
+      }
+    },
+    {
+      id: "trace-spike",
+      label: "Trace spike",
+      description: "Wrong answers add extra TRACE.",
+      apply(challenge) {
+        challenge.tracePenalty = challenge.boss ? 18 : 16;
+      }
+    },
+    {
+      id: "clean-bonus",
+      label: "Clean bonus",
+      description: "Flawless clears pay 20% more.",
+      apply(challenge) {
+        challenge.cleanBonus = 0.2;
+      }
+    },
+    {
+      id: "overclocked",
+      label: "Overclocked",
+      description: "Fast clears earn 15% more score.",
+      apply(challenge) {
+        challenge.fastBonus = 0.15;
+      }
+    },
+    {
+      id: "signal-noise",
+      label: "Signal noise",
+      description: "The clue is delayed at the start.",
+      apply(challenge) {
+        challenge.clueDelayMs = 1500;
+      }
+    }
+  ];
+
   const state = {
     screen: "menu",
     menuFocus: "campaign",
@@ -322,6 +365,7 @@
     state.memoryVisible = challenge.type === "memory";
     state.reactionPhase = 0;
     state.reactionHistory = [];
+    challenge.clueLockedUntil = challenge.clueDelayMs ? Date.now() + challenge.clueDelayMs : 0;
     state.statusMessage = challenge.subtitle;
     render();
     if (challenge.type === "memory") {
@@ -339,7 +383,7 @@
     if (type === "code") {
       const operators = ["=", "===", "!=", "<=", ">=", "<", ">"];
       const correctIndex = rng(1) % operators.length;
-      return {
+      return applyChallengeModifiers({
         type,
         title: boss ? "BOSS: Restore access logic" : "Repair access script",
         subtitle: "Select the operator that keeps the program valid.",
@@ -349,7 +393,7 @@
         timeLimit: boss ? 10 : 8.5 - Math.min(2, levelIndex * 0.03),
         points: boss ? 800 : 500 + levelIndex * 18,
         xp: boss ? 60 : 25,
-      };
+      }, seed, levelIndex, boss, mode);
     }
     if (type === "editor") {
       const answers = ["return true;", 'grantAccess();', 'access = 1;', 'console.log("OK");'];
@@ -361,7 +405,7 @@
         "  }",
         "}",
       ].join("\n");
-      return {
+      return applyChallengeModifiers({
         type,
         title: boss ? "BOSS: Patch the source" : "Repair source code",
         subtitle: "Complete the missing line exactly.",
@@ -370,7 +414,7 @@
         timeLimit: boss ? 12 : 10 - Math.min(3, levelIndex * 0.03),
         points: boss ? 900 : 650 + levelIndex * 20,
         xp: boss ? 70 : 30,
-      };
+      }, seed, levelIndex, boss, mode);
     }
     if (type === "binary") {
       const words = ["GANK", "BYTE", "CODE", "ROOT", "SYNC", "LOCK"];
@@ -380,7 +424,7 @@
         .map((ch) => ch.charCodeAt(0).toString(2).padStart(8, "0"))
         .join(" ");
       const options = shuffle([word, "BETA", "TRACE", "NODE"], seed);
-      return {
+      return applyChallengeModifiers({
         type,
         title: boss ? "BOSS: Decode the intercept" : "Data intercept",
         subtitle: "Decode the binary message.",
@@ -390,7 +434,7 @@
         timeLimit: boss ? 9 : 7,
         points: boss ? 850 : 550 + levelIndex * 16,
         xp: boss ? 65 : 28,
-      };
+      }, seed, levelIndex, boss, mode);
     }
     if (type === "bughunt") {
       const wrongLine = 1 + (rng(4) % 4);
@@ -402,7 +446,7 @@
         '05   console.log("ACCESS");',
         "06 }",
       ];
-      return {
+      return applyChallengeModifiers({
         type,
         title: boss ? "BOSS: Hunt the fault" : "Debugging required",
         subtitle: "Choose the line that breaks the logic.",
@@ -412,7 +456,7 @@
         timeLimit: boss ? 10 : 8,
         points: boss ? 900 : 600 + levelIndex * 18,
         xp: boss ? 70 : 30,
-      };
+      }, seed, levelIndex, boss, mode);
     }
     if (type === "logic") {
       const a = 4 + (rng(5) % 4);
@@ -420,7 +464,7 @@
       const c = a + b;
       const d = c + 2;
       const answer = String(d);
-      return {
+      return applyChallengeModifiers({
         type,
         title: boss ? "BOSS: System logic" : "Security lock",
         subtitle: "Solve the logic step.",
@@ -430,12 +474,12 @@
         timeLimit: boss ? 9 : 7.5,
         points: boss ? 800 : 575 + levelIndex * 18,
         xp: boss ? 65 : 28,
-      };
+      }, seed, levelIndex, boss, mode);
     }
     if (type === "memory") {
       const words = ["G7-X2-BYTE", "Q4-LOCK", "R9-TRACE", "N1-GANK", "M8-ROOT"];
       const answer = words[rng(7) % words.length];
-      return {
+      return applyChallengeModifiers({
         type,
         title: boss ? "BOSS: Memorise the key" : "Memorise key",
         subtitle: "Memorise the key, then type it back.",
@@ -444,13 +488,13 @@
         timeLimit: boss ? 12 : 9,
         points: boss ? 850 : 550 + levelIndex * 18,
         xp: boss ? 60 : 30,
-      };
+      }, seed, levelIndex, boss, mode);
     }
     const colors = ["RED", "BLUE", "GREEN", "PURPLE"];
     const first = colors[rng(8) % colors.length];
     const second = colors[(rng(9) + 1) % colors.length];
     const third = colors[(rng(10) + 2) % colors.length];
-    return {
+    return applyChallengeModifiers({
       type: "reaction",
       title: boss ? "BOSS: Security response" : "Security response",
       subtitle: "React to changing instructions.",
@@ -471,7 +515,7 @@
       timeLimit: boss ? 6 : 5.5,
       points: boss ? 750 : 500 + levelIndex * 15,
       xp: boss ? 55 : 25,
-    };
+    }, seed, levelIndex, boss, mode);
   }
 
   function shuffle(items, seed) {
@@ -481,6 +525,39 @@
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
     return arr;
+  }
+
+  function applyChallengeModifiers(challenge, seed, levelIndex, boss, mode) {
+    const pool = challengeModifierDefs.filter((modifier) => {
+      if (boss) return modifier.id !== "overclocked";
+      if (mode === "endless") return modifier.id !== "signal-noise";
+      return true;
+    });
+    const desiredCount = boss ? 2 : levelIndex >= 18 ? 2 : 1;
+    const picked = [];
+    let offset = 1;
+    while (picked.length < desiredCount && pool.length) {
+      const index = Math.floor(seededRand(seed ^ (levelIndex + 1), offset) * pool.length);
+      const modifier = pool[index];
+      if (modifier && !picked.includes(modifier)) {
+        picked.push(modifier);
+      }
+      offset += 1;
+      if (offset > 8) break;
+    }
+    challenge.modifiers = picked;
+    challenge.tracePenalty = 12;
+    challenge.cleanBonus = 0;
+    challenge.fastBonus = 0;
+    challenge.clueDelayMs = 0;
+    picked.forEach((modifier) => modifier.apply(challenge));
+    if (mode === "speedrun") {
+      challenge.fastBonus = Math.max(challenge.fastBonus, 0.1);
+    }
+    if (mode === "daily") {
+      challenge.cleanBonus = Math.max(challenge.cleanBonus, 0.1);
+    }
+    return challenge;
   }
 
   function currentChallengeType() {
@@ -535,7 +612,9 @@
     const challenge = state.currentChallenge;
     const elapsed = (Date.now() - state.challengeStart) / 1000;
     const bonus = Math.max(0, Math.round((challenge.timeLimit - elapsed) * 35));
-    const earned = challenge.points + bonus + state.combo * 10;
+    const fastBonus = challenge.fastBonus ? Math.round((challenge.points + bonus) * challenge.fastBonus) : 0;
+    const cleanBonus = challenge.cleanBonus && state.currentLevelMistakes === 0 ? Math.round((challenge.points + bonus) * challenge.cleanBonus) : 0;
+    const earned = challenge.points + bonus + state.combo * 10 + fastBonus + cleanBonus;
     state.score += earned;
     state.levelScore += earned;
     state.levelXp += challenge.xp;
@@ -555,7 +634,8 @@
   function wrongAnswer() {
     const block = state.powerups.firewall.uses > 0;
     const frozen = Date.now() < state.traceFreezeUntil;
-    const traceGain = frozen ? 0 : block ? 4 : 12;
+    const challenge = state.currentChallenge;
+    const traceGain = frozen ? 0 : block ? 4 : (challenge?.tracePenalty || 12);
     if (block) {
       state.powerups.firewall.uses -= 1;
       state.statusMessage = frozen ? "Trace frozen. Firewall held the line." : "Firewall blocked that mistake.";
@@ -718,7 +798,7 @@
           <div>
             <p class="cb-kicker">MAIN MENU</p>
             <h2>Choose your breach.</h2>
-            <p class="cb-note">Campaign is the default. Daily Hack is fixed seed. Quick Hack, Endless, and Speedrun are alternate modes on the same game.</p>
+            <p class="cb-note">Campaign is the default. Daily Hack is fixed seed. Quick Hack, Endless, and Speedrun are alternate breach styles with their own pressure.</p>
           </div>
           <div class="cb-message">
             <strong>Current mode</strong>
@@ -754,6 +834,7 @@
             <ul class="cb-list">
               <li>30 level campaign with boss systems at 10, 20, and 30.</li>
               <li>Code, editor, binary, bug hunt, logic, memory, and reaction challenges.</li>
+              <li>Run modifiers change the timer, trace pressure, and score reward.</li>
               <li>Five lives, trace pressure, combo scoring, and powerups.</li>
               <li>Local leaderboard, profile stats, and saved achievements.</li>
             </ul>
@@ -763,7 +844,7 @@
             <div class="cb-progress">
               <div class="cb-message"><strong>CONNECT</strong><p>Choose a mode.</p></div>
               <div class="cb-message"><strong>START HACK</strong><p>Read the target and objective.</p></div>
-              <div class="cb-message"><strong>SOLVE</strong><p>Type, click, decode, or react.</p></div>
+              <div class="cb-message"><strong>SOLVE</strong><p>Type, click, decode, or react. Modifiers can change the rules.</p></div>
               <div class="cb-message"><strong>BREACH</strong><p>Reach level complete before trace hits 100%.</p></div>
             </div>
           </div>
@@ -836,6 +917,7 @@
             <div class="cb-progress">
               <div class="cb-message"><strong>LIVES</strong><p>${state.lives} available</p></div>
               <div class="cb-message"><strong>TRACE LIMIT</strong><p>100%</p></div>
+              <div class="cb-message"><strong>MODIFIERS</strong><p>Run conditions can change per gate.</p></div>
               <div class="cb-message"><strong>POWERUPS</strong><p>Overclock, AI Assist, Firewall, Ghost</p></div>
               <div class="cb-message"><strong>MODE</strong><p>${modeLabel(state.mode)}</p></div>
             </div>
@@ -856,6 +938,9 @@
     const prompt = renderPrompt(challenge);
     const answerArea = renderAnswerArea(challenge);
     const warning = traceWarningMessage(state.trace);
+    const subtitle = challenge?.clueLockedUntil && Date.now() < challenge.clueLockedUntil
+      ? "Signal noise is still clearing. The clue will resolve shortly."
+      : challenge?.subtitle;
     return `
       <section class="cb-screen ${traceClass}">
         <div class="cb-screen-head">
@@ -877,9 +962,19 @@
         <div class="cb-play-shell">
           <div class="cb-terminal">
             <div class="cb-prompt">
-              <strong>${challenge.subtitle}</strong>
+              <strong>${subtitle}</strong>
               <p>${level.system} // ${level.security} security // ${level.isBoss ? "Boss phase" : "Operation live"}</p>
             </div>
+            ${challenge.modifiers?.length ? `
+              <div class="cb-modifiers">
+                ${challenge.modifiers.map((modifier) => `
+                  <div class="cb-modifier">
+                    <strong>${modifier.label}</strong>
+                    <span>${modifier.description}</span>
+                  </div>
+                `).join("")}
+              </div>
+            ` : ""}
             <pre>${prompt}</pre>
             <div class="cb-answer-area">${answerArea}</div>
             <div class="cb-helpbar">Use the powerups below if you need a margin. Wrong answers raise trace and can cost lives.</div>
@@ -967,7 +1062,7 @@
           <div>
             <p class="cb-kicker">LEVEL COMPLETE</p>
             <h2>System breached.</h2>
-            <p class="cb-note">You cleared ${modeLabel(state.mode)} level ${state.selectedLevel + 1}.</p>
+            <p class="cb-note">You cleared ${modeLabel(state.mode)} level ${state.selectedLevel + 1}. Run modifiers can change the score path every time.</p>
           </div>
           <div class="cb-status active">Approved</div>
         </div>
@@ -993,7 +1088,7 @@
           <div>
             <p class="cb-kicker">GAME OVER</p>
             <h2>System locked.</h2>
-            <p class="cb-note">Trace hit 100% or all lives were lost.</p>
+            <p class="cb-note">Trace hit 100% or all lives were lost. The next run can roll different modifiers.</p>
           </div>
           <div class="cb-status boss">Locked</div>
         </div>

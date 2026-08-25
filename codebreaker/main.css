@@ -67,6 +67,10 @@
 .cb-prompt{background:rgba(198,255,61,.05);border:1px solid rgba(198,255,61,.22);padding:16px}
 .cb-prompt strong{display:block;font-size:22px;letter-spacing:-.04em;margin-bottom:8px}
 .cb-prompt p{color:var(--muted);font-size:13px;line-height:1.7;margin:0}
+.cb-modifiers{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.cb-modifier{background:#11151b;border:1px solid rgba(198,255,61,.16);display:grid;gap:4px;padding:12px 14px}
+.cb-modifier strong{font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.cb-modifier span{color:var(--muted);font-size:12px;line-height:1.5}
 .cb-answer-area{display:grid;gap:12px}
 .cb-choices{display:grid;gap:10px;grid-template-columns:repeat(2,minmax(0,1fr))}
 .cb-choice{background:#171b22;border:1px solid var(--line);color:var(--text);cursor:pointer;font:inherit;font-size:13px;padding:14px 16px;text-align:left}
