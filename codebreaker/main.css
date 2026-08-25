@@ -1,9 +1,10 @@
 .codebreaker-page{padding-bottom:56px;padding-top:42px}
-.codebreaker-hero{align-items:start;border-bottom:1px solid var(--line);display:grid;gap:12px;grid-template-columns:1fr;padding-bottom:18px}
+.codebreaker-hero{align-items:start;border-bottom:1px solid var(--line);display:grid;gap:12px;grid-template-columns:1fr;padding-bottom:12px;padding-top:24px}
 .codebreaker-hero h1{font-size:clamp(42px,5.9vw,78px);letter-spacing:-.08em;line-height:.92;margin-bottom:12px;max-width:720px}
 .codebreaker-hero h1 span{color:var(--lime)}
 .codebreaker-hero .hero-lede{color:var(--muted);font-size:14px;line-height:1.6;max-width:520px}
 .codebreaker-app{padding-top:18px}
+.codebreaker-shell{padding-bottom:72px;padding-top:44px}
 .cb-nav{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
 .cb-chip{border:1px solid var(--line);color:var(--muted);cursor:pointer;font-size:10px;letter-spacing:.12em;padding:10px 12px;text-transform:uppercase;transition:border-color .2s ease,color .2s ease,transform .2s ease}
 .cb-chip:hover,.cb-chip.active{border-color:var(--lime);color:var(--lime);transform:translateY(-1px)}
@@ -143,7 +144,9 @@
 }
 @media (max-width: 800px){
   .codebreaker-page{padding-top:34px}
+  .codebreaker-hero{padding-top:18px}
   .codebreaker-hero h1{font-size:clamp(36px,11vw,58px)}
+  .codebreaker-shell{padding-top:30px}
   .cb-grid-4,.cb-grid-3,.cb-grid-2,.cb-stats,.cb-hud,.cb-map-grid,.cb-choices{grid-template-columns:1fr}
   .cb-screen{padding:14px}
   .cb-terminal,.cb-sidepanel{min-height:0}
