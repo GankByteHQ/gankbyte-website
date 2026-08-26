@@ -6,21 +6,6 @@
   const date = (value) => value ? new Date(value).toLocaleDateString(undefined, { day: "2-digit", month: "short" }) : "-";
   const recent = $("hub-recent-results");
   const status = $("hub-status");
-  function ensureByteSnatchCards() {
-    const gameGrid = document.querySelector(".content-grid");
-    if (gameGrid && !gameGrid.querySelector('[data-arena-game="byte-snatch"]')) {
-      gameGrid.insertAdjacentHTML("beforeend", '<article class="content-card" data-arena-game="byte-snatch"><img class="game-thumb" src="byte-snatch-thumb.svg" alt="Byte Snatch risk and reward arena" /><span class="status-badge">Playable now</span><h3>Byte Snatch</h3><p>Collect Bytes, build risk, bank your score, and survive the glitches.</p><a class="button button-primary" href="byte-snatch.html">Play Byte Snatch <span>&nearr;</span></a><a class="text-link" href="byte-snatch.html#leaderboard">View leaderboard <span>&nearr;</span></a></article>');
-    }
-    if (gameGrid && !gameGrid.querySelector('[data-arena-game="codebreaker"]')) {
-      gameGrid.insertAdjacentHTML("beforeend", '<article class="content-card" data-arena-game="codebreaker"><img class="game-thumb" src="codebreaker-thumb.svg" alt="Codebreaker neon terminal and cracked access panel" /><span class="status-badge">Playable now</span><h3>Codebreaker</h3><p>Break codes, manage trace, use power-ups, and breach 30 escalating systems.</p><a class="button button-primary" href="codebreaker/">Play Codebreaker <span>&nearr;</span></a><a class="text-link" href="codebreaker/#leaderboard">View leaderboard <span>&nearr;</span></a></article>');
-    }
-    const snapshot = document.querySelector(".arena-hub-snapshot");
-    if (snapshot && !$("hub-snatch-best")) snapshot.insertAdjacentHTML("beforeend", '<div class="content-card"><span class="status-badge">Byte Snatch</span><h3 id="hub-snatch-best">Loading best</h3><p id="hub-snatch-detail">Global best score</p></div>');
-  }
-  ensureByteSnatchCards();
-  document.querySelectorAll(".section-intro, .perk-list li").forEach((node) => {
-    node.textContent = node.textContent.replace("Three games are live", "Five games are live").replace("all three games", "all five games");
-  });
   const escape = (value) => String(value || "").replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[character]));
   if (!config.supabaseUrl || !config.supabasePublishableKey || !window.supabase) {
     $("hub-byte-best").textContent = "Unavailable";
@@ -44,7 +29,7 @@
       user ? client.from("xp_leaderboard").select("xp_total").eq("id", user.id).maybeSingle() : Promise.resolve({ data: null })
     ]);
     if (byte.error || glitch.error || symbol.error || snatch.error || codebreaker.error || (user && xp.error)) {
-      status.textContent = "Some Arena data is temporarily unavailable. You can still play both Arena games.";
+      status.textContent = "Some Arena data is temporarily unavailable. You can still play any of the five games.";
     }
     $("hub-byte-best").textContent = byte.data?.[0] ? format(byte.data[0].best_score) : "No runs yet";
     $("hub-byte-detail").textContent = byte.data?.[0] ? `Top score by ${byte.data[0].display_name || "GankByte Player"}` : "Be the first on the board";
