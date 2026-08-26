@@ -2,8 +2,10 @@
   const footer = document.querySelector(".footer-bottom");
   if (!footer) return;
 
-  if (!document.querySelector('link[data-site-shell-style]')) {
-  const style = document.createElement("link");
+  const existingSiteShell = document.querySelector('link[data-site-shell-style]');
+  if (existingSiteShell) existingSiteShell.href = "/site-shell.css?v=8";
+  if (!existingSiteShell) {
+    const style = document.createElement("link");
     style.rel = "stylesheet";
     style.href = "/site-shell.css?v=8";
     style.dataset.siteShellStyle = "true";
@@ -209,5 +211,16 @@
     homeGames.insertAdjacentHTML("beforeend", '<article class="live-game-card" data-home-game="byte-snatch"><img class="game-thumb" src="byte-snatch-thumb.svg" alt="Byte Snatch risk and reward arena" /><div class="live-game-card-body"><span class="status-badge">Live // Risk runs</span><h3>Byte Snatch</h3><p>Collect Bytes, build your multiplier, bank the score, and survive the glitches before they gank you.</p><div class="hero-actions"><a class="button button-primary" href="byte-snatch.html">Play Byte Snatch <span>&nearr;</span></a><a class="text-link" href="byte-snatch.html#leaderboard">Leaderboard <span>&nearr;</span></a></div></div></article>');
     const heading = document.querySelector(".live-games-section .section-heading h2");
     if (heading) heading.innerHTML = "Five games.<br><em>Start here.</em>";
+  }
+
+  const homeHero = document.querySelector("main > .hero");
+  const homeLiveSection = document.querySelector(".live-games-section");
+  if (homeHero && homeLiveSection) {
+    if (!document.querySelector("[data-home-paths]")) {
+      homeHero.insertAdjacentHTML("afterend", '<section class="home-paths shell" data-home-paths><div class="home-paths-heading"><p class="eyebrow">START HERE</p><h2>Play something.<br><em>Make something.</em></h2><p>Choose the part of GankByte that fits you today. You can switch lanes whenever you like.</p></div><div class="home-path-grid"><a class="home-path-card home-path-play" href="games.html"><span class="home-path-label">01 // PLAY</span><h3>Play</h3><p>Jump into short, replayable games and chase a better run.</p><span class="text-link">Open the games <span>&nearr;</span></span></a><a class="home-path-card home-path-build" href="developers.html"><span class="home-path-label">02 // BUILD</span><h3>Build</h3><p>Explore tools, public projects, and practical developer resources.</p><span class="text-link">Explore developer work <span>&nearr;</span></span></a><div class="home-path-card home-path-join"><span class="home-path-label">03 // JOIN</span><h3>Join</h3><p>Meet the community, share ideas, and help shape what gets built next.</p><div class="home-path-actions"><a class="button button-primary" href="https://discord.gg/CpWjZkjtjJ" target="_blank" rel="noreferrer">Join Discord <span>&nearr;</span></a><a class="text-link" href="https://discord.gg/CpWjZkjtjJ" target="_blank" rel="noreferrer">Test and give feedback <span>&nearr;</span></a></div></div></div></section>');
+    }
+    if (!document.querySelector("[data-home-featured]")) {
+      homeLiveSection.insertAdjacentHTML("beforebegin", '<section class="home-featured shell" data-home-featured><div class="home-featured-copy"><p class="eyebrow">FEATURED GAME // LIVE NOW</p><h2>Start with<br><em>Byte Rush.</em></h2><p>Best for quick runs, score chasing, and learning the GankByte Arena. Collect GankBytes, build your combo, grab power-ups, and survive the glitches for 60 seconds.</p><div class="hero-actions"><a class="button button-primary" href="arena.html?v=19">Play Byte Rush <span>&nearr;</span></a><a class="text-link" href="arena.html?v=19#leaderboard">View the leaderboard <span>&nearr;</span></a></div></div><div class="home-featured-art"><img src="byte-rush-thumb.svg" alt="Byte Rush neon arena with GankByte pickups and purple glitches"><span class="home-featured-note">BEST FOR<br><strong>FAST REPEATABLE RUNS</strong></span></div></section>');
+    }
   }
 })();
