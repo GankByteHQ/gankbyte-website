@@ -200,6 +200,11 @@
   }
 
   const homeGames = document.querySelector(".live-games-section .live-games-grid");
+  if (homeGames && /^(?:index\.html)?$/.test(window.location.pathname.split("/").pop())) {
+    const codebreakerCard = [...homeGames.querySelectorAll(".live-game-card")].find((card) => card.querySelector("h3")?.textContent.trim() === "Codebreaker");
+    codebreakerCard?.querySelector("ul")?.remove();
+    codebreakerCard?.querySelector('[data-game-stat="codebreaker"]')?.remove();
+  }
   if (homeGames && !homeGames.querySelector('[data-home-game="byte-snatch"]')) {
     homeGames.insertAdjacentHTML("beforeend", '<article class="live-game-card" data-home-game="byte-snatch"><img class="game-thumb" src="byte-snatch-thumb.svg" alt="Byte Snatch risk and reward arena" /><div class="live-game-card-body"><span class="status-badge">Live // Risk runs</span><h3>Byte Snatch</h3><p>Collect Bytes, build your multiplier, bank the score, and survive the glitches before they gank you.</p><div class="hero-actions"><a class="button button-primary" href="byte-snatch.html">Play Byte Snatch <span>&nearr;</span></a><a class="text-link" href="byte-snatch.html#leaderboard">Leaderboard <span>&nearr;</span></a></div></div></article>');
     const heading = document.querySelector(".live-games-section .section-heading h2");

@@ -157,12 +157,17 @@
     achievements: new Set(loadJSON(storageKeys.achievements, [])),
     runLog: loadJSON(storageKeys.runLog, []),
     canvasReady: false,
+    onlineRows: [],
+    onlineLoaded: false,
   };
 
   const app = document.getElementById("codebreaker-app");
   let canvasRaf = 0;
+  let onlineClient = null;
+  let onlineUser = null;
 
   boot();
+  initOnline();
 
   function boot() {
     registerBaseAchievements();
@@ -924,6 +929,57 @@
     runs.unshift(entry);
     saveJSON(storageKeys.runLog, runs.slice(0, 100));
     state.runLog = runs.slice(0, 100);
+    submitOnlineRun(entry);
+  }
+
+  async function initOnline() {
+    const config = window.GANKBYTE_XP_CONFIG || {};
+    if (!window.supabase || !config.supabaseUrl || !config.supabasePublishableKey) return;
+    onlineClient = window.supabase.createClient(config.supabaseUrl, config.supabasePublishableKey);
+    onlineClient.auth.onAuthStateChange((event, session) => {
+      onlineUser = session?.user || null;
+      if (state.screen === "leaderboard") loadOnlineLeaderboard();
+    });
+    const session = await onlineClient.auth.getSession();
+    onlineUser = session.data?.session?.user || null;
+    await loadOnlineLeaderboard();
+  }
+
+  async function submitOnlineRun(entry) {
+    if (!onlineClient || !onlineUser || !entry.won || !entry.score) return;
+    const result = await onlineClient.from("codebreaker_scores").insert({
+      user_id: onlineUser.id,
+      score: entry.score,
+      mode: entry.mode,
+      level: entry.level,
+      combo: entry.combo,
+      trace: entry.trace,
+      lives: entry.lives,
+      run_seconds: Math.max(0, Math.round((Date.now() - state.runStart) / 1000)),
+      status: "approved"
+    });
+    if (!result.error) {
+      state.onlineLoaded = false;
+      if (state.screen === "leaderboard") await loadOnlineLeaderboard();
+    }
+  }
+
+  async function loadOnlineLeaderboard() {
+    if (!onlineClient) return;
+    const result = await onlineClient.from("codebreaker_leaderboard").select("display_name,score,mode,level,combo,trace,lives,latest_run").order("score", { ascending: false }).limit(100);
+    if (result.error) return;
+    state.onlineRows = (result.data || []).map((row) => ({
+      player: row.display_name || "GankByte Player",
+      score: Number(row.score || 0),
+      mode: row.mode || "campaign",
+      level: Number(row.level || 0),
+      combo: Number(row.combo || 0),
+      trace: Number(row.trace || 0),
+      lives: Number(row.lives || 0),
+      ts: Date.parse(row.latest_run) || Date.now()
+    }));
+    state.onlineLoaded = true;
+    if (state.screen === "leaderboard") render();
   }
 
   function unlockAchievement(id, label) {
@@ -1433,6 +1489,15 @@
   }
 
   function leaderboardRows(tab, page = 0) {
+    if (state.onlineLoaded) {
+      const now = Date.now();
+      const filteredOnline = state.onlineRows.filter((run) => {
+        if (tab === "daily") return now - run.ts < 86400000;
+        if (tab === "weekly") return now - run.ts < 604800000;
+        return true;
+      });
+      return filteredOnline.slice(page * 10, page * 10 + 10);
+    }
     const runs = loadJSON(storageKeys.runLog, []).slice();
     runs.sort((a, b) => b.score - a.score || b.combo - a.combo || a.trace - b.trace);
     const now = Date.now();
@@ -1457,6 +1522,14 @@
   }
 
   function leaderboardCount(tab) {
+    if (state.onlineLoaded) {
+      const now = Date.now();
+      return state.onlineRows.filter((run) => {
+        if (tab === "daily") return now - run.ts < 86400000;
+        if (tab === "weekly") return now - run.ts < 604800000;
+        return true;
+      }).length;
+    }
     const runs = loadJSON(storageKeys.runLog, []).slice();
     const now = Date.now();
     const filtered = runs.filter((run) => {
@@ -1478,7 +1551,7 @@
           <div>
             <p class="cb-kicker">LEADERBOARD</p>
             <h2>All modes. One board.</h2>
-            <p class="cb-note">Runs are stored locally on this site. When a backend is connected, these tabs can point at live global, daily, and weekly feeds.</p>
+            <p class="cb-note">${state.onlineLoaded ? "Global scores update automatically after successful runs." : "Play locally, then sign in with Discord to publish successful runs globally."}</p>
           </div>
           <div class="cb-actions">
             <button class="cb-button" data-action="goto" data-screen="menu">Main menu</button>
@@ -1495,7 +1568,7 @@
               ${rows.map((row, i) => `
                 <tr class="${i === 0 ? "current" : ""}">
                   <td>${String(i + 1).padStart(2, "0")}</td>
-                  <td>${i === 0 && state.score > 0 ? "YOU" : "GANKER"}</td>
+                  <td>${row.player || (i === 0 && state.score > 0 ? "YOU" : "GANKER")}</td>
                   <td>${modeLabel(row.mode || state.mode)}</td>
                   <td>${String(row.level).padStart(2, "0")}</td>
                   <td>${Number(row.score).toLocaleString()}</td>

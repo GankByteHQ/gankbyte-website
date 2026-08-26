@@ -3,8 +3,8 @@
 The public site is ready for Supabase plus Discord OAuth. These values are intentionally not committed yet.
 
 1. Create a Supabase project.
-2. Open the SQL Editor and run `xp-schema.sql`.
-3. If the base schema already exists, run `XP_MIGRATION_002.sql`, `XP_MIGRATION_003.sql`, `XP_MIGRATION_004_ARENA_VNEXT.sql`, `XP_MIGRATION_005_SYMBOL_CATCH.sql`, and `XP_MIGRATION_006_GAME_MODE_LEADERBOARDS.sql`. Migration 003 adds contribution categories and challenge choices; migration 004 adds server-validated run sessions; migration 005 adds Symbol Catch; migration 006 separates leaderboards by every game mode.
+2. Open the SQL Editor and run the ordered files in [`sql/README.md`](sql/README.md).
+3. The ordered set includes the base schema, XP and Arena migrations, Byte Snatch, and the final game score-sync migration. Migration 007 adds Codebreaker storage, Byte Snatch weekly scores, indexes, and automatic XP triggers for every connected game.
 4. Copy the project URL and publishable/anon key into `xp-config.js`.
 5. In Supabase Authentication, enable Discord and copy its callback URL.
 6. Create a Discord Developer Application and add the Supabase callback URL under OAuth2 redirects.
@@ -18,6 +18,6 @@ set is_admin = true
 where id = 'YOUR_AUTH_USER_ID';
 ```
 
-When the schema changes, rerun the complete `xp-schema.sql` file, followed by the migrations above if the project was created from an earlier copy. The mode leaderboard migration is written to be safely rerunnable and adds separate Wrap Around/Solid Walls and Classic/Quick Switch boards.
+When the schema changes, use the ordered files in `sql/README.md`. The migrations are written to be rerunnable; the final score-sync migration keeps the public boards live because they are database views over the score tables.
 
 Never put a Supabase service-role key in the website. The browser only needs the public project URL and publishable/anon key.

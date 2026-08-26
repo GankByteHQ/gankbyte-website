@@ -40,7 +40,7 @@ The `images/` folder contains genuine captures from the current live builds:
 - [`DEVELOPER_WORKFLOW.md`](DEVELOPER_WORKFLOW.md) - proposal stages and showcase requirements
 - [`PROJECT_RULES.md`](PROJECT_RULES.md) - ownership, licensing, safety, and scope rules
 - [`LICENSE`](LICENSE) - website code and asset rights notice
-- `XP_MIGRATION_003.sql` and `XP_MIGRATION_004_ARENA_VNEXT.sql` - Supabase migrations for XP categories and verified Arena/event data
+- `sql/` - ordered Supabase schema, migrations, Byte Snatch integration, and final automatic game score-sync setup
 
 ## Local test
 
