@@ -11,19 +11,21 @@ Resend. It never exposes a service-role key in the browser.
 3. Add these Edge Function secrets:
 
 ```text
+SUPABASE_SECRET_KEY=sb_secret_...
 RESEND_API_KEY=re_...
 RESEND_FROM=GankByte <contact@gankbyte.com>
 ```
 
-Supabase provides `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to the
-function automatically. The sending domain/address must be verified with the
-email provider before production use.
+Supabase provides `SUPABASE_URL` automatically. Add the project secret key
+from Dashboard > Settings > API Keys as `SUPABASE_SECRET_KEY`; never put this
+key in the website or commit it to GitHub. The sending domain/address must be
+verified with the email provider before production use.
 
 With the Supabase CLI from this repository:
 
 ```powershell
 supabase functions deploy submit-custom-request --no-verify-jwt
-supabase secrets set RESEND_API_KEY="re_..." RESEND_FROM="GankByte <contact@gankbyte.com>"
+supabase secrets set SUPABASE_SECRET_KEY="sb_secret_..." RESEND_API_KEY="re_..." RESEND_FROM="GankByte <contact@gankbyte.com>"
 ```
 
 `--no-verify-jwt` is intentional because the public generator must accept a
