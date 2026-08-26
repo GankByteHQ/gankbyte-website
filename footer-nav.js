@@ -103,6 +103,49 @@
       dropdown.append(summary, panel);
       developerLink.replaceWith(dropdown);
     }
+    const existingReviewsDropdown = [...mainNav.querySelectorAll(".site-nav-dropdown")].find((item) => item.querySelector("summary")?.textContent.trim() === "Reviews");
+    existingReviewsDropdown?.remove();
+    function makeNavDropdown(selector, label, items, activePages) {
+      const link = mainNav.querySelector(selector);
+      if (!link || link.parentElement.classList.contains("site-nav-dropdown")) return;
+      const dropdown = document.createElement("details");
+      dropdown.className = "site-nav-dropdown";
+      const summary = document.createElement("summary");
+      summary.textContent = label;
+      if (link.getAttribute("aria-current") || activePages.includes(activePage)) summary.setAttribute("aria-current", "page");
+      const panel = document.createElement("div");
+      panel.className = "site-nav-dropdown-panel";
+      items.forEach(([href, itemLabel]) => {
+        const item = document.createElement("a");
+        item.href = href;
+        item.textContent = itemLabel;
+        if (href.startsWith("http")) { item.target = "_blank"; item.rel = "noreferrer"; }
+        panel.append(item);
+      });
+      dropdown.append(summary, panel);
+      link.replaceWith(dropdown);
+    }
+    makeNavDropdown('a[href$="games.html"]', "Games", [
+      ["games.html", "Games Hub"],
+      ["arena.html?v=19", "Byte Rush"],
+      ["glitch-dash.html?v=8", "Glitch Dash"],
+      ["symbol-catch/", "Symbol Catch"],
+      ["codebreaker/", "Codebreaker"],
+      ["byte-snatch.html", "Byte Snatch"]
+    ], ["games.html"]);
+    makeNavDropdown('a[href$="arena-hub.html"]', "Arena", [
+      ["arena-hub.html", "Arena Hub"],
+      ["arena.html?v=19#leaderboard", "Leaderboards"],
+      ["profile.html", "Player Profile"],
+      ["challenges.html", "Challenges"]
+    ], ["arena-hub.html"]);
+    makeNavDropdown('a[href$="community.html"]', "Community", [
+      ["community.html", "Community Hub"],
+      ["https://discord.gg/CpWjZkjtjJ", "Join Discord"],
+      ["reviews.html", "Reviews"],
+      ["reviews-submit.html", "Submit a Review"],
+      ["rules.html", "Rules"]
+    ], ["community.html", "reviews.html", "reviews-submit.html", "rules.html"]);
     [["profile.html", "Profile"], ["account.html", "Account"], ["challenges.html", "Challenges"]].forEach(([href, label]) => {
       if (mainNav.querySelector(`a[href="${href}"]`)) return;
       const link = document.createElement("a");
