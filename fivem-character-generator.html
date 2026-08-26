@@ -113,7 +113,15 @@
       [/The current plan is simple on paper:/gi,"The plan sounds simple:"],
       [/The problem is that/gi,"Only problem is,"],
       [/It is not a dramatic mystery to them;/gi,"It isn't some big mystery;"],
-      [/In the city, that question is getting closer\./gi,"In this city, someone is bound to ask eventually."]
+      [/In the city, that question is getting closer\./gi,"In this city, someone is bound to ask eventually."],
+      [/Their strongest skill is/gi,"They're best at"],
+      [/has arrived in ([^ ]+) looking for a practical way forward/gi,"just got to $1 trying to find a way to make things work"],
+      [/The first person who offers that way forward may also be the person who tests every boundary they have\./gi,"Whoever gives them that chance might also be the one pushing them too far."],
+      [/They do not talk about that part unless they have to\./gi,"They don't bring that part up unless somebody asks."],
+      [/It is the sort of detail most people miss on a first meeting\./gi,"Most people miss that little detail the first time they meet."],
+      [/For now, they call it a temporary arrangement\./gi,"For now, they just call it temporary."],
+      [/They have learned to leave themselves one exit/gi,"They've learned to keep one way out"],
+      [/a practical problem waiting for the wrong person to ask the right question/gi,"a problem waiting for somebody nosy enough to ask about it"]
     ];
     form?.addEventListener("submit",()=>window.setTimeout(()=>{
       document.querySelectorAll("#character-output .character-block p").forEach(paragraph=>{
