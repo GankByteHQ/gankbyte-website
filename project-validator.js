@@ -2,7 +2,7 @@
   'use strict';
 
   const $ = (id) => document.getElementById(id);
-  const state = { files: [], findings: [], type: 'auto', detected: 'unknown', filter: 'all' };
+  const state = { files: [], findings: [], references: [], config: {}, configError: '', baseline: null, type: 'auto', detected: 'unknown', filter: 'all', ignored: new Set() };
   const TEXT_EXT = new Set(['lua','luau','py','pyw','js','jsx','ts','tsx','java','kt','sql','json','json5','yaml','yml','toml','ini','cfg','properties','xml','html','htm','css','scss','md','txt','meta','cfg','mcmeta','gradle','kts','bat','ps1','sh']);
   const BINARY_EXT = new Set(['png','jpg','jpeg','gif','webp','ico','zip','jar','dll','so','dylib','rpf','ybn','ydr','ydd','ytd','ymf','awc','rel','class','exe']);
   const TYPE_LABELS = { unknown:'Unknown project', fivem:'FiveM resource', lua:'Lua project', python:'Python project', javascript:'JavaScript / TypeScript', java:'Java project', sql:'SQL project', nui:'NUI project', minecraft:'Minecraft project', runelite:'RuneLite plugin' };
@@ -11,9 +11,10 @@
   const pathOf = (file) => (file.webkitRelativePath || file.name).replaceAll('\\','/').replace(/^\.\//,'');
   const cleanPath = (path) => String(path || '').replaceAll('\\','/').replace(/^['"]|['"]$/g,'').replace(/^\.\//,'').split(/[?#]/)[0];
   const basename = (path) => cleanPath(path).split('/').pop().toLowerCase();
+  const activeFiles = () => state.files.filter((file) => !file.ignored);
   const fileByPath = (path) => {
     const wanted = cleanPath(path).toLowerCase();
-    return state.files.find((file) => file.path.toLowerCase() === wanted) || state.files.find((file) => file.path.toLowerCase().endsWith('/' + wanted));
+    return activeFiles().find((file) => file.path.toLowerCase() === wanted) || activeFiles().find((file) => file.path.toLowerCase().endsWith('/' + wanted));
   };
   const hasFile = (path) => Boolean(fileByPath(path));
   const hasReference = (path) => {
@@ -21,20 +22,27 @@
     if (!wanted || wanted.startsWith('@')) return true;
     if (!wanted.includes('*')) return hasFile(wanted);
     const pattern = new RegExp(`^${wanted.split('*').map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*')}$`, 'i');
-    return state.files.some((file) => pattern.test(file.path) || pattern.test(file.path.split('/').slice(1).join('/')));
+    return activeFiles().some((file) => pattern.test(file.path) || pattern.test(file.path.split('/').slice(1).join('/')));
   };
   const textOf = (path) => fileByPath(path)?.text || '';
   const lineAt = (text, index) => text.slice(0, Math.max(0,index)).split(/\r?\n/).length;
   const location = (path, line) => path ? `${path}${line ? `:${line}` : ''}` : '';
   const setStatus = (message, error = false) => { $('validator-status').textContent = message; $('validator-status').classList.toggle('error', error); };
-  const add = (severity, title, detail, fix = '', path = '', line = 0, group = 'General') => state.findings.push({ severity, title, detail, fix, path, line, group });
-  const allTextFiles = () => state.files.filter((file) => file.text);
-  const filesWithExt = (...extensions) => state.files.filter((file) => extensions.includes(ext(file.path)));
-  const firstPath = (regex) => state.files.find((file) => regex.test(file.path))?.path || '';
+  const findingId = (severity, title, path = '', line = 0) => `${severity}|${title}|${path}|${line}`.toLowerCase().replace(/\s+/g, ' ');
+  const defaultConfidence = (severity) => ({ good: 100, error: 95, warning: 86, info: 92 }[severity] || 80);
+  const add = (severity, title, detail, fix = '', path = '', line = 0, group = 'General', confidence = defaultConfidence(severity)) => {
+    const id = findingId(severity, title, path, line);
+    state.findings.push({ id, severity, title, detail, fix, path, line, group, confidence });
+  };
+  const allTextFiles = () => activeFiles().filter((file) => file.text);
+  const filesWithExt = (...extensions) => activeFiles().filter((file) => extensions.includes(ext(file.path)));
+  const firstPath = (regex) => activeFiles().find((file) => regex.test(file.path))?.path || '';
+  const globToRegex = (glob) => new RegExp(`^${String(glob).split('*').map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*')}$`, 'i');
+  const configMatch = (path, patterns = []) => patterns.some((pattern) => globToRegex(pattern).test(path) || globToRegex(`*/${pattern}`).test(path));
 
   function detectType() {
     if (state.type !== 'auto') return state.type;
-    const paths = state.files.map((file) => file.path.toLowerCase());
+    const paths = activeFiles().map((file) => file.path.toLowerCase());
     const joined = paths.join('\n');
     if (paths.some((path) => /(^|\/)fxmanifest\.lua$|(^|\/)__resource\.lua$/.test(path))) return 'fivem';
     if (paths.some((path) => path.endsWith('runelite-plugin.properties') || path.includes('/runelite/'))) return 'runelite';
@@ -50,14 +58,15 @@
 
   function checkGeneral() {
     if (!state.files.length) { add('error','No files were loaded','Choose a project folder or select project files before scanning.','Load the project files so the validator can inspect structure and references.','','','General'); return; }
-    const duplicatePaths = [...new Set(state.files.map((file) => file.path.toLowerCase()))].length !== state.files.length;
+    if (state.configError) add('warning','Validator config is invalid','The project contains .gankbyte-validator.json, but it could not be parsed.','Fix the JSON or remove the file to use automatic settings.',state.configError,0,'Configuration');
+    const duplicatePaths = [...new Set(activeFiles().map((file) => file.path.toLowerCase()))].length !== activeFiles().length;
     if (duplicatePaths) add('error','Duplicate paths were supplied','The selected files contain the same relative path more than once.','Select the project folder once, or remove duplicate files before publishing.','','','Safety');
-    const secrets = state.files.filter((file) => /(^|\/)(\.env(?:\..*)?|id_rsa|id_dsa|credentials\.json|secrets?\.(json|ya?ml)|.*\.(pem|key|p12|pfx))$/i.test(file.path));
+    const secrets = activeFiles().filter((file) => /(^|\/)(\.env(?:\..*)?|id_rsa|id_dsa|credentials\.json|secrets?\.(json|ya?ml)|.*\.(pem|key|p12|pfx))$/i.test(file.path));
     if (secrets.length) add('warning','Possible secret files found',secrets.slice(0,6).map((file) => file.path).join(', '),'Remove secrets from the project, add them to .gitignore, and rotate any credential that has already been published.',secrets[0].path,0,'Safety');
     else add('good','No obvious secret files found','No common private-key, certificate, or environment-secret filenames were detected.','Still review configuration files before publishing.','','','Safety');
-    const suspicious = state.files.filter((file) => file.path.startsWith('/') || file.path.includes('../') || /(^|\/)[A-Za-z]:[\\/]/.test(file.path));
+    const suspicious = activeFiles().filter((file) => file.path.startsWith('/') || file.path.includes('../') || /(^|\/)[A-Za-z]:[\\/]/.test(file.path));
     if (suspicious.length) add('warning','Suspicious paths found',suspicious.slice(0,5).map((file) => file.path).join(', '),'Use relative paths inside the project. Absolute and parent-directory paths can break deployment or escape the intended resource.','',0,'Safety');
-    const oversized = state.files.filter((file) => file.size > 10 * 1024 * 1024);
+    const oversized = activeFiles().filter((file) => file.size > 10 * 1024 * 1024);
     if (oversized.length) add('info','Large files need a deliberate decision',`${oversized.length} file${oversized.length === 1 ? '' : 's'} exceed 10 MB.`,'Keep large binaries out of Git when possible and document required assets or use release storage.',oversized[0].path,0,'Safety');
     const readme = state.files.find((file) => /^README(?:\.md|\.txt)?$/i.test(basename(file.path)));
     const licence = state.files.find((file) => /^(LICENSE|LICENCE)(\..*)?$/i.test(basename(file.path)));
@@ -171,38 +180,156 @@
     const pluginClass = java.find((file) => /@Plugin\b/.test(file.text || '')); if (!pluginClass) add('warning','No RuneLite @Plugin class found','No Java file contains the RuneLite plugin annotation.','Confirm the plugin class is included and annotated with @Plugin.', '',0,'RuneLite'); else add('good','RuneLite plugin class found',pluginClass.path,'Confirm its config, subscriptions, and injected services are wired correctly.',pluginClass.path,0,'RuneLite');
   }
 
+  function loadConfig() {
+    const configFile = state.files.find((file) => basename(file.path) === '.gankbyte-validator.json');
+    state.config = {}; state.configError = '';
+    if (!configFile || !configFile.text) return;
+    try {
+      state.config = JSON.parse(configFile.text) || {};
+      if (typeof state.config !== 'object' || Array.isArray(state.config)) state.config = {};
+    } catch (_) { state.configError = configFile.path; }
+  }
+
+  function applyConfig() {
+    const ignoredPaths = Array.isArray(state.config.ignore) ? state.config.ignore : [];
+    state.files.forEach((file) => { file.ignored = file.path !== '.gankbyte-validator.json' && configMatch(file.path, ignoredPaths); });
+    if (state.config.type && $('project-type').value === 'auto' && TYPE_LABELS[state.config.type]) {
+      state.type = state.config.type;
+      $('project-type').value = state.config.type;
+    }
+  }
+
+  function applyConfiguredFindingIgnores() {
+    const configured = Array.isArray(state.config.ignoreFindings) ? state.config.ignoreFindings : [];
+    configured.forEach((entry) => {
+      const needle = String(entry).toLowerCase();
+      state.findings.forEach((finding) => {
+        if (finding.id === needle || finding.title.toLowerCase().includes(needle) || `${finding.path}:${finding.line}`.toLowerCase() === needle) state.ignored.add(finding.id);
+      });
+    });
+  }
+
+  function collectReferences() {
+    const references = [];
+    const addReference = (source, target, line) => {
+      const clean = cleanPath(target);
+      if (!clean || clean.startsWith('@') || /^(https?:|data:|mailto:|#)/i.test(clean)) return;
+      const found = hasReference(clean);
+      if (!references.some((item) => item.source === source && item.target === clean && item.line === line)) references.push({ source, target: clean, line, found });
+    };
+    activeFiles().forEach((file) => {
+      const text = file.text || '';
+      const extension = ext(file.path);
+      if (['lua','luau'].includes(extension)) quotedReferences(text, /\b(?:require|dofile|loadfile)\s*\(\s*['"]([^'"]+)['"]/g).forEach((ref) => addReference(file.path, ref.value, ref.line));
+      if (['js','jsx','ts','tsx'].includes(extension)) quotedReferences(text, /(?:import[^'"`]*from|import\s*\(|require\s*\()\s*['"]([^'"]+)['"]/g).forEach((ref) => { if (ref.value.startsWith('.')) addReference(file.path, ref.value, ref.line); });
+      if (['html','htm'].includes(extension)) quotedReferences(text, /(?:src|href)\s*=\s*['"]([^'"#]+)['"]/gi).forEach((ref) => addReference(file.path, ref.value, ref.line));
+    });
+    const manifest = activeFiles().find((file) => /(^|\/)fxmanifest\.lua$|(^|\/)__resource\.lua$/i.test(file.path));
+    if (manifest) quotedReferences(manifest.text || '', /['"]([^'"]+)['"]/g).filter((ref) => /\.(lua|js|ts|css|html?|json|meta|ytyp|ymap|ybn|ydr|ydd|ytd|ymf|png|jpg|jpeg|webp)$/i.test(ref.value) && !/^https?:/i.test(ref.value)).forEach((ref) => addReference(manifest.path, ref.value, ref.line));
+    state.references = references;
+  }
+
+  function evidenceFor(finding) {
+    if (!finding.path || !finding.line) return '';
+    const file = activeFiles().find((item) => item.path === finding.path);
+    if (!file || !file.text) return '';
+    const lines = file.text.split(/\r?\n/);
+    const start = Math.max(1, finding.line - 2);
+    const end = Math.min(lines.length, finding.line + 2);
+    return lines.slice(start - 1, end).map((text, index) => {
+      const number = start + index;
+      const target = number === finding.line ? ' target' : '';
+      return `<span class="evidence-line${target}"><span class="evidence-line-number">${number}</span>${escapeHtml(text || ' ')}</span>`;
+    }).join('');
+  }
+
+  function isIgnored(finding) { return state.ignored.has(finding.id); }
+  function toggleIgnore(id) { if (state.ignored.has(id)) state.ignored.delete(id); else state.ignored.add(id); render(); }
+
+  function snapshot() {
+    return { type: state.detected, findings: state.findings.map((finding) => ({ id:finding.id, severity:finding.severity, title:finding.title, path:finding.path, line:finding.line })) };
+  }
+
+  function renderComparison() {
+    if (!state.baseline) { $('comparison-card').hidden = true; return; }
+    const before = new Map(state.baseline.findings.map((finding) => [finding.id, finding]));
+    const after = new Map(state.findings.map((finding) => [finding.id, finding]));
+    const fixed = [...before.values()].filter((finding) => !after.has(finding.id));
+    const added = [...after.values()].filter((finding) => !before.has(finding.id));
+    const changed = [...after.values()].filter((finding) => before.has(finding.id) && before.get(finding.id).severity !== finding.severity);
+    const rows = [...fixed.map((finding) => `<div class="fixed">Fixed: ${escapeHtml(finding.title)}${finding.path ? ` — ${escapeHtml(location(finding.path,finding.line))}` : ''}</div>`), ...added.map((finding) => `<div class="added">New: ${escapeHtml(finding.title)}${finding.path ? ` — ${escapeHtml(location(finding.path,finding.line))}` : ''}</div>`), ...changed.map((finding) => `<div>Changed: ${escapeHtml(finding.title)} (${escapeHtml(before.get(finding.id).severity)} → ${escapeHtml(finding.severity)})</div>`)].join('');
+    $('comparison-card').hidden = false;
+    $('comparison-output').innerHTML = `<p>${fixed.length} fixed, ${added.length} new, ${changed.length} changed since the saved baseline.</p>${rows ? `<div class="comparison-list">${rows}</div>` : '<p>No finding changes detected.</p>'}`;
+  }
+
   function scan() {
     state.findings = []; state.detected = detectType();
     checkGeneral();
     const checks = { fivem:checkFiveM, lua:checkLua, python:checkPython, javascript:checkPackage, java:checkJava, sql:checkSQL, nui:checkNUI, minecraft:checkMinecraft, runelite:checkRuneLite };
     if (checks[state.detected]) checks[state.detected]();
     else add('info','Project type needs a closer look','The files do not match a known project profile, so only general safety and documentation checks ran.','Choose a project type manually to apply targeted rules.','','','General');
+    collectReferences();
+    applyConfiguredFindingIgnores();
     render();
   }
 
   function findingVisible(finding) {
     const query = $('finding-search').value.trim().toLowerCase();
     const text = `${finding.title} ${finding.detail} ${finding.fix} ${finding.path} ${finding.group}`.toLowerCase();
-    return (state.filter === 'all' || finding.severity === state.filter) && (!query || text.includes(query));
+    const filterMatch = state.filter === 'all' ? !isIgnored(finding) : state.filter === 'ignored' ? isIgnored(finding) : finding.severity === state.filter && !isIgnored(finding);
+    return filterMatch && (!query || text.includes(query));
   }
   function render() {
-    const errors = state.findings.filter((finding) => finding.severity === 'error').length;
-    const warnings = state.findings.filter((finding) => finding.severity === 'warning').length;
-    const notes = state.findings.filter((finding) => finding.severity === 'info').length;
+    const errors = state.findings.filter((finding) => finding.severity === 'error' && !isIgnored(finding)).length;
+    const warnings = state.findings.filter((finding) => finding.severity === 'warning' && !isIgnored(finding)).length;
     const types = [...new Set(state.files.map((file) => ext(file.path) || 'other'))].length;
-    $('summary').hidden = false; $('summary').innerHTML = [['Files',state.files.length],['File types',types],['Errors',errors],['Warnings',warnings]].map(([label,value]) => `<div class="summary-stat"><span>${label}</span><strong>${value}</strong></div>`).join('');
+    const ignored = state.findings.filter(isIgnored).length;
+    $('summary').hidden = false; $('summary').innerHTML = [['Files',state.files.filter((file) => !file.ignored).length],['File types',types],['Errors',errors],['Warnings',warnings],['Ignored',ignored]].map(([label,value]) => `<div class="summary-stat"><span>${label}</span><strong>${value}</strong></div>`).join('');
     $('validator-toolbar').hidden = false; $('report-area').hidden = false; $('file-card').hidden = false; $('report-title').textContent = state.files[0]?.path.split('/')[0] || 'Project report'; $('detected-type').textContent = TYPE_LABELS[state.detected] || TYPE_LABELS.unknown;
     const visible = state.findings.filter(findingVisible);
-    $('checks').innerHTML = visible.length ? visible.map((finding) => { const symbol = finding.severity === 'good' ? '&#10003;' : finding.severity === 'error' ? '!' : finding.severity === 'warning' ? '?' : 'i'; return `<article class="check ${finding.severity}"><span class="check-icon">${symbol}</span><div><h3>${escapeHtml(finding.title)}</h3><p>${escapeHtml(finding.detail)}</p><div class="finding-meta"><span>${escapeHtml(finding.group)}</span>${finding.path ? `<span>${escapeHtml(location(finding.path,finding.line))}</span>` : ''}</div>${finding.fix ? `<div class="finding-fix"><strong>Next step:</strong> ${escapeHtml(finding.fix)}</div>` : ''}</div></article>`; }).join('') : '<p class="file-empty">No findings match this filter.</p>';
-    const counts = {}; state.files.forEach((file) => { const key = ext(file.path) || 'other'; counts[key] = (counts[key] || 0) + 1; }); $('inventory').innerHTML = Object.entries(counts).sort().map(([key,value]) => `<div class="inventory-row"><span>.${escapeHtml(key)}</span><strong>${value}</strong></div>`).join('') || '<p class="file-empty">No files found.</p>'; renderFiles();
+    $('checks').innerHTML = visible.length ? visible.map((finding) => {
+      const symbol = finding.severity === 'good' ? '&#10003;' : finding.severity === 'error' ? '!' : finding.severity === 'warning' ? '?' : 'i';
+      const evidence = evidenceFor(finding);
+      const ignoreLabel = isIgnored(finding) ? 'Restore finding' : 'Ignore finding';
+      return `<article class="check ${finding.severity}"><span class="check-icon">${symbol}</span><div><h3>${escapeHtml(finding.title)}</h3><p>${escapeHtml(finding.detail)}</p><div class="finding-meta"><span>${escapeHtml(finding.group)}</span><span class="finding-confidence">Confidence ${finding.confidence}%</span>${finding.path ? `<span>${escapeHtml(location(finding.path,finding.line))}</span>` : ''}</div>${finding.fix ? `<div class="finding-fix"><strong>Next step:</strong> ${escapeHtml(finding.fix)}</div>` : ''}${evidence ? `<details><summary class="finding-action">Show source evidence</summary><pre class="finding-evidence">${evidence}</pre></details>` : '<div class="finding-meta"><span>No source line available — project-level check.</span></div>'}<div class="finding-actions"><button class="finding-action" type="button" data-ignore-id="${escapeHtml(finding.id)}">${ignoreLabel}</button></div></div></article>`;
+    }).join('') : '<p class="file-empty">No findings match this filter.</p>';
+    $('checks').querySelectorAll('[data-ignore-id]').forEach((button) => button.addEventListener('click', () => toggleIgnore(button.dataset.ignoreId)));
+    const counts = {}; state.files.forEach((file) => { const key = ext(file.path) || 'other'; counts[key] = (counts[key] || 0) + 1; }); $('inventory').innerHTML = Object.entries(counts).sort().map(([key,value]) => `<div class="inventory-row"><span>.${escapeHtml(key)}</span><strong>${value}</strong></div>`).join('') || '<p class="file-empty">No files found.</p>'; renderFiles(); renderDependencies(); renderComparison();
   }
-  function renderFiles() { const query = $('file-filter').value.trim().toLowerCase(); $('file-map').innerHTML = state.files.filter((file) => !query || file.path.toLowerCase().includes(query)).map((file) => { const e = ext(file.path); const classes = [/fxmanifest|__resource|package\.json|pom\.xml|build\.gradle|plugin\.yml|server\.properties|runelite-plugin/.test(file.path) ? 'manifest' : '', /(^|\/)(\.env|id_rsa|.*\.(pem|key|p12|pfx))$/i.test(file.path) ? 'secret' : '', BINARY_EXT.has(e) ? 'binary' : ''].filter(Boolean).join(' '); return `<div class="file-entry ${classes}" title="${escapeHtml(file.path)}">${escapeHtml(file.path)} <small>${BINARY_EXT.has(e) ? 'binary' : 'text'}</small></div>`; }).join('') || '<p class="file-empty">No matching files.</p>'; }
+  function renderFiles() { const query = $('file-filter').value.trim().toLowerCase(); $('file-map').innerHTML = state.files.filter((file) => !query || file.path.toLowerCase().includes(query)).map((file) => { const e = ext(file.path); const classes = [/fxmanifest|__resource|package\.json|pom\.xml|build\.gradle|plugin\.yml|server\.properties|runelite-plugin/.test(file.path) ? 'manifest' : '', /(^|\/)(\.env|id_rsa|.*\.(pem|key|p12|pfx))$/i.test(file.path) ? 'secret' : '', BINARY_EXT.has(e) ? 'binary' : '', file.ignored ? 'ignored' : ''].filter(Boolean).join(' '); return `<div class="file-entry ${classes}" title="${escapeHtml(file.path)}">${escapeHtml(file.path)} <small>${file.ignored ? 'ignored' : BINARY_EXT.has(e) ? 'binary' : 'text'}</small></div>`; }).join('') || '<p class="file-empty">No matching files.</p>'; }
 
-  function reportText() { return [`GANKBYTE PROJECT VALIDATOR`,`Project: ${state.files[0]?.path.split('/')[0] || 'Unknown'}`,`Type: ${TYPE_LABELS[state.detected] || TYPE_LABELS.unknown}`,`Generated: ${new Date().toISOString()}`,'',...state.findings.map((finding, index) => `${index + 1}. [${finding.severity.toUpperCase()}] ${finding.title}\n   ${finding.detail}${finding.path ? `\n   Location: ${location(finding.path,finding.line)}` : ''}${finding.fix ? `\n   Next step: ${finding.fix}` : ''}`)].join('\n'); }
-  async function load(fileList) { state.files = []; const list = [...fileList].sort((a,b) => pathOf(a).localeCompare(pathOf(b))); for (const file of list) { const path = pathOf(file); const extension = ext(path); let text = ''; if (file.size <= 4 * 1024 * 1024 && (TEXT_EXT.has(extension) || !BINARY_EXT.has(extension))) { try { text = await file.text(); } catch (_) { text = ''; } } state.files.push({ path, text, size:file.size }); } state.type = $('project-type').value; setStatus(`${state.files.length} file${state.files.length === 1 ? '' : 's'} loaded. Applying relevant checks locally...`); scan(); setStatus(`Scan complete. ${state.findings.filter((finding) => finding.severity === 'error').length} error${state.findings.filter((finding) => finding.severity === 'error').length === 1 ? '' : 's'}, ${state.findings.filter((finding) => finding.severity === 'warning').length} warning${state.findings.filter((finding) => finding.severity === 'warning').length === 1 ? '' : 's'}. Nothing was uploaded.`); }
+  function renderDependencies() {
+    $('dependency-card').hidden = false;
+    $('dependency-count').textContent = `${state.references.length} link${state.references.length === 1 ? '' : 's'}`;
+    $('dependency-map').innerHTML = state.references.length ? state.references.map((reference) => `<div class="dependency-row ${reference.found ? '' : 'missing'}"><span class="dependency-path" title="${escapeHtml(reference.source)}">${escapeHtml(reference.source)}${reference.line ? `:${reference.line}` : ''}</span><span class="dependency-arrow">${reference.found ? '&rarr;' : '&times;'}</span><span class="dependency-path" title="${escapeHtml(reference.target)}">${escapeHtml(reference.target)}${reference.found ? '' : ' (missing)'}</span></div>`).join('') : '<p class="file-empty">No local references were detected in the selected files.</p>';
+  }
+
+  function reportText() { return [`GANKBYTE PROJECT VALIDATOR`,`Project: ${state.files[0]?.path.split('/')[0] || 'Unknown'}`,`Type: ${TYPE_LABELS[state.detected] || TYPE_LABELS.unknown}`,`Generated: ${new Date().toISOString()}`,'',...state.findings.map((finding, index) => `${index + 1}. [${finding.severity.toUpperCase()}] ${finding.title} (confidence ${finding.confidence}%)${isIgnored(finding) ? ' [IGNORED]' : ''}\n   ${finding.detail}${finding.path ? `\n   Location: ${location(finding.path,finding.line)}` : ''}${finding.fix ? `\n   Next step: ${finding.fix}` : ''}`)].join('\n'); }
+  function reportMarkdown() { return [`# GankByte Project Validator`,``,`- Project: ${state.files[0]?.path.split('/')[0] || 'Unknown'}`,`- Type: ${TYPE_LABELS[state.detected] || TYPE_LABELS.unknown}`,`- Generated: ${new Date().toISOString()}`,'',`## Findings`,'',...state.findings.map((finding) => `- **${finding.severity.toUpperCase()}** ${finding.title} _(confidence ${finding.confidence}%)_${isIgnored(finding) ? ' **ignored**' : ''}  \n  ${finding.detail}${finding.path ? `  \n  Location: \`${location(finding.path,finding.line)}\`` : ''}${finding.fix ? `  \n  Next step: ${finding.fix}` : ''}`), '', '## Dependency map', '', ...state.references.map((reference) => `- \`${reference.source}:${reference.line}\` ${reference.found ? '→' : '✕'} \`${reference.target}\``)].join('\n'); }
+  function reportHtml() { const body = state.findings.map((finding) => `<article><h3>${escapeHtml(finding.title)}</h3><p><strong>${escapeHtml(finding.severity.toUpperCase())}</strong> · confidence ${finding.confidence}%${isIgnored(finding) ? ' · ignored' : ''}</p><p>${escapeHtml(finding.detail)}</p>${finding.path ? `<p>Location: <code>${escapeHtml(location(finding.path,finding.line))}</code></p>` : ''}${finding.fix ? `<p><strong>Next step:</strong> ${escapeHtml(finding.fix)}</p>` : ''}</article>`).join(''); return `<!doctype html><html><head><meta charset="utf-8"><title>GankByte Project Report</title><style>body{background:#0a0b0f;color:#e9ebef;font:15px system-ui;max-width:900px;margin:40px auto;padding:0 20px}h1{color:#b7ff3c}article{border:1px solid #2a2d34;margin:10px 0;padding:14px}p{color:#a4a8b0;line-height:1.5}code{color:#b7ff3c}</style></head><body><h1>GankByte Project Validator</h1><p>${escapeHtml(TYPE_LABELS[state.detected] || TYPE_LABELS.unknown)} · ${escapeHtml(state.files[0]?.path.split('/')[0] || 'Unknown')}</p>${body}</body></html>`; }
+  function downloadFile(name, content, type = 'text/plain') { const url = URL.createObjectURL(new Blob([content], { type })); const link = document.createElement('a'); link.href = url; link.download = name; link.click(); setTimeout(() => URL.revokeObjectURL(url), 500); }
+  function starterFiles() {
+    const project = state.files[0]?.path.split('/')[0] || 'GankByte project';
+    const label = TYPE_LABELS[state.detected] || 'developer project';
+    const readme = `# ${project}\n\n${label} built with GankByte.\n\n## Requirements\n\nDocument the runtime, dependencies, and supported versions here.\n\n## Setup\n\n1. Install the required dependencies.\n2. Copy and configure any example configuration files.\n3. Start the project using the command documented below.\n\n## Usage\n\nDocument commands, exports, events, endpoints, or controls.\n\n## License\n\nAdd the project license before distribution.\n`;
+    const ignores = { fivem:'*.log\n.env\nnode_modules/\n', lua:'*.log\n.env\n', python:'__pycache__/\n*.pyc\n.env\n.venv/\n', javascript:'node_modules/\ndist/\n.env\n', java:'target/\n.gradle/\n*.class\n', sql:'.env\n*.dump\n', nui:'node_modules/\ndist/\n', minecraft:'logs/\ncrash-reports/\n*.jar\n', runelite:'build/\n.gradle/\n' }[state.detected] || '.env\n*.log\n';
+    downloadFile('README.gankbyte-template.md', readme);
+    downloadFile('.gitignore.gankbyte-template', ignores);
+    if (state.detected === 'fivem' && !hasFile('fxmanifest.lua')) downloadFile('fxmanifest.gankbyte-template.lua', `fx_version 'cerulean'\ngame 'gta5'\n\nauthor 'Your name'\ndescription 'Describe the resource'\nversion '1.0.0'\n\nclient_scripts { 'client/*.lua' }\nserver_scripts { 'server/*.lua' }\nshared_scripts { 'shared/*.lua' }\n`);
+    setStatus('Starter templates downloaded. They are suggestions only and never modify your source files.');
+  }
+  function configExample() { downloadFile('.gankbyte-validator.example.json', JSON.stringify({ type:state.detected === 'unknown' ? 'auto' : state.detected, ignore:['vendor/**','tests/fixtures/**'], ignoreFindings:[] }, null, 2) + '\n', 'application/json'); }
+  async function load(fileList) { state.files = []; state.ignored.clear(); const list = [...fileList].sort((a,b) => pathOf(a).localeCompare(pathOf(b))); for (const file of list) { const path = pathOf(file); const extension = ext(path); let text = ''; if (file.size <= 4 * 1024 * 1024 && (TEXT_EXT.has(extension) || !BINARY_EXT.has(extension))) { try { text = await file.text(); } catch (_) { text = ''; } } state.files.push({ path, text, size:file.size, ignored:false }); } loadConfig(); applyConfig(); state.type = $('project-type').value; setStatus(`${activeFiles().length} of ${state.files.length} files loaded. Applying relevant checks locally...`); scan(); setStatus(`Scan complete. ${state.findings.filter((finding) => finding.severity === 'error' && !isIgnored(finding)).length} error${state.findings.filter((finding) => finding.severity === 'error' && !isIgnored(finding)).length === 1 ? '' : 's'}, ${state.findings.filter((finding) => finding.severity === 'warning' && !isIgnored(finding)).length} warning${state.findings.filter((finding) => finding.severity === 'warning' && !isIgnored(finding)).length === 1 ? '' : 's'}. Nothing was uploaded.`); }
 
   $('choose-project').addEventListener('click', () => $('project-folder').click()); $('choose-files').addEventListener('click', () => $('project-files').click()); $('project-folder').addEventListener('change', (event) => load(event.target.files)); $('project-files').addEventListener('change', (event) => load(event.target.files)); $('project-type').addEventListener('change', () => { if (state.files.length) { state.type = $('project-type').value; scan(); } }); $('finding-search').addEventListener('input', render); $('file-filter').addEventListener('input', renderFiles);
   document.querySelectorAll('[data-filter]').forEach((button) => button.addEventListener('click', () => { state.filter = button.dataset.filter; document.querySelectorAll('[data-filter]').forEach((item) => item.classList.toggle('active', item === button)); render(); }));
   $('copy-report').addEventListener('click', async () => { try { await navigator.clipboard.writeText(reportText()); $('copy-report').textContent = 'Copied'; setTimeout(() => { $('copy-report').textContent = 'Copy report'; }, 1400); } catch (_) { setStatus('Copy was blocked by the browser. Use Download JSON instead.', true); } });
-  $('download-report').addEventListener('click', () => { const report = { tool:'GankByte Universal Project Validator', project:state.files[0]?.path.split('/')[0] || null, type:state.detected, generatedAt:new Date().toISOString(), files:state.files.map((file) => ({ path:file.path, size:file.size })), findings:state.findings }; const url = URL.createObjectURL(new Blob([JSON.stringify(report,null,2)], { type:'application/json' })); const link = document.createElement('a'); link.href = url; link.download = 'gankbyte-project-report.json'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 500); });
+  $('download-report').addEventListener('click', () => { const report = { tool:'GankByte Universal Project Validator', project:state.files[0]?.path.split('/')[0] || null, type:state.detected, generatedAt:new Date().toISOString(), config:state.config, files:state.files.map((file) => ({ path:file.path, size:file.size, ignored:Boolean(file.ignored) })), findings:state.findings.map((finding) => ({ ...finding, ignored:isIgnored(finding) })), references:state.references }; downloadFile('gankbyte-project-report.json', JSON.stringify(report,null,2), 'application/json'); });
+  $('download-markdown').addEventListener('click', () => downloadFile('gankbyte-project-report.md', reportMarkdown(), 'text/markdown'));
+  $('download-html').addEventListener('click', () => downloadFile('gankbyte-project-report.html', reportHtml(), 'text/html'));
+  $('save-baseline').addEventListener('click', () => { state.baseline = snapshot(); $('compare-baseline').hidden = false; renderComparison(); setStatus('Baseline saved. Make changes, scan again, then compare to see what moved.'); });
+  $('compare-baseline').addEventListener('click', () => { renderComparison(); $('comparison-card').scrollIntoView({ behavior:'smooth', block:'start' }); });
+  $('clear-baseline').addEventListener('click', () => { state.baseline = null; $('compare-baseline').hidden = true; $('comparison-card').hidden = true; setStatus('Saved baseline cleared.'); });
+  $('download-starters').addEventListener('click', starterFiles);
+  $('download-config').addEventListener('click', configExample);
 })();
