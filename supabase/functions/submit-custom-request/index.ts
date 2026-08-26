@@ -36,7 +36,14 @@ Deno.serve(async (request) => {
   if (request.method !== "POST") return response(request, { error: "Method not allowed." }, 405);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const serviceRoleKey = Deno.env.get("SUPABASE_SECRET_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  let defaultSecretKey = "";
+  try {
+    const secretKeys = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") || "{}");
+    defaultSecretKey = secretKeys.default || "";
+  } catch {
+    defaultSecretKey = "";
+  }
+  const serviceRoleKey = Deno.env.get("SUPABASE_SECRET_KEY") || defaultSecretKey || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const resendApiKey = Deno.env.get("RESEND_API_KEY");
   const resendFrom = Deno.env.get("RESEND_FROM") || "GankByte <contact@gankbyte.com>";
   if (!supabaseUrl || !serviceRoleKey || !resendApiKey) {
