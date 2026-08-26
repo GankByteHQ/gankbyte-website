@@ -226,5 +226,83 @@
     if (!document.querySelector("[data-home-featured]")) {
       homeLiveSection.insertAdjacentHTML("beforebegin", '<section class="home-featured shell" data-home-featured><div class="home-featured-copy"><p class="eyebrow">FEATURED GAME // LIVE NOW</p><h2>Start with<br><em>Byte Rush.</em></h2><p>Best for quick runs, score chasing, and learning the GankByte Arena. Collect GankBytes, build your combo, grab power-ups, and survive the glitches for 60 seconds.</p><div class="hero-actions"><a class="button button-primary" href="arena.html?v=19">Play Byte Rush <span>&nearr;</span></a><a class="text-link" href="arena.html?v=19#leaderboard">View the leaderboard <span>&nearr;</span></a></div></div><div class="home-featured-art"><img src="byte-rush-thumb.svg" alt="Byte Rush neon arena with GankByte pickups and purple glitches"><span class="home-featured-note">BEST FOR<br><strong>FAST REPEATABLE RUNS</strong></span></div></section>');
     }
+    const homeProof = document.querySelector("[data-home-proof]");
+    if (homeProof && !homeProof.querySelector("[data-home-review-form]")) {
+      homeProof.insertAdjacentHTML("beforeend", '<div class="home-review-submit" data-home-review-form><div><p class="eyebrow">SHARE YOUR EXPERIENCE</p><h3>Leave a review.</h3><p>Reviews are held for admin approval. Approved player and developer reviews appear publicly on this homepage.</p></div><form id="home-review-form"><label for="home-review-type">Review type</label><select id="home-review-type" name="review_type"><option value="player">Player review</option><option value="developer">Developer review</option></select><label for="home-review-text">Your review</label><textarea id="home-review-text" name="review_text" rows="4" minlength="20" maxlength="500" required placeholder="What did you play, build, or contribute? What should people know?"></textarea><div class="home-review-form-actions"><button class="button button-primary" id="home-review-submit" type="submit">Submit for approval <span>&nearr;</span></button><button class="button button-ghost" id="home-review-login" type="button" hidden>Sign in with Discord</button></div><p class="xp-status" id="home-review-status" aria-live="polite"></p></form></div>');
+      initHomeReviews(homeProof);
+    }
+  }
+
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = src;
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.append(script);
+    });
+  }
+
+  async function initHomeReviews(proof) {
+    const escapeHomeText = (value) => String(value || "").replace(/[&<>'"]/g, (character) => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[character]));
+    const form = proof.querySelector("#home-review-form");
+    const text = proof.querySelector("#home-review-text");
+    const submit = proof.querySelector("#home-review-submit");
+    const login = proof.querySelector("#home-review-login");
+    const status = proof.querySelector("#home-review-status");
+    const grid = proof.querySelector(".home-review-grid");
+    const setStatus = (value, error = false) => { status.textContent = value; status.classList.toggle("is-error", error); };
+    try {
+      if (!window.supabase) await loadScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2");
+      if (!window.GANKBYTE_XP_CONFIG) await loadScript("/xp-config.js?v=1");
+    } catch {
+      setStatus("Reviews are temporarily unavailable.", true);
+      return;
+    }
+    const config = window.GANKBYTE_XP_CONFIG || {};
+    if (!config.supabaseUrl || !config.supabasePublishableKey || !window.supabase) {
+      submit.disabled = true;
+      setStatus("The review service is not configured yet.", true);
+      return;
+    }
+    const client = window.supabase.createClient(config.supabaseUrl, config.supabasePublishableKey);
+    const renderReviews = (rows) => {
+      const fallback = (label) => '<article class="home-review-card"><span class="status-badge">' + label.toUpperCase() + ' REVIEW</span><p class="home-review-empty">The first ' + label.toLowerCase() + ' review will appear here after a real community member shares one.</p></article>';
+      const byType = (type, label) => rows.filter((row) => row.review_type === type).slice(0, 2).map((row) => '<article class="home-review-card"><span class="status-badge">' + label.toUpperCase() + ' REVIEW</span><blockquote>“' + escapeHomeText(row.review_text) + '”</blockquote><cite>' + escapeHomeText(row.display_name) + '</cite></article>').join("") || fallback(label);
+      grid.innerHTML = byType("player", "Player") + byType("developer", "Developer");
+    };
+    const loadReviews = async () => {
+      const result = await client.from("community_reviews").select("review_type,display_name,review_text,created_at").eq("status", "approved").order("created_at", { ascending: false }).limit(8);
+      if (result.error) { setStatus("Approved reviews could not be loaded.", true); return; }
+      renderReviews(result.data || []);
+    };
+    const updateSession = async (session) => {
+      const signedIn = Boolean(session?.user);
+      submit.hidden = !signedIn;
+      login.hidden = signedIn;
+      if (!signedIn) setStatus("Sign in with Discord to submit a review. All reviews require admin approval.");
+      else setStatus("Your review will remain private until an admin approves it.");
+    };
+    client.auth.onAuthStateChange((event, session) => window.setTimeout(() => updateSession(session), 0));
+    const sessionResult = await client.auth.getSession();
+    await updateSession(sessionResult.data.session);
+    login.addEventListener("click", async () => {
+      const result = await client.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: window.location.href } });
+      if (result.error) setStatus(result.error.message, true);
+    });
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const session = (await client.auth.getSession()).data.session;
+      if (!session?.user) { setStatus("Sign in with Discord before submitting a review.", true); return; }
+      const profile = await client.from("profiles").select("display_name").eq("id", session.user.id).maybeSingle();
+      const reviewText = text.value.trim();
+      submit.disabled = true;
+      const result = await client.from("community_reviews").insert({ user_id: session.user.id, review_type: form.review_type.value, display_name: profile.data?.display_name || "GankByte Player", review_text: reviewText, status: "pending" });
+      submit.disabled = false;
+      if (result.error) { setStatus(result.error.message, true); return; }
+      form.reset();
+      setStatus("Submitted for approval. It will appear here only after an admin publishes it.");
+    });
+    await loadReviews();
   }
 })();

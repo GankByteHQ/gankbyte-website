@@ -12,6 +12,8 @@
   const logout = $("admin-logout");
   const submissions = $("admin-submissions");
   const list = $("submission-list");
+  const reviewQueue = $("review-admin-reviews");
+  const reviewList = $("review-list");
   const arenaScores = $("arena-admin-scores");
   const arenaScoreList = $("arena-score-list");
   const glitchScores = $("glitch-admin-scores");
@@ -41,7 +43,7 @@
   function openRejectDialog(kind, event) {
     const card = event.target.closest(".admin-submission");
     pendingRejection = { kind, id: Number(card.dataset.id) };
-    const labels = { submission: "Community contribution", arena: "Byte Rush score", glitch: "Glitch Dash score" };
+    const labels = { submission: "Community contribution", review: "Community review", arena: "Byte Rush score", glitch: "Glitch Dash score" };
     rejectTitle.textContent = "Reject " + labels[kind].toLowerCase() + ".";
     rejectCopy.textContent = "The player will see this reason on their profile. A later resubmission will clear this notice.";
     rejectReason.value = "";
@@ -76,6 +78,23 @@
     if (result.error) { message(result.error.message, true); return; }
     message("Submission approved and XP recorded.");
     await loadSubmissions();
+  }
+
+  async function loadReviews() {
+    const result = await client.from("community_reviews").select("id,user_id,review_type,display_name,review_text,created_at").eq("status", "pending").order("created_at", { ascending: false });
+    if (result.error) { message(result.error.message, true); return; }
+    if (!result.data.length) { reviewList.innerHTML = '<div class="xp-empty">No pending community reviews.</div>'; return; }
+    reviewList.innerHTML = result.data.map((item) => '<article class="admin-submission review-submission" data-id="' + item.id + '"><div><span class="status-badge">Pending // ' + escapeHtml(item.review_type) + '</span><h3>' + escapeHtml(item.display_name) + '</h3><p>' + escapeHtml(item.review_text) + '</p></div><div class="admin-actions"><button class="button button-primary approve-review-button" type="button">Publish review</button><button class="button button-ghost reject-review-button" type="button">Reject</button></div></article>').join("");
+    reviewList.querySelectorAll(".approve-review-button").forEach((button) => button.addEventListener("click", approveReview));
+    reviewList.querySelectorAll(".reject-review-button").forEach((button) => button.addEventListener("click", (event) => openRejectDialog("review", event)));
+  }
+
+  async function approveReview(event) {
+    const card = event.target.closest(".review-submission");
+    const result = await client.from("community_reviews").update({ status: "approved", reviewer_id: currentUser.id, reviewed_at: new Date().toISOString(), reviewer_note: null }).eq("id", Number(card.dataset.id)).eq("status", "pending");
+    if (result.error) { message(result.error.message, true); return; }
+    message("Review approved and published on the homepage.");
+    await loadReviews();
   }
 
   async function loadArenaScores() {
@@ -160,7 +179,7 @@
     if (!pendingRejection || reason.length < 5) { rejectError.textContent = "Please provide at least five characters explaining the rejection."; return; }
     rejectConfirm.disabled = true;
     const fields = { status: "rejected", reviewer_id: currentUser.id, reviewed_at: new Date().toISOString(), reviewer_note: reason };
-    const table = pendingRejection.kind === "submission" ? "challenge_submissions" : pendingRejection.kind === "arena" ? "arena_scores" : "glitch_dash_scores";
+    const table = pendingRejection.kind === "submission" ? "challenge_submissions" : pendingRejection.kind === "review" ? "community_reviews" : pendingRejection.kind === "arena" ? "arena_scores" : "glitch_dash_scores";
     const result = await client.from(table).update(fields).eq("id", pendingRejection.id).eq("status", "pending");
     rejectConfirm.disabled = false;
     if (result.error) { rejectError.textContent = result.error.message; return; }
@@ -171,7 +190,7 @@
 
   async function refreshQueues() {
     refresh.disabled = true;
-    try { await Promise.all([loadSubmissions(), loadArenaScores(), loadGlitchScores(), loadArenaEvents()]); }
+    try { await Promise.all([loadSubmissions(), loadReviews(), loadArenaScores(), loadGlitchScores(), loadArenaEvents()]); }
     catch (error) { message(error?.message || "Could not refresh the review queues.", true); }
     finally { refresh.disabled = false; }
   }
@@ -182,15 +201,15 @@
       setBadge(ready ? "Discord login required" : "Backend setup needed", true);
       title.textContent = "XP admin";
       copy.textContent = ready ? "Sign in with Discord to continue." : "Add the Supabase project values before enabling admin access.";
-      login.hidden = false; refresh.hidden = true; logout.hidden = true; submissions.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; if (arenaEvents) arenaEvents.hidden = true;
+      login.hidden = false; refresh.hidden = true; logout.hidden = true; submissions.hidden = true; reviewQueue.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; if (arenaEvents) arenaEvents.hidden = true;
       return;
     }
     const profile = await client.from("profiles").select("display_name,is_admin").eq("id", currentUser.id).maybeSingle();
-    if (profile.error) { setBadge("Admin check unavailable", true); title.textContent = "Admin check failed"; copy.textContent = profile.error.message; login.hidden = true; refresh.hidden = true; logout.hidden = false; submissions.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; if (arenaEvents) arenaEvents.hidden = true; return; }
+    if (profile.error) { setBadge("Admin check unavailable", true); title.textContent = "Admin check failed"; copy.textContent = profile.error.message; login.hidden = true; refresh.hidden = true; logout.hidden = false; submissions.hidden = true; reviewQueue.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; if (arenaEvents) arenaEvents.hidden = true; return; }
     if (!profile.data || !profile.data.is_admin) {
-      setBadge("Access denied", true); title.textContent = "Not an admin"; copy.textContent = "This Discord account is not marked as a GankByte admin."; login.hidden = true; refresh.hidden = true; logout.hidden = false; submissions.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; if (arenaEvents) arenaEvents.hidden = true; return;
+      setBadge("Access denied", true); title.textContent = "Not an admin"; copy.textContent = "This Discord account is not marked as a GankByte admin."; login.hidden = true; refresh.hidden = true; logout.hidden = false; submissions.hidden = true; reviewQueue.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; if (arenaEvents) arenaEvents.hidden = true; return;
     }
-    setBadge("Admin connected"); title.textContent = profile.data.display_name || "GankByte Admin"; copy.textContent = "Review pending contributions, game scores, and Arena events below."; login.hidden = true; refresh.hidden = false; logout.hidden = false; submissions.hidden = false; arenaScores.hidden = false; glitchScores.hidden = false; if (arenaEvents) arenaEvents.hidden = false; await refreshQueues(); await loadArenaEvents();
+    setBadge("Admin connected"); title.textContent = profile.data.display_name || "GankByte Admin"; copy.textContent = "Review pending contributions, community reviews, game scores, and Arena events below."; login.hidden = true; refresh.hidden = false; logout.hidden = false; submissions.hidden = false; reviewQueue.hidden = false; arenaScores.hidden = false; glitchScores.hidden = false; if (arenaEvents) arenaEvents.hidden = false; await refreshQueues(); await loadArenaEvents();
   }
 
   if (!ready) {
