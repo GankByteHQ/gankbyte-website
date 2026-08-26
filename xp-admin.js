@@ -7,6 +7,7 @@
   const title = $("admin-title");
   const copy = $("admin-copy");
   const status = $("admin-status");
+  const adminTools = $("admin-tools");
   const login = $("admin-login");
   const refresh = $("admin-refresh");
   const logout = $("admin-logout");
@@ -218,15 +219,15 @@
       setBadge(ready ? "Discord login required" : "Backend setup needed", true);
       title.textContent = "XP admin";
       copy.textContent = ready ? "Sign in with Discord to continue." : "Add the Supabase project values before enabling admin access.";
-      login.hidden = false; refresh.hidden = true; logout.hidden = true; submissions.hidden = true; reviewQueue.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; if (arenaEvents) arenaEvents.hidden = true;
+      login.hidden = false; refresh.hidden = true; logout.hidden = true; adminTools.hidden = true; submissions.hidden = true; reviewQueue.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; if (arenaEvents) arenaEvents.hidden = true;
       return;
     }
     const profile = await client.from("profiles").select("display_name,is_admin").eq("id", currentUser.id).maybeSingle();
-    if (profile.error) { setBadge("Admin check unavailable", true); title.textContent = "Admin check failed"; copy.textContent = profile.error.message; login.hidden = true; refresh.hidden = true; logout.hidden = false; submissions.hidden = true; reviewQueue.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; if (arenaEvents) arenaEvents.hidden = true; return; }
+    if (profile.error) { setBadge("Admin check unavailable", true); title.textContent = "Admin check failed"; copy.textContent = profile.error.message; login.hidden = true; refresh.hidden = true; logout.hidden = false; adminTools.hidden = true; submissions.hidden = true; reviewQueue.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; if (arenaEvents) arenaEvents.hidden = true; return; }
     if (!profile.data || !profile.data.is_admin) {
-      setBadge("Access denied", true); title.textContent = "Not an admin"; copy.textContent = "This Discord account is not marked as a GankByte admin."; login.hidden = true; refresh.hidden = true; logout.hidden = false; submissions.hidden = true; reviewQueue.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; if (arenaEvents) arenaEvents.hidden = true; return;
+      setBadge("Access denied", true); title.textContent = "Not an admin"; copy.textContent = "This Discord account is not marked as a GankByte admin."; login.hidden = true; refresh.hidden = true; logout.hidden = false; adminTools.hidden = true; submissions.hidden = true; reviewQueue.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; if (arenaEvents) arenaEvents.hidden = true; return;
     }
-    setBadge("Admin connected"); title.textContent = profile.data.display_name || "GankByte Admin"; copy.textContent = "Review pending contributions, community reviews, game scores, and Arena events below."; login.hidden = true; refresh.hidden = false; logout.hidden = false; submissions.hidden = false; reviewQueue.hidden = false; arenaScores.hidden = false; glitchScores.hidden = false; if (arenaEvents) arenaEvents.hidden = false; await refreshQueues(); await loadArenaEvents();
+    setBadge("Admin connected"); title.textContent = profile.data.display_name || "GankByte Admin"; copy.textContent = "Choose a queue below to moderate contributions, reviews, scores, and Arena events."; login.hidden = true; refresh.hidden = false; logout.hidden = false; adminTools.hidden = false; submissions.hidden = false; reviewQueue.hidden = false; arenaScores.hidden = false; glitchScores.hidden = false; if (arenaEvents) arenaEvents.hidden = false; await refreshQueues(); await loadArenaEvents();
   }
 
   if (!ready) {

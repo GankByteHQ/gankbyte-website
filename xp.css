@@ -69,6 +69,19 @@
 .admin-dialog-actions .button{border:0;cursor:pointer}
 .admin-dialog-actions .button-ghost{appearance:none;background:var(--surface)!important;color:var(--text)!important;border:1px solid var(--line)!important}
 .admin-dialog-actions .button-ghost:hover{background:var(--surface-2)!important;border-color:var(--lime)!important;color:var(--lime)!important}
+.admin-tools{align-items:start;background:linear-gradient(120deg,rgba(198,255,61,.08),rgba(154,123,255,.07));border:1px solid rgba(198,255,61,.28);display:grid;gap:30px;grid-template-columns:minmax(210px,.65fr) minmax(0,1.35fr);margin-top:18px;padding:26px}
+.admin-tools h2{font-size:clamp(38px,4vw,58px);letter-spacing:-.07em;line-height:.94;margin:12px 0 14px}
+.admin-tools>div:first-child>p:last-child{color:var(--muted);font-size:13px;line-height:1.6;margin:0;max-width:260px}
+.admin-tools-grid{display:grid;gap:10px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.admin-tool-link{background:rgba(10,11,15,.52);border:1px solid var(--line);display:block;padding:16px;transition:border-color .2s ease,transform .2s ease}
+.admin-tool-link:hover{border-color:var(--lime);transform:translateY(-2px)}
+.admin-tool-link strong{display:block;font-size:14px;margin-bottom:6px}
+.admin-tool-link span{color:var(--muted);display:block;font-size:11px;line-height:1.5}
+.admin-queue-section{margin-top:58px}
+.admin-queue-section .section-heading{align-items:start;margin-bottom:24px}
+.admin-queue-section .section-heading h2{font-size:clamp(38px,4.4vw,60px)}
+.admin-queue-section .section-intro{font-size:13px;max-width:390px}
+.admin-queue-section .admin-submission:last-child{margin-bottom:0}
 @media(max-width:800px){.xp-rules,.level-list{grid-template-columns:1fr}}
 @media(max-width:800px){.xp-console,.xp-submit-panel{display:block}.xp-score-panel{margin-top:14px}.xp-submit-panel form{margin-top:28px}.admin-submission{align-items:flex-start;display:block}.admin-actions{margin-top:22px}}
 .xp-submission-history{margin-bottom:14px;margin-top:14px}.xp-submission-history .section-heading{align-items:start;margin-bottom:22px}.xp-submission-history .section-heading h3{font-size:28px;letter-spacing:-.05em;margin:0}.xp-submission-history .section-intro{font-size:13px;max-width:420px}.xp-submission-history .leaderboard{min-width:680px}
@@ -77,3 +90,4 @@
 .xp-challenge-progress{margin-top:14px}.xp-challenge-progress .section-heading{align-items:start;margin-bottom:22px}.xp-challenge-progress .section-heading h3{font-size:28px;letter-spacing:-.05em;margin:0}.xp-challenge-progress .section-intro{font-size:13px;max-width:420px}.xp-challenge-progress .content-grid{margin-top:0}
 .event-admin-form{background:var(--surface);border:1px solid var(--line);padding:24px}.event-admin-form input,.event-admin-form select,.event-admin-form textarea{background:#0d0e12;border:1px solid var(--line);border-radius:0;color:var(--text);font:inherit;padding:12px;width:100%}.event-admin-form label{color:#77787c;display:block;font-size:9px;font-weight:700;letter-spacing:.16em;margin:0 0 8px;text-transform:uppercase}.event-admin-form .field-grid{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:14px}.event-admin-form input:focus-visible,.event-admin-form select:focus-visible,.event-admin-form textarea:focus-visible{border-color:var(--lime);outline:2px solid var(--lime);outline-offset:2px}.event-admin-form code{color:var(--lime)}
 @media(max-width:800px){.event-admin-form .field-grid{grid-template-columns:1fr}}
+@media(max-width:800px){.admin-tools{display:block;padding:22px}.admin-tools-grid{grid-template-columns:1fr;margin-top:24px}.admin-queue-section{margin-top:42px}}
