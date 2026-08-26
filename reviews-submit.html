@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a0b0f" />
+    <meta name="description" content="Submit a player or developer review for GankByte." />
+    <link rel="icon" href="gb-logo.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="site-spacing.css" />
+    <link rel="stylesheet" href="page-compact.css" />
+    <link rel="stylesheet" href="site-shell.css?v=8" data-site-shell-style="true" />
+    <link rel="canonical" href="https://gankbyte.com/reviews-submit.html" />
+    <meta property="og:title" content="Submit a Review — GankByte" />
+    <meta property="og:description" content="Share your player or developer experience with GankByte." />
+    <meta property="og:url" content="https://gankbyte.com/reviews-submit.html" />
+    <meta property="og:site_name" content="GankByte" />
+    <meta property="og:image" content="https://gankbyte.com/gankbyte-og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <title>Submit a Review &mdash; GankByte</title>
+  </head>
+  <body>
+    <header class="site-header shell">
+      <a class="brand" href="index.html" aria-label="GankByte home"><span class="brand-mark">GB</span><span>GANKBYTE</span></a>
+      <nav class="site-nav" aria-label="Main navigation"><a href="games.html">Games</a><a href="arena-hub.html">Arena</a><a href="developers.html">Developers</a><a href="community.html">Community</a><a href="reviews.html" aria-current="page">Reviews</a><a href="xp.html">XP</a><a href="roadmap.html">Roadmap</a></nav>
+      <a class="header-cta" href="https://discord.gg/CpWjZkjtjJ" target="_blank" rel="noreferrer">Join Discord <span>&nearr;</span></a>
+    </header>
+
+    <main>
+      <section class="page-hero shell review-submit-hero">
+        <p class="page-label">REVIEWS // SUBMIT</p>
+        <h1>Share your<br /><em>signal.</em></h1>
+        <p class="hero-lede">Tell people what it is like to play or build with GankByte. Every review is checked by an admin before it appears publicly.</p>
+      </section>
+
+      <section class="section shell review-submit-section" aria-labelledby="submit-review-heading">
+        <div class="review-submit-layout">
+          <div>
+            <p class="eyebrow">COMMUNITY VOICE</p>
+            <h2 id="submit-review-heading">What did you<br /><em>take part in?</em></h2>
+            <p class="section-copy">Choose the perspective that fits your experience. Keep it genuine, useful, and between 20 and 500 characters.</p>
+            <a class="text-link" href="reviews.html">View approved reviews <span>&nearr;</span></a>
+          </div>
+          <div class="review-form-card">
+            <div id="review-login-panel">
+              <span class="status-badge">DISCORD REQUIRED</span>
+              <h3>Sign in to submit.</h3>
+              <p>Use your Discord account so the review can be tied to a real community member.</p>
+              <button class="button button-primary" id="review-login-button" type="button">Sign in with Discord <span>&nearr;</span></button>
+              <p class="review-submit-status" id="review-login-status" aria-live="polite"></p>
+            </div>
+            <form id="review-submit-form" hidden>
+              <span class="status-badge">READY TO SEND</span>
+              <p class="review-signed-in" id="review-signed-in"></p>
+              <label for="review-type">Review type</label>
+              <select id="review-type" name="review_type">
+                <option value="player">Player review</option>
+                <option value="developer">Developer review</option>
+              </select>
+              <label for="review-text">Your review</label>
+              <textarea id="review-text" name="review_text" minlength="20" maxlength="500" required placeholder="What did you play or build, and what made it worth your time?"></textarea>
+              <button class="button button-primary" id="review-submit-button" type="submit">Submit for approval <span>&nearr;</span></button>
+              <p class="review-submit-status" id="review-submit-status" aria-live="polite"></p>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer shell"><div class="footer-top"><a class="brand" href="index.html"><span class="brand-mark">GB</span><span>GANKBYTE</span></a><p>Gaming. Memes. Code.</p><p class="footer-motto">BUILD. PLAY. GANK.</p></div><div class="footer-bottom"><div class="social-links"><a href="https://x.com/GankByte" target="_blank" rel="noreferrer">X</a><a href="https://www.youtube.com/@GankByte" target="_blank" rel="noreferrer">YouTube</a><a href="https://www.tiktok.com/@GankByte" target="_blank" rel="noreferrer">TikTok</a><a href="https://www.instagram.com/GankByte" target="_blank" rel="noreferrer">Instagram</a><a href="https://www.reddit.com/user/GankByteHQ" target="_blank" rel="noreferrer">Reddit</a><a href="https://github.com/GankByteHQ" target="_blank" rel="noreferrer">GitHub</a></div><a href="mailto:contact@gankbyte.com">contact@gankbyte.com</a><span>&copy; 2026 GankByte</span></div></footer>
+    <script src="xp-config.js?v=1"></script>
+    <script src="reviews-submit.js?v=1"></script>
+    <script src="footer-nav.js?v=5"></script>
+  </body>
+</html>

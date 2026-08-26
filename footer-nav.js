@@ -29,6 +29,7 @@
     const activePage = page === "arena.html" || page === "glitch-dash.html" || page === "arena-hub.html" ? "arena-hub.html"
       : page === "projects.html" || page === "contributing.html" || page === "project-submit.html" || page === "tools.html" || page === "fivem.html" || page === "fivem-tools.html" || page === "fivem-script-generator.html" ? "developers.html"
       : page === "challenges.html" ? "community.html"
+      : page === "reviews-submit.html" ? "reviews.html"
       : page === "xp-admin.html" || page === "xp-submit.html" || page === "xp-leaderboard.html" ? "xp.html"
       : page;
     mainNav.querySelectorAll("a[aria-current]").forEach((link) => link.removeAttribute("aria-current"));
@@ -43,6 +44,25 @@
       if (activePage === "reviews.html") link.setAttribute("aria-current", "page");
       const xpTarget = mainNav.querySelector('a[href$="xp.html"], .site-nav-dropdown');
       mainNav.insertBefore(link, xpTarget || null);
+    }
+    const reviewNavLink = mainNav.querySelector('a[href$="reviews.html"]');
+    if (reviewNavLink && !reviewNavLink.parentElement.classList.contains("site-nav-dropdown")) {
+      const baseHref = reviewNavLink.getAttribute("href");
+      const dropdown = document.createElement("details");
+      dropdown.className = "site-nav-dropdown";
+      const summary = document.createElement("summary");
+      summary.textContent = "Reviews";
+      if (reviewNavLink.getAttribute("aria-current")) summary.setAttribute("aria-current", "page");
+      const panel = document.createElement("div");
+      panel.className = "site-nav-dropdown-panel";
+      [[baseHref, "View Reviews"], [baseHref.replace("reviews.html", "reviews-submit.html"), "Submit a Review"]].forEach(([href, label]) => {
+        const link = document.createElement("a");
+        link.href = href;
+        link.textContent = label;
+        panel.append(link);
+      });
+      dropdown.append(summary, panel);
+      reviewNavLink.replaceWith(dropdown);
     }
     const xpLink = mainNav.querySelector('a[href$="xp.html"]');
     if (xpLink && !xpLink.parentElement.classList.contains("site-nav-dropdown")) {
