@@ -25,6 +25,7 @@
     <section class="page-hero shell character-hero"><p class="page-label">DEVELOPERS // FIVEM TOOL</p><h1>Make someone<br /><em>worth playing.</em></h1><p class="hero-lede">Build an original roleplay character with a proper name, personality, useful flaws, playable goals, and a backstory shaped around your server.</p></section>
     <section class="section shell character-section"><div class="character-grid">
       <aside class="content-card character-options"><p class="eyebrow">CONFIGURE</p><h2>Set the direction.</h2><form id="character-form">
+        <label>Name<select id="name-mode"><option value="random">Random name</option><option value="custom">Custom name</option></select><input id="custom-name" type="text" maxlength="60" placeholder="Enter the character name" hidden /></label>
         <label>Gender<select id="gender"><option value="random">Random</option><option>Female</option><option>Male</option><option>Non-binary</option></select></label>
         <label>Age range<select id="age"><option value="random">Random adult</option><option>18-24</option><option>25-34</option><option>35-49</option><option>50-69</option></select></label>
         <label>Origin<select id="origin"><option value="random">Random</option><option>Los Santos</option><option>Blaine County</option><option>Liberty City</option><option>Vice City</option><option>Out of state</option><option>International</option></select></label>
@@ -35,7 +36,7 @@
         <label>Detail level<select id="detail"><option value="standard">Standard</option><option value="detailed">Detailed</option><option value="deep">Deep RP profile</option></select></label>
         <label>Minimum characters <span class="optional">for the backstory</span><input id="minimum" type="number" min="200" max="3000" step="50" value="500" /></label>
         <label>City, server, or setting <span class="optional">optional</span><input id="setting" maxlength="80" placeholder="e.g. San Andreas, 1980s Liberty City" /></label>
-        <label>Extra direction <span class="optional">optional</span><textarea id="extra" rows="4" maxlength="300" placeholder="A secret, theme, faction, fear, or detail you want included..."></textarea></label>
+        <input id="extra" type="hidden" value="" />
         <button class="button button-primary generate-button" type="submit">Generate character <span>&nearr;</span></button>
       </form><p class="local-note">Generated locally in your browser. Nothing is uploaded.</p></aside>
       <section class="content-card character-result" aria-live="polite"><div class="result-empty" id="empty"><div class="result-mark">GB</div><h2>No character yet.</h2><p>Choose your direction and generate a character with a playable reason to exist.</p></div><article id="character-output" class="character-output" hidden></article><div class="result-actions" id="result-actions" hidden><button class="button button-primary" id="copy" type="button">Copy to clipboard <span>&nearr;</span></button><button class="button button-ghost" id="edit" type="button">Edit character</button><button class="button button-ghost" id="regenerate" type="button">Generate another</button></div><p id="result-status" class="result-status" role="status"></p></section>
@@ -69,6 +70,13 @@
       backstory.textContent=first+"\n\n"+pick(add);
     }
     form?.addEventListener("submit",()=>window.setTimeout(vary,0));
+  })();
+  </script>
+  <script>
+  (()=>{
+    const mode=document.getElementById("name-mode"),custom=document.getElementById("custom-name"),form=document.getElementById("character-form");
+    mode?.addEventListener("change",()=>{custom.hidden=mode.value!=="custom";if(!custom.hidden)custom.focus()});
+    form?.addEventListener("submit",()=>{if(mode.value!=="custom"||!custom.value.trim())return;window.setTimeout(()=>{const output=document.getElementById("character-output"),heading=output?.querySelector(".character-head h2");if(!heading)return;const old=heading.textContent.trim(),next=custom.value.trim();heading.textContent=next;output.querySelectorAll(".character-block p").forEach(p=>{p.textContent=p.textContent.split(old).join(next)});},0)});
   })();
   </script>
 </body>
