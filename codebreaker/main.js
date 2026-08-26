@@ -159,12 +159,15 @@
     canvasReady: false,
     onlineRows: [],
     onlineLoaded: false,
+    onlineError: false,
   };
 
   const app = document.getElementById("codebreaker-app");
   let canvasRaf = 0;
   let onlineClient = null;
   let onlineUser = null;
+
+  if (window.location.hash === "#leaderboard") state.screen = "leaderboard";
 
   boot();
   initOnline();
@@ -934,7 +937,11 @@
 
   async function initOnline() {
     const config = window.GANKBYTE_XP_CONFIG || {};
-    if (!window.supabase || !config.supabaseUrl || !config.supabasePublishableKey) return;
+    if (!window.supabase || !config.supabaseUrl || !config.supabasePublishableKey) {
+      state.onlineError = true;
+      if (state.screen === "leaderboard") render();
+      return;
+    }
     onlineClient = window.supabase.createClient(config.supabaseUrl, config.supabasePublishableKey);
     onlineClient.auth.onAuthStateChange((event, session) => {
       onlineUser = session?.user || null;
@@ -967,7 +974,12 @@
   async function loadOnlineLeaderboard() {
     if (!onlineClient) return;
     const result = await onlineClient.from("codebreaker_leaderboard").select("display_name,score,mode,level,combo,trace,lives,latest_run").order("score", { ascending: false }).limit(100);
-    if (result.error) return;
+    if (result.error) {
+      state.onlineLoaded = false;
+      state.onlineError = true;
+      if (state.screen === "leaderboard") render();
+      return;
+    }
     state.onlineRows = (result.data || []).map((row) => ({
       player: row.display_name || "GankByte Player",
       score: Number(row.score || 0),
@@ -979,6 +991,7 @@
       ts: Date.parse(row.latest_run) || Date.now()
     }));
     state.onlineLoaded = true;
+    state.onlineError = false;
     if (state.screen === "leaderboard") render();
   }
 
@@ -1180,7 +1193,7 @@
                 <li>Run modifiers change the timer, trace pressure, and score reward.</li>
                 <li>Five lives, trace pressure, combo scoring, powerups, and daily streaks.</li>
                 <li>Eight ranks, ten achievements, saved best stars, and local progression.</li>
-                <li>Local leaderboard, profile stats, and saved achievements.</li>
+                <li>Approved global scores, profile stats, and saved achievements.</li>
               </ul>
           </div>
           <div class="cb-card">
@@ -1489,43 +1502,24 @@
   }
 
   function leaderboardRows(tab, page = 0) {
-    if (state.onlineLoaded) {
-      const now = Date.now();
-      const filteredOnline = state.onlineRows.filter((run) => {
-        if (tab === "daily") return now - run.ts < 86400000;
-        if (tab === "weekly") return now - run.ts < 604800000;
-        return true;
-      });
-      return filteredOnline.slice(page * 10, page * 10 + 10);
-    }
-    const runs = loadJSON(storageKeys.runLog, []).slice();
-    runs.sort((a, b) => b.score - a.score || b.combo - a.combo || a.trace - b.trace);
+    if (!state.onlineLoaded) return [];
     const now = Date.now();
-    const filtered = runs.filter((run) => {
+    const filteredOnline = state.onlineRows.filter((run) => {
       if (tab === "daily") return now - run.ts < 86400000;
       if (tab === "weekly") return now - run.ts < 604800000;
       return true;
     });
-    return filtered.slice(page * 10, page * 10 + 10);
+    return filteredOnline.slice(page * 10, page * 10 + 10);
   }
 
   function leaderboardCount(tab) {
-    if (state.onlineLoaded) {
-      const now = Date.now();
-      return state.onlineRows.filter((run) => {
-        if (tab === "daily") return now - run.ts < 86400000;
-        if (tab === "weekly") return now - run.ts < 604800000;
-        return true;
-      }).length;
-    }
-    const runs = loadJSON(storageKeys.runLog, []).slice();
+    if (!state.onlineLoaded) return 0;
     const now = Date.now();
-    const filtered = runs.filter((run) => {
+    return state.onlineRows.filter((run) => {
       if (tab === "daily") return now - run.ts < 86400000;
       if (tab === "weekly") return now - run.ts < 604800000;
       return true;
-    });
-    return filtered.length;
+    }).length;
   }
 
   function renderLeaderboard() {
@@ -1533,13 +1527,22 @@
     const total = leaderboardCount(state.leaderboardTab);
     const from = Math.min(total, state.leaderboardPage * 10 + 1);
     const to = Math.min(total, state.leaderboardPage * 10 + rows.length);
+    const tabLabel = state.leaderboardTab === "daily" ? "today" : state.leaderboardTab === "weekly" ? "the last seven days" : "this board";
+    const boardState = state.onlineError
+      ? "The global leaderboard is temporarily unavailable. Try opening it again in a moment."
+      : !state.onlineLoaded
+        ? "Loading approved global scores..."
+        : rows.length
+          ? "Global scores update automatically after approved runs."
+          : `No approved scores on ${tabLabel} yet. Complete a run and publish your result to appear here.`;
+    const rangeLabel = total ? `Showing ${from}-${to} of ${total} entries.` : "No entries to show.";
     return `
       <section class="cb-screen cb-board">
         <div class="cb-screen-head">
           <div>
             <p class="cb-kicker">LEADERBOARD</p>
             <h2>All modes. One board.</h2>
-            <p class="cb-note">${state.onlineLoaded ? "Global scores update automatically after successful runs." : "Play locally, then sign in with Discord to publish successful runs globally."}</p>
+            <p class="cb-note">${boardState}</p>
           </div>
           <div class="cb-actions">
             <button class="cb-button" data-action="goto" data-screen="menu">Main menu</button>
@@ -1556,19 +1559,19 @@
               ${rows.length ? rows.map((row, i) => `
                 <tr class="${i === 0 ? "current" : ""}">
                   <td>${String(i + 1).padStart(2, "0")}</td>
-                  <td>${row.player || (i === 0 && state.score > 0 ? "YOU" : "GANKER")}</td>
+                  <td>${row.player}</td>
                   <td>${modeLabel(row.mode || state.mode)}</td>
                   <td>${String(row.level).padStart(2, "0")}</td>
                   <td>${Number(row.score).toLocaleString()}</td>
                   <td>x${row.combo}</td>
                   <td>${fmtDate(row.ts)}</td>
                 </tr>
-              `).join("") : '<tr><td colspan="7">No real scores yet. Complete a run and publish your result to appear here.</td></tr>'}
+              `).join("") : `<tr><td colspan="7">${escapeHtml(boardState)}</td></tr>`}
             </tbody>
           </table>
         </div>
         <div class="cb-page-controls">
-          <p class="cb-small">Showing ${from}-${to} of ${total} entries.</p>
+          <p class="cb-small">${rangeLabel}</p>
           <div class="cb-pagination">
             <button class="cb-page-button" data-action="leaderboard-page" data-dir="-1">Previous</button>
             <button class="cb-page-button" data-action="leaderboard-page" data-dir="1">Next</button>
