@@ -65,7 +65,7 @@
       const setting=document.getElementById("setting")?.value.trim()||"the city";
       const extra=document.getElementById("extra")?.value.trim();
       const first=backstory.textContent.trim();
-      const add=[`These days, ${setting} feels less like a destination and more like a test. ${pick(transitions)}`,`They still carry ${pick(details)}. It is not valuable, but leaving it behind would feel like admitting something.`,extra?`The detail they keep returning to is this: ${extra}.`:"They have learned to leave themselves one exit, even when they are pretending to settle in."]; 
+      const add=[`These days, ${setting} feels less like a destination and more like a test. ${pick(transitions)}`,`They still carry ${pick(details)}. It is not valuable, but leaving it behind would feel like admitting something.`,extra?`The detail they keep returning to is this: ${extra}.`:"They have learned to leave themselves one exit, even when they are pretending to settle in."];
       backstory.textContent=first+"\n\n"+pick(add);
     }
     form?.addEventListener("submit",()=>window.setTimeout(vary,0));
