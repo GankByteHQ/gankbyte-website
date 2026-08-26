@@ -1506,19 +1506,7 @@
       if (tab === "weekly") return now - run.ts < 604800000;
       return true;
     });
-    const top = filtered.slice(page * 10, page * 10 + 10);
-    while (top.length < 10) {
-      top.push({
-        ts: Date.now() - top.length * 86400000,
-        mode: tab === "daily" ? "daily" : tab === "weekly" ? "speedrun" : "campaign",
-        level: top.length + 1,
-        score: Math.max(0, 16000 - top.length * 780),
-        combo: 18 - top.length,
-        trace: 20 + top.length * 2,
-        lives: 5,
-      });
-    }
-    return top;
+    return filtered.slice(page * 10, page * 10 + 10);
   }
 
   function leaderboardCount(tab) {
@@ -1537,7 +1525,7 @@
       if (tab === "weekly") return now - run.ts < 604800000;
       return true;
     });
-    return filtered.length || 10;
+    return filtered.length;
   }
 
   function renderLeaderboard() {
@@ -1565,7 +1553,7 @@
           <table>
             <thead><tr><th>#</th><th>Player</th><th>Mode</th><th>Level</th><th>Score</th><th>Combo</th><th>Date</th></tr></thead>
             <tbody>
-              ${rows.map((row, i) => `
+              ${rows.length ? rows.map((row, i) => `
                 <tr class="${i === 0 ? "current" : ""}">
                   <td>${String(i + 1).padStart(2, "0")}</td>
                   <td>${row.player || (i === 0 && state.score > 0 ? "YOU" : "GANKER")}</td>
@@ -1575,7 +1563,7 @@
                   <td>x${row.combo}</td>
                   <td>${fmtDate(row.ts)}</td>
                 </tr>
-              `).join("")}
+              `).join("") : '<tr><td colspan="7">No real scores yet. Complete a run and publish your result to appear here.</td></tr>'}
             </tbody>
           </table>
         </div>

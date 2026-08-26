@@ -50,7 +50,7 @@ Run the site from a local web server so OAuth redirects and module-free browser 
 py -m http.server 8000
 ```
 
-Then open `http://localhost:8000`. A complete manual check should cover all three games, mobile touch controls, Discord sign-in, score submission, XP submission, profile history, and admin review.
+Then open `http://localhost:8000`. A complete manual check should cover all five games, mobile touch controls, Discord sign-in, score submission, XP submission, profile history, and admin review.
 
 ## Deployment
 

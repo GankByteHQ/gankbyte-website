@@ -13,7 +13,7 @@
   if (gameGrid && !gameGrid.querySelector('[data-game-card="byte-snatch"]')) {
     gameGrid.insertAdjacentHTML("beforeend", '<article class="live-game-card" data-game-card="byte-snatch"><img class="game-thumb" src="byte-snatch-thumb.svg" alt="Byte Snatch risk and reward arena" /><div class="live-game-card-body"><span class="status-badge">Playable now</span><h3>Byte Snatch</h3><p>Collect Bytes, build your multiplier, bank the score, and survive the glitches before they gank you.</p><ul><li>60-second risk-and-reward run</li><li>Banked score survives hits</li><li>Multipliers, power-ups, and touch controls</li><li>Global leaderboard, XP, and profile history</li></ul><p class="game-card-stat" data-game-stat="snatch">Personal best: loading</p><div class="hero-actions"><a class="button button-primary" href="byte-snatch.html">Play Byte Snatch <span>&nearr;</span></a><a class="text-link" href="byte-snatch.html#leaderboard">View leaderboard <span>&nearr;</span></a></div></div></article>');
   }
-  document.querySelectorAll(".section-intro").forEach((node) => { node.textContent = node.textContent.replace("Three games.", "Four games.").replace("Three games,", "Four games,"); });
+  document.querySelectorAll("h2, .section-intro").forEach((node) => { node.textContent = node.textContent.replace("Three games.", "Five games.").replace("Three games,", "Five games,").replace("Byte Rush, Glitch Dash, and Symbol Catch", "Byte Rush, Glitch Dash, Symbol Catch, Codebreaker, and Byte Snatch"); });
   Object.entries(cards).forEach(([name, card]) => {
     const target = document.querySelector(`[data-game-stat="${name}"]`);
     if (!target) return;
