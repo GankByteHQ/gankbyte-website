@@ -25,7 +25,7 @@
   if (header && mainNav && !header.querySelector(".mobile-nav-toggle")) {
     const page = window.location.pathname.split("/").pop() || "index.html";
     const activePage = page === "arena.html" || page === "glitch-dash.html" || page === "arena-hub.html" ? "arena-hub.html"
-      : page === "projects.html" || page === "contributing.html" || page === "project-submit.html" || page === "tools.html" || page === "fivem.html" ? "developers.html"
+      : page === "projects.html" || page === "contributing.html" || page === "project-submit.html" || page === "tools.html" || page === "fivem.html" || page === "fivem-tools.html" || page === "fivem-script-generator.html" ? "developers.html"
       : page === "challenges.html" ? "community.html"
       : page === "xp-admin.html" || page === "xp-submit.html" || page === "xp-leaderboard.html" ? "xp.html"
       : page;
