@@ -25,6 +25,7 @@ This repository contains the public GankByte landing page. The site is a lightwe
 - `projects.html` - live games, systems, and public developer projects
 - `project-submit.html` - the public project proposal route and review stages
 - `resource-bench.html` - browser-only Lua, FiveM, Python, Java, web, Minecraft, RuneLite, and SQL starter generator
+- `project-validator.html` - local-first project checks for FiveM, Lua, NUI, Python, JavaScript, Java, SQL, Minecraft, and RuneLite
 - `changelog.html` - dated release notes for shipped changes
 
 ## Gameplay media
