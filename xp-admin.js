@@ -81,19 +81,36 @@
   }
 
   async function loadReviews() {
-    const result = await client.from("community_reviews").select("id,user_id,review_type,display_name,review_text,created_at").eq("status", "pending").order("created_at", { ascending: false });
+    const result = await client.from("community_reviews").select("id,user_id,review_type,display_name,review_text,status,created_at").in("status", ["pending", "approved"]).order("created_at", { ascending: false });
     if (result.error) { message(result.error.message, true); return; }
-    if (!result.data.length) { reviewList.innerHTML = '<div class="xp-empty">No pending community reviews.</div>'; return; }
-    reviewList.innerHTML = result.data.map((item) => '<article class="admin-submission review-submission" data-id="' + item.id + '"><div><span class="status-badge">Pending // ' + escapeHtml(item.review_type) + '</span><h3>' + escapeHtml(item.display_name) + '</h3><p>' + escapeHtml(item.review_text) + '</p></div><div class="admin-actions"><button class="button button-primary approve-review-button" type="button">Publish review</button><button class="button button-ghost reject-review-button" type="button">Reject</button></div></article>').join("");
+    if (!result.data.length) { reviewList.innerHTML = '<div class="xp-empty">No pending or published community reviews.</div>'; return; }
+    reviewList.innerHTML = result.data.map((item) => {
+      const published = item.status === "approved";
+      const badge = published ? "Published // " : "Pending // ";
+      const actions = published
+        ? '<button class="button button-ghost remove-review-button" type="button">Remove published review</button>'
+        : '<button class="button button-primary approve-review-button" type="button">Publish review</button><button class="button button-ghost reject-review-button" type="button">Reject</button>';
+      return '<article class="admin-submission review-submission" data-id="' + item.id + '"><div><span class="status-badge">' + badge + escapeHtml(item.review_type) + '</span><h3>' + escapeHtml(item.display_name) + '</h3><p>' + escapeHtml(item.review_text) + '</p></div><div class="admin-actions">' + actions + '</div></article>';
+    }).join("");
     reviewList.querySelectorAll(".approve-review-button").forEach((button) => button.addEventListener("click", approveReview));
     reviewList.querySelectorAll(".reject-review-button").forEach((button) => button.addEventListener("click", (event) => openRejectDialog("review", event)));
+    reviewList.querySelectorAll(".remove-review-button").forEach((button) => button.addEventListener("click", removeReview));
   }
 
   async function approveReview(event) {
     const card = event.target.closest(".review-submission");
     const result = await client.from("community_reviews").update({ status: "approved", reviewer_id: currentUser.id, reviewed_at: new Date().toISOString(), reviewer_note: null }).eq("id", Number(card.dataset.id)).eq("status", "pending");
     if (result.error) { message(result.error.message, true); return; }
-    message("Review approved and published on the homepage.");
+    message("Review approved and published on the Reviews page.");
+    await loadReviews();
+  }
+
+  async function removeReview(event) {
+    const card = event.target.closest(".review-submission");
+    if (!window.confirm("Remove this published review from the Reviews page?")) return;
+    const result = await client.from("community_reviews").delete().eq("id", Number(card.dataset.id)).eq("status", "approved");
+    if (result.error) { message(result.error.message, true); return; }
+    message("Published review removed.");
     await loadReviews();
   }
 
