@@ -35,6 +35,15 @@
     mainNav.querySelectorAll("a").forEach((link) => {
       if (link.getAttribute("href") === activePage) link.setAttribute("aria-current", "page");
     });
+    const reviewsLink = mainNav.querySelector('a[href$="reviews.html"]');
+    if (!reviewsLink) {
+      const link = document.createElement("a");
+      link.href = "reviews.html";
+      link.textContent = "Reviews";
+      if (activePage === "reviews.html") link.setAttribute("aria-current", "page");
+      const xpTarget = mainNav.querySelector('a[href$="xp.html"], .site-nav-dropdown');
+      mainNav.insertBefore(link, xpTarget || null);
+    }
     const xpLink = mainNav.querySelector('a[href$="xp.html"]');
     if (xpLink && !xpLink.parentElement.classList.contains("site-nav-dropdown")) {
       const baseHref = xpLink.getAttribute("href");

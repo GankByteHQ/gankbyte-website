@@ -14,6 +14,22 @@
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
+.reviews-hero{align-items:end;display:flex;gap:30px;justify-content:space-between}
+.reviews-hero>div{max-width:620px}
+.reviews-grid{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.review-display-card{background:var(--surface);border:1px solid var(--line);min-height:220px;padding:24px}
+.review-display-card .status-badge{font-size:8px}
+.review-quotes{display:grid;gap:22px;margin-top:24px}
+.review-quote{border-top:1px solid var(--line);padding-top:18px}
+.review-quote:first-child{border-top:0;padding-top:0}
+.review-quote blockquote{color:var(--text);font-size:15px;line-height:1.65;margin:0 0 14px;max-width:560px}
+.review-quote cite{color:var(--lime);font-size:10px;font-style:normal;letter-spacing:.12em;text-transform:uppercase}
+.review-empty{color:var(--muted);font-size:13px;line-height:1.6;margin:32px 0 0;max-width:280px}
+@media(max-width:800px){
+  .reviews-hero{align-items:start;display:block}
+  .reviews-hero .button{margin-top:24px}
+  .reviews-grid{grid-template-columns:1fr}
+}
 
 /* Homepage orientation and featured-game presentation. */
 .home-paths{border-bottom:1px solid var(--line);display:grid;gap:34px;grid-template-columns:minmax(220px,.75fr) minmax(0,1.6fr);padding-bottom:70px;padding-top:70px}
