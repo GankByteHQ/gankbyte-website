@@ -84,7 +84,7 @@
   function applySettings(settings) {
     $("resource-name").value = settings.name || "gankbyte_demo";
     $("resource-author").value = settings.author || "GankByte Community";
-    $("resource-description").value = settings.description || "A small, testable resource starter.";
+    $("resource-description").value = settings.description || "A small, testable project starter.";
     $("resource-version").value = settings.version || "0.1.0";
     template.value = settings.template || "fivem";
     $("fx-version").value = settings.fxVersion || "cerulean";
@@ -116,7 +116,12 @@
   function restoreSettings() {
     try {
       const saved = JSON.parse(localStorage.getItem(storageKey) || "null");
-      if (saved) applySettings(saved);
+      if (saved) {
+        const migrated = saved.description === "A small, testable resource starter."
+          ? { ...saved, description: "A small, testable project starter." }
+          : saved;
+        applySettings(migrated);
+      }
     } catch { /* use defaults */ }
   }
 
