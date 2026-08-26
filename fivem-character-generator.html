@@ -97,5 +97,30 @@
     },10));
   })();
   </script>
+  <script>
+  (()=>{
+    const form=document.getElementById("character-form");
+    const swaps=[
+      [/grew up in ([^,]+), in a place where people learned early that/gi,"is from $1, where they figured out pretty young that"],
+      [/Their first real lesson came from watching/gi,"They first learned that after seeing"],
+      [/Since then,/gi,"After that,"],
+      [/has treated every promise, favour, and opportunity as something that needs to be checked twice\./gi,"double-checks promises and chances now. It's just how they are."],
+      [/They arrived in/gi,"They showed up in"],
+      [/a borrowed car and a short list of contacts/gi,"a borrowed car, a few numbers, and not much else"],
+      [/gave them a reason to be visible/gi,"was a good excuse to be out and about"],
+      [/Most people notice that/gi,"People usually notice"],
+      [/Fewer notice the habit of/gi,"Not many catch them"],
+      [/The current plan is simple on paper:/gi,"The plan sounds simple:"],
+      [/The problem is that/gi,"Only problem is,"],
+      [/It is not a dramatic mystery to them;/gi,"It isn't some big mystery;"],
+      [/In the city, that question is getting closer\./gi,"In this city, someone is bound to ask eventually."]
+    ];
+    form?.addEventListener("submit",()=>window.setTimeout(()=>{
+      document.querySelectorAll("#character-output .character-block p").forEach(paragraph=>{
+        swaps.forEach(([pattern,replacement])=>{paragraph.textContent=paragraph.textContent.replace(pattern,replacement)});
+      });
+    },5));
+  })();
+  </script>
 </body>
 </html>
