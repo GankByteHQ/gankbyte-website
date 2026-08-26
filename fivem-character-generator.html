@@ -82,5 +82,19 @@
     form?.addEventListener("submit",()=>{if(mode.value!=="custom"||!custom.value.trim())return;window.setTimeout(()=>{const output=document.getElementById("character-output"),heading=output?.querySelector(".character-head h2");if(!heading)return;const old=heading.textContent.trim(),next=custom.value.trim();heading.textContent=next;output.querySelectorAll(".character-block p").forEach(p=>{p.textContent=p.textContent.split(old).join(next)});},0)});
   })();
   </script>
+  <script>
+  (()=>{
+    const form=document.getElementById("character-form"),mode=document.getElementById("grammar-mode");
+    const typoSentences=["Somtimes freinds forget what they were suposed to do.","Peaple dont always remmember the importent parts.","Becuse things get diffrent, plans can go rong.","Its a litle hard to know whats realy hapening."];
+    const typoWords=text=>text.replace(/\bte\b/gi,"the").replace(/\b(waitin|gettin|lookin|arrivin|carryin|askin|workin|leavin|tryin|startin|turnin|makin|keepin|knowin|becomin|sayin|playin)\b/gi,word=>word.slice(0,-2)+"ing").replace(/\bdont\b/gi,"don't").replace(/\bactualy\b/gi,"actually").replace(/\balot\b/gi,"a lot").replace(/\bpromiss\b/gi,"promise").replace(/\bbecuase\b/gi,"because").replace(/\brealy\b/gi,"really").replace(/\bpeaple\b/gi,"people").replace(/\balwys\b/gi,"always").replace(/\bsomthing\b/gi,"something").replace(/\bdiffrent\b/gi,"different").replace(/\bbefor\b/gi,"before").replace(/\brite\b/gi,"right").replace(/\bfreind\b/gi,"friend");
+    const randomTypos=text=>typoWords(text).replace(/\b(the|don't|too|actually|because|really|people|always|something|different|before|right|friend|promise)\b/gi,word=>Math.random()<.2?({the:"te",don't:"dont",too:"to",actually:"actualy",because:"becuase",really:"realy",people:"peaple",always:"alwys",something:"somthing",different:"diffrent",before:"befor",right:"rite",friend:"freind",promise:"promiss"}[word.toLowerCase()]||word):word);
+    form?.addEventListener("submit",()=>window.setTimeout(()=>{
+      if(mode?.value!=="imperfect")return;
+      document.querySelectorAll("#character-output .character-block p").forEach(paragraph=>{
+        paragraph.textContent=randomTypos(paragraph.textContent)+" "+typoSentences[Math.floor(Math.random()*typoSentences.length)];
+      });
+    },10));
+  })();
+  </script>
 </body>
 </html>
