@@ -53,5 +53,23 @@
   function plain(){return $("character-output").innerText.replace(/\n{3,}/g,"\n\n").trim()}$("character-form").onsubmit=e=>{e.preventDefault();generate()};$("regenerate").onclick=generate;$("copy").onclick=()=>navigator.clipboard.writeText(plain()).then(()=>{$("result-status").textContent="Character copied to clipboard."});$("edit").onclick=()=>{const e=$("character-output"),on=e.contentEditable==="true";e.contentEditable=String(!on);$("edit").textContent=on?"Edit character":"Finish editing";$("result-status").textContent=on?"Edits saved for this page.":"Editing enabled. Change the text directly, then finish editing.";if(!on)e.focus()};
   })();
   </script>
+  <script>
+  (()=>{
+    const form=document.getElementById("character-form");
+    const pick=a=>a[Math.floor(Math.random()*a.length)];
+    const details=["a cracked phone with one saved number","a key that no longer opens anything","a faded photograph folded into their wallet","a cheap watch set five minutes fast","a jacket repaired so often the original colour is hard to see","a notebook filled with names and crossed-out addresses"];
+    const transitions=["They do not talk about that part unless they have to.","It is the sort of detail most people miss on a first meeting.","That story changes slightly depending on who is asking.","On a good day, this looks like caution. On a bad day, it looks like paranoia.","For now, they call it a temporary arrangement."];
+    function vary(){
+      const output=document.getElementById("character-output"),backstory=output?.querySelector(".character-block p");
+      if(!backstory)return;
+      const setting=document.getElementById("setting")?.value.trim()||"the city";
+      const extra=document.getElementById("extra")?.value.trim();
+      const first=backstory.textContent.trim();
+      const add=[`These days, ${setting} feels less like a destination and more like a test. ${pick(transitions)}`,`They still carry ${pick(details)}. It is not valuable, but leaving it behind would feel like admitting something.`,extra?`The detail they keep returning to is this: ${extra}.`:"They have learned to leave themselves one exit, even when they are pretending to settle in."]; 
+      backstory.textContent=first+"\n\n"+pick(add);
+    }
+    form?.addEventListener("submit",()=>window.setTimeout(vary,0));
+  })();
+  </script>
 </body>
 </html>
