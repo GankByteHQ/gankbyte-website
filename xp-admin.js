@@ -33,6 +33,7 @@
   let client = null;
   let currentUser = null;
   let pendingRejection = null;
+  const queueIds = new Set(["admin-submissions", "review-admin-reviews", "arena-admin-scores", "glitch-admin-scores", "arena-admin-events"]);
 
   function message(text, error) { status.textContent = text || ""; status.classList.toggle("is-error", Boolean(error)); }
   function escapeHtml(value) { return String(value || "").replace(/[&<>'"]/g, (character) => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[character])); }
@@ -40,6 +41,17 @@
   function dateTimeLocal(value) { if (!value) return ""; const date = new Date(value); if (Number.isNaN(date.getTime())) return ""; const pad = (part) => String(part).padStart(2, "0"); return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`; }
   function isoOrNull(value) { if (!value) return null; const date = new Date(value); return Number.isNaN(date.getTime()) ? null : date.toISOString(); }
   function setBadge(text, planned) { badge.textContent = text; badge.className = "status-badge" + (planned ? " planned" : ""); }
+  function scrollToQueue(id, behavior) {
+    if (!queueIds.has(id)) return false;
+    const target = $(id);
+    if (!target || target.hidden) return false;
+    window.setTimeout(() => target.scrollIntoView({ behavior: behavior || "smooth", block: "start" }), 0);
+    return true;
+  }
+  function scrollToHashQueue() {
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    if (id) scrollToQueue(id, "auto");
+  }
 
   function openRejectDialog(kind, event) {
     const card = event.target.closest(".admin-submission");
@@ -227,7 +239,7 @@
     if (!profile.data || !profile.data.is_admin) {
       setBadge("Access denied", true); title.textContent = "Not an admin"; copy.textContent = "This Discord account is not marked as a GankByte admin."; login.hidden = true; refresh.hidden = true; logout.hidden = false; adminTools.hidden = true; submissions.hidden = true; reviewQueue.hidden = true; arenaScores.hidden = true; glitchScores.hidden = true; if (arenaEvents) arenaEvents.hidden = true; return;
     }
-    setBadge("Admin connected"); title.textContent = profile.data.display_name || "GankByte Admin"; copy.textContent = "Choose a queue below to moderate contributions, reviews, scores, and Arena events."; login.hidden = true; refresh.hidden = false; logout.hidden = false; adminTools.hidden = false; submissions.hidden = false; reviewQueue.hidden = false; arenaScores.hidden = false; glitchScores.hidden = false; if (arenaEvents) arenaEvents.hidden = false; await refreshQueues(); await loadArenaEvents();
+    setBadge("Admin connected"); title.textContent = profile.data.display_name || "GankByte Admin"; copy.textContent = "Choose a queue below to moderate contributions, reviews, scores, and Arena events."; login.hidden = true; refresh.hidden = false; logout.hidden = false; adminTools.hidden = false; submissions.hidden = false; reviewQueue.hidden = false; arenaScores.hidden = false; glitchScores.hidden = false; if (arenaEvents) arenaEvents.hidden = false; await refreshQueues(); await loadArenaEvents(); scrollToHashQueue();
   }
 
   if (!ready) {
@@ -242,6 +254,14 @@
   login.addEventListener("click", async () => { if (!client) return; const result = await client.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: window.location.origin + window.location.pathname } }); if (result.error) message(result.error.message, true); });
   logout.addEventListener("click", async () => { if (client) await client.auth.signOut(); });
   refresh.addEventListener("click", refreshQueues);
+  adminTools?.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener("click", (event) => {
+    const id = link.getAttribute("href").slice(1);
+    if (!scrollToQueue(id)) return;
+    event.preventDefault();
+    window.history.replaceState(null, "", "#" + id);
+    scrollToQueue(id, "smooth");
+  }));
+  window.addEventListener("hashchange", scrollToHashQueue);
   arenaEventForm?.addEventListener("submit", saveArenaEvent);
   $("event-form-clear")?.addEventListener("click", () => { arenaEventForm?.reset(); if (eventFormStatus) eventFormStatus.textContent = ""; });
   rejectForm.addEventListener("submit", submitRejection);

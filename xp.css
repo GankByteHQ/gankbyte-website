@@ -78,6 +78,7 @@
 .admin-tool-link strong{display:block;font-size:14px;margin-bottom:6px}
 .admin-tool-link span{color:var(--muted);display:block;font-size:11px;line-height:1.5}
 .admin-queue-section{margin-top:58px}
+.admin-queue-section{scroll-margin-top:34px}
 .admin-queue-section .section-heading{align-items:start;margin-bottom:24px}
 .admin-queue-section .section-heading h2{font-size:clamp(38px,4.4vw,60px)}
 .admin-queue-section .section-intro{font-size:13px;max-width:390px}
