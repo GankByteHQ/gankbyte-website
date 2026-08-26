@@ -35,15 +35,20 @@
     });
   }
 
-  async function refreshAuth() {
-    const result = await client.auth.getSession();
-    const session = result.data && result.data.session;
-    loginPanel.hidden = Boolean(session);
-    form.hidden = !session;
-    if (session) {
-      const metadata = session.user.user_metadata || {};
-      signedIn.textContent = "Signed in as " + (metadata.full_name || metadata.name || session.user.email || "GankByte member") + ".";
+  function renderAuthUser(user) {
+    loginPanel.hidden = Boolean(user);
+    form.hidden = !user;
+    if (user) {
+      const metadata = user.user_metadata || {};
+      signedIn.textContent = "Signed in as " + (metadata.full_name || metadata.name || user.email || "GankByte member") + ".";
     }
+  }
+
+  async function refreshAuth() {
+    if (window.GANKBYTE_AUTH?.client) client = window.GANKBYTE_AUTH.client;
+    if (!client) return;
+    const result = await client.auth.getSession();
+    renderAuthUser(result.data && result.data.session ? result.data.session.user : null);
   }
 
   loginButton.addEventListener("click", async function () {
@@ -85,10 +90,14 @@
 
   (async function init() {
     try {
+      window.addEventListener("gankbyte:auth-state", function (event) {
+        client = event.detail.client || client;
+        renderAuthUser(event.detail.user || null);
+      });
       if (!window.supabase) await loadScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2");
       const config = window.GANKBYTE_XP_CONFIG;
       if (!config) throw new Error("GankByte connection settings are unavailable.");
-      client = window.supabase.createClient(config.supabaseUrl, config.supabasePublishableKey);
+      client = window.GANKBYTE_AUTH?.client || window.supabase.createClient(config.supabaseUrl, config.supabasePublishableKey);
       await refreshAuth();
       client.auth.onAuthStateChange(function () { refreshAuth(); });
     } catch (error) {
