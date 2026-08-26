@@ -5,7 +5,7 @@
     byte: { bestKey: "gankbyte-byte-rush-best", lastPlayedKey: "gankbyte-byte-rush-last-played", view: "arena_leaderboard", table: "arena_scores", label: "Byte Rush" },
     glitch: { bestKey: "gankbyte-glitch-dash-best", lastPlayedKey: "gankbyte-glitch-dash-last-played", view: "glitch_dash_leaderboard", table: "glitch_dash_scores", label: "Glitch Dash" },
     symbol: { bestKey: "gankbyte-symbol-catch-best", lastPlayedKey: "gankbyte-symbol-catch-last-played", view: "symbol_catch_leaderboard", table: "symbol_catch_scores", label: "Symbol Catch" },
-    codebreaker: { bestKey: "gankbyte-codebreaker-best", lastPlayedKey: "gankbyte-codebreaker-last-played", label: "Codebreaker" },
+    codebreaker: { bestKey: "gankbyte-codebreaker-best", lastPlayedKey: "gankbyte-codebreaker-last-played", view: "codebreaker_leaderboard", table: "codebreaker_scores", label: "Codebreaker" },
     snatch: { bestKey: "gankbyte-byte-snatch-best", lastPlayedKey: "gankbyte-byte-snatch-last-played", view: "byte_snatch_leaderboard", table: "byte_snatch_scores", label: "Byte Snatch" }
   };
   const format = (value) => Number(value || 0).toLocaleString();
