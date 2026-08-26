@@ -84,10 +84,7 @@ function download(name,text,type){const a=document.createElement("a");a.href=URL
 function markdown(p){return["# "+p.name,"","> "+p.tagline,"","## What it does",p.description,"","## Core concept",p.concept,"","## Core features"].concat(p.features.map(x=>"- "+x),["","## Technical requirements","Dependencies: "+p.dependencies.join(", "),"","Database tables: "+p.tables.join(", "),"","## File structure"],p.files.client.concat(p.files.server,p.files.shared).map(x=>"- "+x),["","## Implementation roadmap"],p.steps.map(function(x,i){return(i+1)+". **"+x[0]+"** - "+x[1]}),[""]).join("\n")}
 const originalRenderPlan=renderPlan;
 renderPlan=function(){
- if(currentPlan){delete currentPlan.price;currentPlan.buildPath="Custom build available on request";}
  originalRenderPlan();
- const stats=document.querySelectorAll("#result-content .result-stat");
- if(stats[2])stats[2].innerHTML="<span>Build path</span><strong>Custom request</strong>";
  const actions=$("result-content").querySelector(".result-actions");
  if(!actions)return;
  const request=document.createElement("div");
