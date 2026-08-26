@@ -39,6 +39,7 @@
       licence: "https://github.com/GankByteHQ/gankbyte-lua-kit/blob/main/LICENSE"
     },
     "Resource Bench": {
+      statusLabel: "Featured developer project",
       tryLabel: "Try it",
       tryUrl: "resource-bench.html",
       source: "https://github.com/GankByteHQ/gankbyte-resource-bench",
@@ -77,6 +78,9 @@
     const title = card.querySelector("h3")?.textContent.trim();
     const project = projects[title];
     if (!project || card.querySelector(".project-actions")) return;
+
+    const status = card.querySelector(".status-badge");
+    if (status && project.statusLabel) status.textContent = project.statusLabel;
 
     card.querySelectorAll(":scope > a").forEach((anchor) => anchor.remove());
     const actions = document.createElement("div");
