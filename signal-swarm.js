@@ -9,6 +9,9 @@
   const H = canvas.height;
   const gravity = 760;
   const signalHeight = 18;
+  const terrainTile = 4;
+  const terrainWidth = Math.ceil(W / terrainTile);
+  const terrainHeight = Math.ceil(H / terrainTile);
   const skillKeys = ["climber", "floater", "bomber", "blocker", "builder", "basher", "miner", "digger"];
   const skillNames = {
     climber: "CLIMBER", floater: "FLOATER", bomber: "BOMBER", blocker: "BLOCKER",
@@ -55,7 +58,7 @@
   const statsKey = "gankbyte-signal-swarm-stats";
   const achievementsKey = "gankbyte-signal-swarm-achievements";
 
-  let platforms = [], walls = [], exits = [], spawnPoint = { x: 90, y: 50 };
+  let platforms = [], walls = [], exits = [], spawnPoint = { x: 90, y: 50 }, terrain = new Uint8Array(terrainWidth * terrainHeight);
   let running = false, paused = false, finished = false, lastFrame = 0, elapsed = 0;
   let score = 0, saved = 0, lost = 0, combo = 1, bestCombo = 1, fastestRescue = null, speed = 0;
   let selectedAbility = "climber", charges = {}, signals = [], corruption = [], bridges = [], particles = [];
@@ -68,6 +71,25 @@
   const format = (value) => Number(value || 0).toLocaleString();
   const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   const escapeHtml = (value) => String(value || "").replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[character]));
+
+  function terrainIndex(x, y) { return y * terrainWidth + x; }
+  function terrainRect(x1, y1, x2, y2, value = 1) {
+    const left = clamp(Math.floor(Math.min(x1, x2) / terrainTile), 0, terrainWidth - 1);
+    const right = clamp(Math.ceil(Math.max(x1, x2) / terrainTile), 0, terrainWidth);
+    const top = clamp(Math.floor(Math.min(y1, y2) / terrainTile), 0, terrainHeight - 1);
+    const bottom = clamp(Math.ceil(Math.max(y1, y2) / terrainTile), 0, terrainHeight);
+    for (let y = top; y < bottom; y += 1) for (let x = left; x < right; x += 1) terrain[terrainIndex(x, y)] = value;
+  }
+  function rebuildTerrain() {
+    terrain.fill(0);
+    platforms.forEach((platform) => terrainRect(platform.x1, platform.y, platform.x2, platform.y + 13, platform.built ? 2 : 1));
+    walls.forEach((wall) => terrainRect(wall.x - 7, wall.y1, wall.x + 7, wall.y2, 1));
+  }
+  function solidAt(x, y) {
+    const gx = Math.floor(x / terrainTile), gy = Math.floor(y / terrainTile);
+    return gx >= 0 && gx < terrainWidth && gy >= 0 && gy < terrainHeight && terrain[terrainIndex(gx, gy)] > 0;
+  }
+  function clearTerrain(x1, y1, x2, y2) { terrainRect(x1, y1, x2, y2, 0); }
 
   function localStats() { try { return JSON.parse(localStorage.getItem(statsKey) || "null") || { runs: 0, saved: 0, perfect: 0, bestCombo: 1 }; } catch { return { runs: 0, saved: 0, perfect: 0, bestCombo: 1 }; } }
   function achievement(name) { let list = []; try { list = JSON.parse(localStorage.getItem(achievementsKey) || "[]"); } catch { list = []; } if (!list.includes(name)) list.push(name); localStorage.setItem(achievementsKey, JSON.stringify(list)); }
@@ -91,6 +113,7 @@
       const platform = platforms[spot.platform % platforms.length];
       return { id: `glitch-${index}`, x: platform.x1 + (platform.x2 - platform.x1) * spot.ratio, y: platform.y - signalHeight, platformId: platform.id, pulse: random(0, 7) };
     });
+    rebuildTerrain();
   }
   function updateHud() {
     const currentLevel = getLevelPlan();
@@ -125,9 +148,10 @@
     const index = platforms.indexOf(platform); if (index < 0) return;
     const left = { ...platform, id: `${platform.id}-a`, x2: x - radius }; const right = { ...platform, id: `${platform.id}-b`, x1: x + radius };
     platforms.splice(index, 1); if (left.x2 - left.x1 > 18) platforms.push(left); if (right.x2 - right.x1 > 18) platforms.push(right);
+    rebuildTerrain();
   }
-  function addPlatform(x1, x2, y, direction, built = true) { const platform = { id: `built-${elapsed}-${Math.random()}`, x1: Math.min(x1, x2), x2: Math.max(x1, x2), y, d: direction, built }; platforms.push(platform); return platform; }
-  function removeWall(wall) { walls = walls.filter((item) => item !== wall); burst(wall.x, (wall.y1 + wall.y2) / 2, "#55e8ff", 20); }
+  function addPlatform(x1, x2, y, direction, built = true) { const platform = { id: `built-${elapsed}-${Math.random()}`, x1: Math.min(x1, x2), x2: Math.max(x1, x2), y, d: direction, built }; platforms.push(platform); rebuildTerrain(); return platform; }
+  function removeWall(wall) { walls = walls.filter((item) => item !== wall); rebuildTerrain(); burst(wall.x, (wall.y1 + wall.y2) / 2, "#55e8ff", 20); }
   function nearestSignal(point, maxDistance = 55) { return signals.filter((signal) => signal.alive && distance(signal, point) <= maxDistance).sort((a, b) => distance(a, point) - distance(b, point))[0]; }
   function selectedSignal(point) { return nearestSignal(point, 68) || signals.find((signal) => signal.alive && signal.id === selectedSignalId); }
   function assignSkill(name, point = target) {
@@ -172,21 +196,22 @@
   function updateBasher(signal, dt) {
     signal.actionClock += dt; if (signal.actionClock < .28) return; signal.actionClock = 0;
     const wall = wallAhead(signal, signal.x + signal.direction * 15); if (wall) { removeWall(wall); signal.x += signal.direction * 18; return; }
-    const platform = currentPlatform(signal); if (platform) { splitPlatformAt(platform, signal.x + signal.direction * 28, 18); signal.x += signal.direction * 14; }
+    const platform = currentPlatform(signal); if (platform) { splitPlatformAt(platform, signal.x + signal.direction * 28, 18); clearTerrain(signal.x - 20, platform.y - 18, signal.x + 20, platform.y + 3); signal.x += signal.direction * 14; }
     signal.state = "walking"; signal.platformId = currentPlatform(signal)?.id || signal.platformId; $("swarm-status").textContent = "Basher finished. The new route is open.";
   }
   function updateMiner(signal, dt) {
     signal.actionClock += dt; if (signal.actionClock < .26) return; signal.actionClock = 0;
-    const platform = currentPlatform(signal); if (platform) splitPlatformAt(platform, signal.x + signal.direction * 28, 20);
+    const platform = currentPlatform(signal); if (platform) { splitPlatformAt(platform, signal.x + signal.direction * 28, 20); clearTerrain(signal.x - 20, platform.y - 25, signal.x + 20, platform.y + 4); }
     signal.x += signal.direction * 13; signal.y += 9; signal.state = "falling"; signal.fallStartY = signal.y; signal.fallDistance = 0; signal.vy = 40; $("swarm-status").textContent = "Miner broke through. The Signal is dropping to the next route.";
   }
   function updateDigger(signal, dt) {
     signal.actionClock += dt; if (signal.actionClock < .24) return; signal.actionClock = 0;
-    const platform = currentPlatform(signal); if (platform) splitPlatformAt(platform, signal.x, 24); signal.y += 9; signal.state = "falling"; signal.fallStartY = signal.y; signal.fallDistance = 0; signal.vy = 40; $("swarm-status").textContent = "Digger opened a shaft. The Signal is falling through it.";
+    const platform = currentPlatform(signal); if (platform) { splitPlatformAt(platform, signal.x, 24); clearTerrain(signal.x - 12, platform.y - 4, signal.x + 12, H); } signal.y += 9; signal.state = "falling"; signal.fallStartY = signal.y; signal.fallDistance = 0; signal.vy = 40; $("swarm-status").textContent = "Digger opened a shaft. The Signal is falling through it.";
   }
   function updateWalking(signal, dt) {
     const platform = currentPlatform(signal); if (!platform) { signal.state = "falling"; signal.fallStartY = signal.y; signal.fallDistance = 0; return; }
     signal.platformId = platform.id; signal.y = platform.y - signalHeight; signal.lastSafeX = signal.x; signal.lastSafeY = signal.y;
+    if (!solidAt(signal.x, signal.y + signalHeight + 2)) { signal.state = "falling"; signal.fallStartY = signal.y; signal.fallDistance = 0; signal.vy = 20; return; }
     if (signal.bombAt && elapsed >= signal.bombAt) { explode(signal); return; }
     const step = Math.abs(signal.vx) * speedFactors[speed] * dt; const nextX = signal.x + signal.direction * step; const exit = exits[0];
     if (platform.id === exit.platformId && (nextX >= platform.x2 - 3 || nextX <= platform.x1 + 3)) { signal.x = nextX; rescue(signal); return; }
