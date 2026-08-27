@@ -287,20 +287,34 @@
   }
   function collide(a, b) { return Math.abs(a.x - b.x) < (a.width + b.width) / 2 && Math.abs(a.y - b.y) < (a.height + b.height) / 2; }
   function updateFormation(dt) {
-    const normal = enemies.filter((enemy) => !enemy.boss);
-    const edge = normal.some((enemy) => enemy.x + enemy.width / 2 > WIDTH - 32 || enemy.x - enemy.width / 2 < 32);
+    // Splitter fragments are independent projectiles, not formation members.
+    // Including them here made Wave 4 drop the whole formation unexpectedly.
+    const formation = enemies.filter((enemy) => !enemy.boss && enemy.type !== "fragment");
+    const fragments = enemies.filter((enemy) => enemy.type === "fragment");
+    const edge = formation.some((enemy) => enemy.x + enemy.width / 2 > WIDTH - 32 || enemy.x - enemy.width / 2 < 32);
     if (edge && wallCooldown <= 0) {
       formationDirection *= -1;
-      normal.forEach((enemy) => { enemy.y += 16; });
+      formation.forEach((enemy) => { enemy.y += 16; });
       wallCooldown = .35;
     }
-    normal.forEach((enemy) => {
-      const speed = formationSpeed * (enemy.type === "fast" ? 1.65 : enemy.type === "fragment" ? 1.2 : 1);
-      if (enemy.type === "fragment") { enemy.x += enemy.vx * speed * dt; enemy.y += (18 + wave) * dt; }
-      else enemy.x += formationDirection * speed * dt;
+    const breached = [];
+    formation.forEach((enemy) => {
+      const speed = formationSpeed * (enemy.type === "fast" ? 1.65 : 1);
+      enemy.x += formationDirection * speed * dt;
       enemy.phase += dt;
-      if (enemy.y + enemy.height / 2 >= HEIGHT - 100) { damageCore(enemy.type === "tank" ? 14 : 8); enemy.y = HEIGHT - 130; }
+      if (enemy.y + enemy.height / 2 >= HEIGHT - 100) breached.push(enemy);
     });
+    fragments.forEach((enemy) => {
+      enemy.x += enemy.vx * formationSpeed * 1.2 * dt;
+      enemy.y += (18 + wave) * dt;
+      enemy.phase += dt;
+      if (enemy.y + enemy.height / 2 >= HEIGHT - 100) breached.push(enemy);
+    });
+    breached.forEach((enemy) => {
+      damageCore(enemy.type === "tank" ? 14 : 8);
+      burst(enemy.x, enemy.y, "#ff526b", 10);
+    });
+    if (breached.length) enemies = enemies.filter((enemy) => !breached.includes(enemy));
     enemies.filter((enemy) => enemy.boss).forEach((boss) => {
       boss.x = WIDTH / 2 + Math.sin(elapsed * (.65 + wave * .02)) * (WIDTH / 2 - 120);
       boss.y = 60 + Math.sin(elapsed * 1.3) * 16;
