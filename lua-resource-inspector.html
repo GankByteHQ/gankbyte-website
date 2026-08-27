@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0a0b0f" />
+  <meta name="description" content="A local-first Lua Resource Inspector for FiveM resources. Find missing manifest files, duplicate events, broken exports, unsafe loops, client/server mistakes, and secret leaks." />
+  <link rel="icon" href="gb-logo.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="site-spacing.css" />
+  <link rel="stylesheet" href="page-compact.css" />
+  <link rel="stylesheet" href="site-shell.css?v=9" data-site-shell-style="true" />
+  <link rel="stylesheet" href="lua-resource-inspector.css?v=1" />
+  <link rel="canonical" href="https://gankbyte.com/lua-resource-inspector.html" />
+  <meta property="og:title" content="Lua Resource Inspector - GankByte" />
+  <meta property="og:description" content="Inspect FiveM and Lua resources locally for practical structural problems and safer fixes." />
+  <meta property="og:url" content="https://gankbyte.com/lua-resource-inspector.html" />
+  <meta property="og:site_name" content="GankByte" />
+  <meta property="og:image" content="https://gankbyte.com/gankbyte-og.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Lua Resource Inspector - GankByte" />
+  <meta name="twitter:description" content="Local-first static checks for Lua and FiveM resources." />
+  <meta name="twitter:image" content="https://gankbyte.com/gankbyte-og.png" />
+  <title>Lua Resource Inspector &mdash; GankByte</title>
+</head>
+<body>
+  <header class="site-header shell">
+    <a class="brand" href="index.html" aria-label="GankByte home"><span class="brand-mark">GB</span><span>GANKBYTE</span></a>
+    <nav class="site-nav" aria-label="Main navigation"><a href="games.html">Games</a><a href="arena-hub.html">Arena</a><a href="developers.html" aria-current="page">Developers</a><a href="community.html">Community</a><a href="xp.html">XP</a><a href="roadmap.html">Roadmap</a></nav>
+    <a class="header-cta" href="https://discord.gg/CpWjZkjtjJ" target="_blank" rel="noreferrer">Join Discord <span>&nearr;</span></a>
+  </header>
+
+  <main id="main-content">
+    <section class="page-hero shell lua-hero">
+      <p class="page-label">DEVELOPERS // LUA // FIVEM</p>
+      <h1>Find the break<br /><em>inside the resource.</em></h1>
+      <p class="hero-lede">Inspect Lua and FiveM resources locally for broken structure, duplicate events, missing exports, unsafe loops, client/server mix-ups, and secrets before they become a server problem.</p>
+    </section>
+
+    <section class="section shell lua-section">
+      <div class="lua-input-card content-card">
+        <div class="lua-input-copy"><p class="eyebrow">LOCAL STATIC INSPECTION</p><h2>Load the resource.<br /><em>Read the signal.</em></h2><p>Choose a complete resource folder, load a ZIP, or paste Lua. The inspector reads text locally and does not run the resource, connect to FiveM, or upload your code.</p></div>
+        <div class="lua-input-controls">
+          <label class="lua-label" for="lua-platform">Resource focus<select id="lua-platform" class="lua-input"><option value="auto">Detect automatically</option><option value="fivem">FiveM resource</option><option value="lua">Lua project</option><option value="client">Client-side Lua</option><option value="server">Server-side Lua</option></select></label>
+          <div class="lua-upload-row"><button class="button button-primary" id="choose-lua-folder" type="button">Choose resource folder <span>&nearr;</span></button><button class="button button-ghost" id="choose-lua-zip" type="button">Load ZIP</button><input id="lua-folder" type="file" webkitdirectory multiple hidden /><input id="lua-zip" type="file" accept=".zip,application/zip" hidden /></div>
+          <p class="lua-or">or paste a Lua file, manifest, or error snippet</p>
+          <textarea id="lua-paste" class="lua-input lua-paste" rows="6" placeholder="Paste Lua or an error here..."></textarea>
+          <div class="lua-actions"><button class="button button-primary" id="analyze-lua" type="button">Inspect resource <span>&rarr;</span></button><button class="button button-ghost" id="clear-lua" type="button">Clear</button></div>
+        </div>
+        <p class="lua-status" id="lua-status" role="status" aria-live="polite">No resource loaded yet. Nothing leaves this browser.</p>
+      </div>
+
+      <div class="lua-summary" id="lua-summary" hidden></div>
+      <div class="lua-toolbar" id="lua-toolbar" hidden><div class="lua-filters" role="group" aria-label="Filter findings"><button class="lua-filter active" data-filter="all" type="button">All</button><button class="lua-filter" data-filter="error" type="button">Errors</button><button class="lua-filter" data-filter="warning" type="button">Warnings</button><button class="lua-filter" data-filter="info" type="button">Notes</button></div><label class="lua-search">Search findings<input id="lua-search" type="search" placeholder="event, export, Wait, manifest..." /></label><div class="lua-toolbar-actions"><button class="button button-ghost" id="copy-lua-report" type="button">Copy report</button><button class="button button-ghost" id="download-lua-report" type="button">Download report</button></div></div>
+
+      <div class="lua-report-grid" id="lua-report-grid" hidden><section class="content-card lua-findings-card"><div class="lua-heading-row"><div><p class="eyebrow">ACTIONABLE FINDINGS</p><h2 id="lua-report-title">Lua report</h2></div><span class="status-badge" id="lua-type-badge">Unknown project</span></div><div class="lua-findings" id="lua-findings"></div></section><aside class="content-card lua-inventory-card"><p class="eyebrow">INVENTORY</p><h2>What is inside.</h2><div id="lua-inventory" class="lua-inventory"></div><div class="lua-note"><strong>What this tool cannot prove</strong><p>It is static analysis, not a Lua interpreter or FiveM server. It cannot prove runtime behaviour, framework compatibility, database state, or whether an event is intentionally shared.</p></div></aside></div>
+
+      <section class="content-card lua-map-card" id="lua-map-card" hidden><div class="lua-heading-row"><div><p class="eyebrow">RESOURCE MAP</p><h2>Events and exports.</h2><p class="section-copy">See where events, NUI callbacks, and exports are declared, then compare them with the calls found elsewhere in the resource.</p></div><span class="status-badge" id="lua-map-count">0 items</span></div><div class="lua-map" id="lua-map"></div></section>
+
+      <section class="content-card lua-guide"><p class="eyebrow">WHAT IT CHECKS</p><h2>Useful checks for real resources.</h2><div class="lua-guide-grid"><div><strong>Structure</strong><p>Finds missing manifests, undeclared scripts, duplicate files, and broken local <code>require</code> paths.</p></div><div><strong>Events</strong><p>Maps registrations and triggers, highlights duplicate handlers, and flags event names with no local registration.</p></div><div><strong>Runtime safety</strong><p>Flags infinite loops without <code>Wait</code>, client-side HTTP calls, suspicious dynamic code, and likely side mistakes.</p></div><div><strong>Publishing</strong><p>Checks for tokens, passwords, webhooks, private keys, and files that should never be committed or shared.</p></div></div></section>
+    </section>
+  </main>
+
+  <footer class="site-footer shell"><div class="footer-top"><a class="brand" href="index.html"><span class="brand-mark">GB</span><span>GANKBYTE</span></a><p>Gaming. Memes. Code.</p><p class="footer-motto">BUILD. PLAY. GANK.</p></div><div class="footer-bottom"><div class="social-links"><a href="https://x.com/GankByte" target="_blank" rel="noreferrer">X</a><a href="https://discord.gg/CpWjZkjtjJ" target="_blank" rel="noreferrer">Discord</a><a href="https://github.com/GankByteHQ" target="_blank" rel="noreferrer">GitHub</a></div><a href="mailto:contact@gankbyte.com">contact@gankbyte.com</a><span>&copy; 2026 GankByte</span></div></footer>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" crossorigin="anonymous"></script>
+  <script src="footer-nav.js?v=9"></script>
+  <script src="lua-resource-inspector.js?v=1"></script>
+</body>
+</html>

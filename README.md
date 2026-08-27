@@ -28,6 +28,7 @@ This repository contains the public GankByte landing page. The site is a lightwe
 - `project-validator.html` - local-first project checks for FiveM, Lua, NUI, Python, JavaScript, Java, SQL, Minecraft, and RuneLite, with source evidence, dependency mapping, confidence/ignore controls, baseline comparison, Markdown/HTML/JSON reports, and safe starter templates
 - `minecraft-server-validator.html` - local-first Minecraft server folder and ZIP checks for server.properties, EULA, platform files, Java context, dependencies, and startup/crash logs
 - `nui-developer-toolkit.html` - local-first FiveM NUI checks for fxmanifest paths, HTML/CSS/JavaScript assets, Lua callbacks, message actions, and a safe static preview
+- `lua-resource-inspector.html` - local-first Lua/FiveM resource checks for manifests, files, requires, events, exports, NUI callbacks, unsafe loops, and exposed secrets
 - `config-tool.html` - local-first JSON, YAML, and TOML formatter, validator, converter, and comparison tool
 - `changelog.html` - dated release notes for shipped changes
 

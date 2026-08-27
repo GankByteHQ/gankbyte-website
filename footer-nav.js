@@ -295,5 +295,12 @@
   if (window.location.pathname.endsWith("/fivem.html") && toolsGrid && !toolsGrid.querySelector('[data-tool-card="nui"]')) {
     toolsGrid.insertAdjacentHTML("beforeend", '<article class="content-card" data-tool-card="nui"><span class="status-badge">Live tool</span><h3>NUI Developer Toolkit</h3><p>Trace a FiveM NUI resource locally and find broken paths, missing assets, callback mismatches, and silent message-action failures.</p><ul><li>fxmanifest.lua and ui_page checks</li><li>HTML, CSS, JavaScript, Lua, and asset mapping</li><li>Browser callback and SendNUIMessage checks</li><li>Safe static NUI preview</li><li>No source upload</li></ul><a class="button button-primary" href="nui-developer-toolkit.html">Open NUI toolkit <span>&nearr;</span></a></article>');
   }
+  const luaCard = '<article class="content-card" data-tool-card="lua"><span class="status-badge">Live tool</span><h3>Lua Resource Inspector</h3><p>Inspect a FiveM or Lua resource locally for missing files, broken requires, duplicate events, unsafe loops, NUI mismatches, and exposed secrets.</p><ul><li>Folder, ZIP, or paste input</li><li>Manifest and dependency checks</li><li>Event, export, and callback mapping</li><li>Actionable fixes with file locations</li><li>No source upload</li></ul><a class="button button-primary" href="lua-resource-inspector.html">Open Lua inspector <span>&nearr;</span></a></article>';
+  if (window.location.pathname.endsWith("/tools.html") && toolsGrid && !toolsGrid.querySelector('[data-tool-card="lua"]')) {
+    toolsGrid.insertAdjacentHTML("beforeend", luaCard);
+  }
+  if (window.location.pathname.endsWith("/fivem.html") && toolsGrid && !toolsGrid.querySelector('[data-tool-card="lua"]')) {
+    toolsGrid.insertAdjacentHTML("beforeend", luaCard);
+  }
 
 })();
