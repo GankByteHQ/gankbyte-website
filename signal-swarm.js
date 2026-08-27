@@ -129,7 +129,7 @@
     const startPlatform = platforms[0];
     const startWallTop = spawnPoint.y + 24;
     const startWallBottom = startPlatform.y - 3;
-    walls.push({ id: "start-left", x: clamp(spawnPoint.x - 30, 14, W - 14), y1: startWallTop, y2: startWallBottom });
+    walls.push({ id: "start-left", x: clamp(startPlatform.x1 + 7, 14, W - 14), y1: startWallTop, y2: startWallBottom });
     const last = platforms[platforms.length - 1];
     exit = { x: last.x2 - 28, y: last.y, platformId: last.id };
     terrain.fill(0);
