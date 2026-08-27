@@ -257,7 +257,7 @@
   function doAction(name) { ({ jump, attack, dash, counter, slide: () => { if (running && !paused) player.slide = .45; } }[name] || (() => {}))(); }
 
   const keys = new Set();
-  window.addEventListener("keydown", (event) => { const key = event.key.toLowerCase(); if (["arrowleft", "arrowright", "arrowup", "arrowdown", " ", "a", "d", "w", "s", "j", "k", "f", "shift", "escape", "r"].includes(key)) event.preventDefault(); keys.add(key); if (key === " " || key === "w" || key === "arrowup") jump(); if (key === "j" || key === "enter") attack(); if (key === "k") counter(); if (key === "shift") dash(); if (key === "f") activateFlow(); if (key === "escape") togglePause(); if (key === "r") start(); }, { passive: false });
+  window.addEventListener("keydown", (event) => { const key = event.key.toLowerCase(); if (["arrowleft", "arrowright", "arrowup", "arrowdown", " ", "a", "d", "w", "s", "e", "f", "g", "j", "k", "shift", "escape", "r"].includes(key)) event.preventDefault(); keys.add(key); if (key === "w" || key === "arrowup") jump(); if (key === " " || key === "shift") dash(); if (key === "f" || key === "j" || key === "enter") attack(); if (key === "g" || key === "k") counter(); if (key === "e") activateFlow(); if (key === "escape") togglePause(); if (key === "r") start(); }, { passive: false });
   window.addEventListener("keyup", (event) => keys.delete(event.key.toLowerCase()));
   document.querySelectorAll("[data-ninja-action]").forEach((button) => { button.addEventListener("click", () => doAction(button.dataset.ninjaAction)); });
   canvas.addEventListener("pointerdown", (event) => { pointerStart = { x: event.clientX, y: event.clientY }; canvas.setPointerCapture?.(event.pointerId); });

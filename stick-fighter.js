@@ -145,18 +145,18 @@
       limb(point(0, 43), point(-10, 48), point(16, 57), 5, "#55e8ff");
     } else if (kind === "punch") {
       // Punch: shoulder -> elbow -> fist, with the rear arm pulled back for balance.
-      limb(shoulder, point(18 + attackPhase * 8, 31 - attackPhase * 4), point(34 + attackPhase * 28, 30 - attackPhase * 5), 6, accent);
+      limb(shoulder, point(18 + attackPhase * 8, 31 - attackPhase * 4), point(34 + attackPhase * 28, 30 - attackPhase * 5), 6, glow);
       limb(point(0, 43), point(-14, 51), point(-24, 45 + gait * 2), 5, glow);
-      ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(x + facing * (34 + attackPhase * 28), y + 30 - attackPhase * 5, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(x + facing * (34 + attackPhase * 28), y + 30 - attackPhase * 5, 6, 0, Math.PI * 2); ctx.fill();
     } else if (kind === "kick") {
       // Kick: one knee lifts first, then the shin extends horizontally from the knee.
       limb(shoulder, point(16, 34), point(26, 45), 5, glow);
-      limb(hip, point(18 + attackPhase * 14, 68 - attackPhase * 17), point(38 + attackPhase * 38, 67 - attackPhase * 25), 7, accent);
-      ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(x + facing * (38 + attackPhase * 38), y + 67 - attackPhase * 25, 7, 0, Math.PI * 2); ctx.fill();
+      limb(hip, point(18 + attackPhase * 14, 68 - attackPhase * 17), point(38 + attackPhase * 38, 67 - attackPhase * 25), 7, glow);
+      ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(x + facing * (38 + attackPhase * 38), y + 67 - attackPhase * 25, 7, 0, Math.PI * 2); ctx.fill();
     } else if (kind === "special") {
-      limb(shoulder, point(20 + attackPhase * 8, 27), point(48 + attackPhase * 22, 27), 6, "#c6ff3d");
-      limb(point(0, 44), point(20 + attackPhase * 8, 52), point(44 + attackPhase * 22, 51), 6, "#c6ff3d");
-      ctx.fillStyle = "#c6ff3d"; ctx.beginPath(); ctx.arc(x + facing * (48 + attackPhase * 22), y + 27, 6, 0, Math.PI * 2); ctx.arc(x + facing * (44 + attackPhase * 22), y + 51, 6, 0, Math.PI * 2); ctx.fill();
+      limb(shoulder, point(20 + attackPhase * 8, 27), point(48 + attackPhase * 22, 27), 6, glow);
+      limb(point(0, 44), point(20 + attackPhase * 8, 52), point(44 + attackPhase * 22, 51), 6, glow);
+      ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(x + facing * (48 + attackPhase * 22), y + 27, 6, 0, Math.PI * 2); ctx.arc(x + facing * (44 + attackPhase * 22), y + 51, 6, 0, Math.PI * 2); ctx.fill();
     } else {
       limb(shoulder, point(16, 35 + gait * 7), point(26, 45 + gait * 10), 5, glow);
       limb(point(0, 43), point(-15, 49 - gait * 7), point(-24, 43 - gait * 10), 5, glow);
