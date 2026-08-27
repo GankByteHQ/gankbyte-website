@@ -147,10 +147,18 @@
     return supportAt(signal.x, bottom);
   }
   function wallAhead(signal, nextX) {
-    return walls.find((wall) => Math.abs(wall.x - nextX) < 10 && signal.y + signalHeight > wall.y1 - 18 && signal.y < wall.y2 + 8) || null;
+    return walls.find((wall) => {
+      const ahead = signal.direction > 0 ? wall.x >= signal.x - 2 : wall.x <= signal.x + 2;
+      return ahead && Math.abs(wall.x - nextX) < 10 && signal.y + signalHeight > wall.y1 - 18 && signal.y < wall.y2 + 8;
+    }) || null;
   }
   function glitchAt(signal, nextX) { return corruption.find((glitch) => Math.abs(glitch.x - nextX) < 14 && Math.abs(glitch.y - signal.y) < 19) || null; }
-  function blockerAhead(signal, nextX) { return signals.find((other) => other !== signal && other.alive && other.state === "blocked" && Math.abs(other.y - signal.y) < 15 && Math.abs(other.x - nextX) < 16) || null; }
+  function blockerAhead(signal, nextX) {
+    return signals.find((other) => {
+      const ahead = signal.direction > 0 ? other.x >= signal.x - 2 : other.x <= signal.x + 2;
+      return other !== signal && other.alive && other.state === "blocked" && ahead && Math.abs(other.y - signal.y) < 15 && Math.abs(other.x - nextX) < 16;
+    }) || null;
+  }
   function turnSignal(signal, message) { signal.direction *= -1; signal.vx = Math.abs(signal.vx) * signal.direction; signal.x += signal.direction * 5; signal.dangerCooldown = elapsed + .65; combo = 1; $("swarm-status").textContent = message || "The route turned this Signal around."; burst(signal.x, signal.y, "#ff4f68", 12); }
   function splitPlatformAt(platform, x, radius = 22) {
     const index = platforms.indexOf(platform); if (index < 0) return;
