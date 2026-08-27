@@ -46,7 +46,8 @@
             <div><span class="hud-label">TIME</span><strong id="swarm-time">60</strong></div>
             <div><span class="hud-label">COMBO</span><strong id="swarm-combo">x1</strong></div>
             <div><span class="hud-label">LOST</span><strong id="swarm-lost">0</strong></div>
-            <div><span class="hud-label">PHASE</span><strong id="swarm-phase">1</strong></div>
+            <div><span class="hud-label">LEVEL</span><strong id="swarm-phase">1 / 3</strong></div>
+            <div><span class="hud-label">GOAL</span><strong id="swarm-goal">0% / 50%</strong></div>
             <div><span class="hud-label">SPEED</span><strong id="swarm-speed-label">SAFE</strong></div>
             <div><span class="hud-label">POWER</span><strong id="swarm-power">NONE</strong></div>
           </div>
@@ -56,7 +57,7 @@
             <div class="signal-message" id="signal-message"><strong>READY?</strong><span>Signals walk on their own. Keep them alive across the drops and get them to the exit.</span></div>
             <div class="signal-collapse" id="signal-collapse" aria-live="assertive"></div>
           </div>
-          <p class="touch-hint signal-touch-hint">Signals move automatically like a Lemmings-style rescue run. Tap an ability, then tap a Signal, gap, or hazard. Drag the board to inspect the network.</p>
+            <p class="touch-hint signal-touch-hint">Signals move automatically like a Lemmings-style rescue run. Rescue the required percentage before the level ends. Tap an ability, then tap a Signal, gap, or hazard. Drag the board to inspect the network.</p>
 
           <div class="signal-speed-control">
             <div><label for="swarm-speed">Signal speed</label><small>Higher speed earns more but spreads corruption faster.</small></div>
@@ -65,10 +66,10 @@
           </div>
 
           <div class="signal-abilities" aria-label="Signal Swarm abilities">
-            <button class="signal-ability is-selected" type="button" data-ability="redirect" aria-label="Redirect, 9 charges"><kbd>1</kbd><span>Redirect</span><b id="charges-redirect">9</b></button>
-            <button class="signal-ability" type="button" data-ability="bridge" aria-label="Bridge, 8 charges"><kbd>2</kbd><span>Bridge</span><b id="charges-bridge">8</b></button>
-            <button class="signal-ability" type="button" data-ability="cleanse" aria-label="Cleanse, 8 charges"><kbd>3</kbd><span>Cleanse</span><b id="charges-cleanse">8</b></button>
-            <button class="signal-ability" type="button" data-ability="pulse" aria-label="Signal Pulse, 4 charges"><kbd>4</kbd><span>Pulse</span><b id="charges-pulse">4</b></button>
+            <button class="signal-ability is-selected" type="button" data-ability="redirect" aria-label="Redirect, 10 charges"><kbd>1</kbd><span>Redirect</span><b id="charges-redirect">10</b></button>
+            <button class="signal-ability" type="button" data-ability="bridge" aria-label="Bridge, 10 charges"><kbd>2</kbd><span>Bridge</span><b id="charges-bridge">10</b></button>
+            <button class="signal-ability" type="button" data-ability="cleanse" aria-label="Cleanse, 10 charges"><kbd>3</kbd><span>Cleanse</span><b id="charges-cleanse">10</b></button>
+            <button class="signal-ability" type="button" data-ability="pulse" aria-label="Signal Pulse, 5 charges"><kbd>4</kbd><span>Pulse</span><b id="charges-pulse">5</b></button>
             <button class="signal-ability" type="button" data-ability="recall" aria-label="Emergency Recall, 3 charges"><kbd>5</kbd><span>Recall</span><b id="charges-recall">3</b></button>
             <button class="signal-ability" type="button" data-ability="blocker" aria-label="Blocker, 5 charges"><kbd>6</kbd><span>Blocker</span><b id="charges-blocker">5</b></button>
             <button class="signal-ability" type="button" data-ability="floater" aria-label="Floater, 5 charges"><kbd>7</kbd><span>Floater</span><b id="charges-floater">5</b></button>
@@ -83,7 +84,7 @@
 
           <article class="signal-result-card" id="swarm-result" hidden aria-live="polite">
             <div class="signal-result-heading"><div><span class="eyebrow">RUN RESULT // SIGNAL SWARM</span><strong id="result-score">0</strong><p id="result-record">Run complete.</p></div><span class="signal-result-mark" id="result-mark">SIGNAL LOST</span></div>
-            <div class="signal-result-grid"><div><span>CREATURES SAVED</span><b id="result-saved">0</b></div><div><span>CREATURES LOST</span><b id="result-lost">0</b></div><div><span>BEST COMBO</span><b id="result-combo">x1</b></div><div><span>FASTEST RESCUE</span><b id="result-fastest">--</b></div><div><span>HIGHEST WAVE</span><b>FINAL PHASE</b></div><div><span>LEADERBOARD</span><b id="result-rank">Sign in</b></div></div>
+            <div class="signal-result-grid"><div><span>CREATURES SAVED</span><b id="result-saved">0</b></div><div><span>CREATURES LOST</span><b id="result-lost">0</b></div><div><span>BEST COMBO</span><b id="result-combo">x1</b></div><div><span>FASTEST RESCUE</span><b id="result-fastest">--</b></div><div><span>LEVEL REACHED</span><b id="result-level">1 / 3</b></div><div><span>LEADERBOARD</span><b id="result-rank">Sign in</b></div></div>
             <div class="game-result-actions"><button class="button button-primary" id="swarm-run-again" type="button">Run again <span>&rarr;</span></button><a class="button button-ghost" href="#leaderboard">View leaderboard <span>&darr;</span></a><a class="button button-ghost" href="profile.html">View profile <span>&nearr;</span></a></div>
           </article>
 
@@ -92,7 +93,7 @@
               <div class="signal-result-heading"><div><span class="eyebrow">FIELD GUIDE // SIGNAL SWARM</span><h2 id="swarm-help-title">Save the swarm.<br /><em>Use the right skill.</em></h2></div><button class="button button-ghost" id="swarm-help-close" type="button">Close <span>&times;</span></button></div>
               <p class="section-intro">Signals walk by themselves. You do not steer them directly. Select a skill, then click the Signal, corruption, or gap where you want to intervene.</p>
               <div class="signal-help-grid"><div><strong>Redirect</strong><span>Turn a nearby Signal around.</span></div><div><strong>Bridge</strong><span>Build across a gap or over a red hazard.</span></div><div><strong>Cleanse</strong><span>Remove nearby corruption or red hazards.</span></div><div><strong>Pulse</strong><span>Overclock a Signal or the whole swarm.</span></div><div><strong>Recall</strong><span>Return nearby Signals to safety.</span></div><div><strong>Blocker</strong><span>Stop one Signal so the others turn around.</span></div><div><strong>Floater</strong><span>Give a Signal a parachute for safer drops.</span></div></div>
-              <p class="section-copy"><strong>First move:</strong> let the Signals fall onto the lower platforms, then select <strong>Bridge</strong> and click the large gap before they reach it. Rescue them at the green exit. Use Safe speed while learning, then Push or Gank for higher scores.</p>
+              <p class="section-copy"><strong>First move:</strong> let the Signals fall onto the lower platforms, then select <strong>Bridge</strong> and click the large gap before they reach it. Rescue enough Signals at the green exit to meet the level goal. Clear the first level at 50%, then 60% and 65% on the harder levels. Use Safe speed while learning, then Push or Gank for higher scores.</p>
               <p class="section-copy"><strong>Keyboard:</strong> <kbd>1–7</kbd> select a skill, <kbd>Space</kbd> uses it at the last target, <kbd>Escape</kbd> pauses, and <kbd>R</kbd> restarts.</p>
             </div>
           </dialog>
@@ -105,6 +106,6 @@
     </main>
 
     <footer class="site-footer shell"><div class="footer-top"><a class="brand" href="index.html"><span class="brand-mark">GB</span><span>GANKBYTE</span></a><p>Gaming. Memes. Code.</p><p class="footer-motto">BUILD. PLAY. GANK.</p></div><div class="footer-bottom"><div class="social-links"><a href="https://x.com/GankByte" target="_blank" rel="noreferrer">X</a><a href="https://www.youtube.com/@GankByte" target="_blank" rel="noreferrer">YouTube</a><a href="https://www.tiktok.com/@GankByte" target="_blank" rel="noreferrer">TikTok</a><a href="https://www.instagram.com/GankByte" target="_blank" rel="noreferrer">Instagram</a><a href="https://www.reddit.com/user/GankByteHQ" target="_blank" rel="noreferrer">Reddit</a><a href="https://github.com/GankByteHQ" target="_blank" rel="noreferrer">GitHub</a></div><a href="mailto:contact@gankbyte.com">contact@gankbyte.com</a><span>&copy; 2026 GankByte</span></div></footer>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="xp-config.js"></script><script src="signal-swarm.js?v=2"></script><script src="footer-nav.js?v=11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="xp-config.js"></script><script src="signal-swarm.js?v=3"></script><script src="footer-nav.js?v=11"></script>
   </body>
 </html>
