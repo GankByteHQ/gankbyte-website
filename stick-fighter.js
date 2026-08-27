@@ -119,19 +119,59 @@
     if (combo > 1 && !player.attacking && player.cooldown > .1) combo = Math.max(1, combo - dt * .5); particles.forEach((p) => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 260 * dt; p.life -= dt; }); particles = particles.filter((p) => p.life > 0); floatingText.forEach((p) => { p.y -= 24 * dt; p.life -= dt; }); floatingText = floatingText.filter((p) => p.life > 0); updateHud();
   }
   function drawStick(f, color, accent) {
-    const x = f.x, y = f.y, glow = f.invulnerable > 0 ? "#ffffff" : color;
-    ctx.save(); ctx.strokeStyle = glow; ctx.fillStyle = "#090c12"; ctx.lineWidth = 6; ctx.lineCap = "round"; ctx.shadowColor = glow; ctx.shadowBlur = f.hurt > 0 ? 18 : 8; if (f.hurt > 0) ctx.translate(rand(-2, 2), 0);
-    ctx.beginPath(); ctx.arc(x, y + 14, 14, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x, y + 29); ctx.lineTo(x, y + 60); if (f.blocking) { ctx.moveTo(x, y + 39); ctx.lineTo(x + f.facing * 27, y + 28); ctx.moveTo(x, y + 43); ctx.lineTo(x - f.facing * 23, y + 56); } else { ctx.moveTo(x, y + 38); ctx.lineTo(x + f.facing * 26, y + 46); ctx.moveTo(x, y + 60); ctx.lineTo(x - 16, y + 88); ctx.moveTo(x, y + 60); ctx.lineTo(x + 18, y + 88); } ctx.stroke();
+    const x = f.x, y = f.y, facing = f.facing || 1, glow = f.invulnerable > 0 ? "#ffffff" : color;
+    const moving = Math.abs(f.vx) > 35 && f.grounded && !f.attacking && !f.blocking;
+    const gait = moving ? Math.sin(performance.now() / 85) : 0;
+    const attackProgress = f.attacking && f.attack ? clamp(f.attackTime / f.attack.time, 0, 1) : 0;
+    const attackPhase = Math.sin(attackProgress * Math.PI);
+    const kind = f.attack?.kind;
+    const point = (px, py) => ({ x: x + px * facing, y: y + py });
+    const limb = (from, elbow, to, width = 5, limbColor = glow) => {
+      ctx.strokeStyle = limbColor; ctx.lineWidth = width; ctx.beginPath(); ctx.moveTo(from.x, from.y); ctx.lineTo(elbow.x, elbow.y); ctx.lineTo(to.x, to.y); ctx.stroke();
+      ctx.fillStyle = limbColor; ctx.beginPath(); ctx.arc(elbow.x, elbow.y, Math.max(2, width - 2), 0, Math.PI * 2); ctx.fill();
+    };
+    ctx.save();
+    if (f.hurt > 0) ctx.translate(rand(-2, 2), 0);
+    ctx.strokeStyle = glow; ctx.fillStyle = "#090c12"; ctx.lineWidth = 6; ctx.lineCap = "round"; ctx.shadowColor = glow; ctx.shadowBlur = f.hurt > 0 ? 18 : 8;
+
+    // Head, neck, and torso stay readable while every attack is drawn as a connected pose.
+    ctx.beginPath(); ctx.arc(x, y + 14, 14, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, y + 29); ctx.lineTo(x, y + 60); ctx.stroke();
     ctx.strokeStyle = accent; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x - 9, y + 11); ctx.lineTo(x - 4, y + 11); ctx.moveTo(x + 4, y + 11); ctx.lineTo(x + 9, y + 11); ctx.stroke();
-    if (f.attacking && f.attack) {
-      const progress = clamp(f.attackTime / f.attack.time, 0, 1); const extension = Math.sin(progress * Math.PI) * (f.attack.kind === "special" ? 32 : f.attack.kind === "kick" ? 28 : 24); const attackColor = f.attack.kind === "special" ? "#c6ff3d" : accent;
-      ctx.strokeStyle = attackColor; ctx.shadowColor = attackColor; ctx.shadowBlur = 14; ctx.lineWidth = f.attack.kind === "special" ? 7 : 5; ctx.beginPath();
-      if (f.attack.kind === "kick") { ctx.moveTo(x, y + 60); ctx.lineTo(x + f.facing * (20 + extension * .45), y + 72); ctx.lineTo(x + f.facing * (42 + extension), y + 62); }
-      else if (f.attack.kind === "special") { ctx.moveTo(x, y + 39); ctx.lineTo(x + f.facing * (30 + extension * .55), y + 31); ctx.lineTo(x + f.facing * (58 + extension), y + 38); ctx.moveTo(x, y + 45); ctx.lineTo(x + f.facing * (26 + extension * .45), y + 55); ctx.lineTo(x + f.facing * (52 + extension), y + 51); }
-      else { ctx.moveTo(x, y + 39); ctx.lineTo(x + f.facing * (25 + extension * .5), y + 34); ctx.lineTo(x + f.facing * (48 + extension), y + 39); }
-      ctx.stroke(); ctx.shadowBlur = 0; ctx.fillStyle = attackColor; ctx.beginPath(); ctx.arc(x + f.facing * (f.attack.kind === "kick" ? 42 + extension : 48 + extension), y + (f.attack.kind === "kick" ? 62 : 40), 5, 0, Math.PI * 2); ctx.fill();
+
+    const shoulder = point(0, 38), hip = point(0, 60);
+    if (f.blocking) {
+      limb(point(0, 38), point(12, 31), point(25, 45), 5, "#55e8ff");
+      limb(point(0, 43), point(-10, 48), point(16, 57), 5, "#55e8ff");
+    } else if (kind === "punch") {
+      // Punch: shoulder -> elbow -> fist, with the rear arm pulled back for balance.
+      limb(shoulder, point(18 + attackPhase * 8, 31 - attackPhase * 4), point(34 + attackPhase * 28, 30 - attackPhase * 5), 6, accent);
+      limb(point(0, 43), point(-14, 51), point(-24, 45 + gait * 2), 5, glow);
+      ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(x + facing * (34 + attackPhase * 28), y + 30 - attackPhase * 5, 6, 0, Math.PI * 2); ctx.fill();
+    } else if (kind === "kick") {
+      // Kick: one knee lifts first, then the shin extends horizontally from the knee.
+      limb(shoulder, point(16, 34), point(26, 45), 5, glow);
+      limb(hip, point(18 + attackPhase * 14, 68 - attackPhase * 17), point(38 + attackPhase * 38, 67 - attackPhase * 25), 7, accent);
+      ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(x + facing * (38 + attackPhase * 38), y + 67 - attackPhase * 25, 7, 0, Math.PI * 2); ctx.fill();
+    } else if (kind === "special") {
+      limb(shoulder, point(20 + attackPhase * 8, 27), point(48 + attackPhase * 22, 27), 6, "#c6ff3d");
+      limb(point(0, 44), point(20 + attackPhase * 8, 52), point(44 + attackPhase * 22, 51), 6, "#c6ff3d");
+      ctx.fillStyle = "#c6ff3d"; ctx.beginPath(); ctx.arc(x + facing * (48 + attackPhase * 22), y + 27, 6, 0, Math.PI * 2); ctx.arc(x + facing * (44 + attackPhase * 22), y + 51, 6, 0, Math.PI * 2); ctx.fill();
+    } else {
+      limb(shoulder, point(16, 35 + gait * 7), point(26, 45 + gait * 10), 5, glow);
+      limb(point(0, 43), point(-15, 49 - gait * 7), point(-24, 43 - gait * 10), 5, glow);
     }
-    if (f.blocking) { ctx.strokeStyle = "#55e8ff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x + f.facing * 16, y + 42, 29, f.facing > 0 ? -1.2 : 1.9, f.facing > 0 ? 1.2 : 4.3); ctx.stroke(); } ctx.restore();
+
+    if (kind !== "kick") {
+      limb(hip, point(-12, 72 + gait * 7), point(-16, 88 + gait * 10), 5, glow);
+      limb(hip, point(14, 72 - gait * 7), point(20, 88 - gait * 10), 5, glow);
+    } else {
+      // The supporting leg stays planted so the kick reads as a kick, not a projectile.
+      limb(hip, point(-13, 73), point(-18, 88), 5, glow);
+    }
+    if (!f.grounded) { ctx.strokeStyle = glow; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(x - facing * 2, y + 60); ctx.lineTo(x - facing * 18, y + 69); ctx.moveTo(x + facing * 2, y + 60); ctx.lineTo(x + facing * 20, y + 72); ctx.stroke(); }
+    if (f.blocking) { ctx.strokeStyle = "#55e8ff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x + facing * 16, y + 42, 29, facing > 0 ? -1.2 : 1.9, facing > 0 ? 1.2 : 4.3); ctx.stroke(); }
+    ctx.restore();
     ctx.fillStyle = color; ctx.font = "700 9px Arial"; ctx.textAlign = "center"; ctx.fillText(f.isPlayer ? "PLAYER 1" : currentStage().rival.toUpperCase(), x, y - 12); ctx.fillStyle = "#181b22"; ctx.fillRect(x - 34, y - 4, 68, 5); ctx.fillStyle = f.isPlayer ? "#c6ff3d" : "#ff526b"; ctx.fillRect(x - 34, y - 4, 68 * (f.hp / f.maxHp), 5);
   }
   function draw() {

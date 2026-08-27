@@ -45,7 +45,12 @@
       { x: 1250, y: 310, w: 200, h: 22 }, { x: 1510, y: 390, w: 270, h: 22 },
       { x: 1840, y: 340, w: 210, h: 22 }, { x: 2120, y: 275, w: 235, h: 22 },
       { x: 2430, y: 385, w: 280, h: 22 }, { x: 2780, y: 330, w: 180, h: 22 },
-      { x: 3030, y: 250, w: 250, h: 22 }, { x: 3350, y: 400, w: 340, h: 22 }
+      { x: 3030, y: 250, w: 250, h: 22 }, { x: 3350, y: 400, w: 340, h: 22 },
+      // The Firewall boss spawns near the end of this platform. These landing
+      // platforms keep the route playable after the boss instead of dropping
+      // the player into empty space.
+      { x: 3735, y: 350, w: 240, h: 22 }, { x: 4015, y: 300, w: 270, h: 22 },
+      { x: 4325, y: 385, w: 320, h: 22 }
     ];
     hazards = [
       { x: 650, y: 382, w: 42, type: "spikes" }, { x: 1100, y: 337, w: 34, type: "spikes" },
@@ -65,6 +70,20 @@
   const currentLevel = () => 1 + Math.floor(distance / 900);
   const addFlow = (amount) => { flow = clamp(flow + amount, 0, 100); };
   const worldTime = () => performance.now();
+
+  function ensureCourseAhead() {
+    const target = player.x + 1800;
+    let last = platforms[platforms.length - 1];
+    const heightPattern = [-45, 35, 0, -60, 50, 0];
+    while (last.x + last.w < target) {
+      const index = platforms.length;
+      const gap = 48 + (index % 3) * 18;
+      const y = clamp(last.y + heightPattern[index % heightPattern.length], 260, 400);
+      const width = 220 + (index % 4) * 35;
+      last = { x: last.x + last.w + gap, y, w: width, h: 22 };
+      platforms.push(last);
+    }
+  }
 
   function spawnEnemies() {
     while (spawnAt < player.x + 1250) {
@@ -149,6 +168,7 @@
 
   function update(dt, now) {
     if (!running || paused || ended) return;
+    ensureCourseAhead();
     const flowActive = flowUntil > now;
     const gankActive = gankUntil > now;
     const left = keys.has("arrowleft") || keys.has("a");
