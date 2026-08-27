@@ -1,4 +1,4 @@
-﻿(() => {
+(() => {
   "use strict";
   const config = window.GANKBYTE_XP_CONFIG || {};
   const $ = (id) => document.getElementById(id);

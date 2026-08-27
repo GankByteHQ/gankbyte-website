@@ -1,4 +1,4 @@
-﻿# GankByte
+# GankByte
 
 Gaming. Memes. Code.
 
@@ -19,6 +19,7 @@ This repository contains the public GankByte landing page. The site is a lightwe
 - `glitch-dash.html` - Glitch Dash
 - `symbol-catch/` - Symbol Catch Arena reflex game
 - `codebreaker/` - Codebreaker puzzle campaign
+- `byte-snatch.html` - Byte Snatch risk-and-reward game
 - `profile.html` - personal runs, XP history, challenges, and moderation notes
 - `xp.html` - XP submission and public XP leaderboard
 - `developers.html` / `contributing.html` - project and contribution routes
@@ -30,6 +31,11 @@ This repository contains the public GankByte landing page. The site is a lightwe
 - `nui-developer-toolkit.html` - local-first FiveM NUI checks for fxmanifest paths, HTML/CSS/JavaScript assets, Lua callbacks, message actions, and a safe static preview
 - `lua-resource-inspector.html` - local-first Lua/FiveM resource checks for manifests, files, requires, events, exports, NUI callbacks, unsafe loops, and exposed secrets
 - `config-tool.html` - local-first JSON, YAML, and TOML formatter, validator, converter, and comparison tool
+- `api-request-builder.html` - local HTTP request builder with response inspection and JavaScript, Python, Lua, and Java snippets
+- `sql-builder.html` - local SQL builder and formatter for PostgreSQL, MySQL, and SQLite
+- `project-health.html` - local release-readiness scanner
+- `readme-generator.html` - practical local README generator
+- `release-packager.html` - local release review and safer ZIP packaging helper
 - `changelog.html` - dated release notes for shipped changes
 
 ## Gameplay media

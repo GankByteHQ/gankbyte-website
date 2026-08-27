@@ -4,7 +4,7 @@ The public site is ready for Supabase plus Discord OAuth. These values are inten
 
 1. Create a Supabase project.
 2. Open the SQL Editor and run the ordered files in [`sql/README.md`](sql/README.md).
-3. The ordered set includes the base schema, XP and Arena migrations, Byte Snatch, and the final game score-sync migration. Migration 007 adds Codebreaker storage, Byte Snatch weekly scores, indexes, and automatic XP triggers for every connected game.
+3. The ordered set includes the base schema, XP and Arena migrations, Byte Snatch, the game score-sync migration, custom requests, reviews, and Codebreaker period-board migration 011. Migration 007 adds Codebreaker storage, Byte Snatch weekly scores, indexes, and automatic XP triggers for every connected game.
 4. Copy the project URL and publishable/anon key into `xp-config.js`.
 5. In Supabase Authentication, enable Discord and copy its callback URL.
 6. Create a Discord Developer Application and add the Supabase callback URL under OAuth2 redirects.

@@ -11,8 +11,11 @@ Run these files in Supabase SQL Editor, in this order:
 7. `BYTE_SNATCH_MIGRATION.sql`
 8. `007_GAME_SCORE_SYNC.sql`
 9. `008_CUSTOM_SCRIPT_REQUESTS.sql`
+10. `009_COMMUNITY_REVIEWS.sql`
+11. `010_COMMUNITY_REVIEWS_ADMIN_DELETE.sql`
+12. `011_CODEBREAKER_PERIOD_LEADERBOARDS.sql`
 
-The final migration adds Codebreaker’s saved scores, completes Byte Snatch’s weekly board, adds indexes, and installs automatic XP triggers for every connected game. Leaderboards are views over the score tables, so new approved scores appear automatically without a refresh job.
+The game score migration adds Codebreaker's saved scores, completes Byte Snatch's weekly board, adds indexes, and installs automatic XP triggers for every connected game. Migration 011 adds database-backed Codebreaker daily and weekly boards. Leaderboards are views over the score tables, so approved scores appear automatically without a refresh job.
 
 All game pages publish successful signed-in runs with `status = 'approved'`. The browser never contains a service-role key.
 

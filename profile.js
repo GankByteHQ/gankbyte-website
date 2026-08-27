@@ -1,4 +1,4 @@
-﻿const profileConfig = window.GANKBYTE_XP_CONFIG || {};
+const profileConfig = window.GANKBYTE_XP_CONFIG || {};
 const profileLogin = document.querySelector("#profile-login");
 const profileLogout = document.querySelector("#profile-logout");
 const profileBadge = document.querySelector("#profile-badge");

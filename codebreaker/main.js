@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
   const storageKeys = {
     bestScore: "gankbyte-codebreaker-best",
     lastPlayed: "gankbyte-codebreaker-last-played",
@@ -973,7 +973,8 @@
 
   async function loadOnlineLeaderboard() {
     if (!onlineClient) return;
-    const result = await onlineClient.from("codebreaker_leaderboard").select("display_name,score,mode,level,combo,trace,lives,latest_run").order("score", { ascending: false }).limit(100);
+    const board = state.leaderboardTab === "daily" ? "codebreaker_daily_leaderboard" : state.leaderboardTab === "weekly" ? "codebreaker_weekly_leaderboard" : "codebreaker_leaderboard";
+    const result = await onlineClient.from(board).select("display_name,score,mode,level,combo,trace,lives,latest_run").order("score", { ascending: false }).limit(100);
     if (result.error) {
       state.onlineLoaded = false;
       state.onlineError = true;
@@ -1503,23 +1504,12 @@
 
   function leaderboardRows(tab, page = 0) {
     if (!state.onlineLoaded) return [];
-    const now = Date.now();
-    const filteredOnline = state.onlineRows.filter((run) => {
-      if (tab === "daily") return now - run.ts < 86400000;
-      if (tab === "weekly") return now - run.ts < 604800000;
-      return true;
-    });
-    return filteredOnline.slice(page * 10, page * 10 + 10);
+    return state.onlineRows.slice(page * 10, page * 10 + 10);
   }
 
   function leaderboardCount(tab) {
     if (!state.onlineLoaded) return 0;
-    const now = Date.now();
-    return state.onlineRows.filter((run) => {
-      if (tab === "daily") return now - run.ts < 86400000;
-      if (tab === "weekly") return now - run.ts < 604800000;
-      return true;
-    }).length;
+    return state.onlineRows.length;
   }
 
   function renderLeaderboard() {

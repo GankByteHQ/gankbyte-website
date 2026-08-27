@@ -1,0 +1,37 @@
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const form = $("request-form"), status = $("request-status"), output = $("response-content");
+  let response = { body: "Send a request to inspect its response.", headers: "", status: "-", time: "-", size: "-", type: "-" }, responseTab = "body";
+  const parseLines = (text, separator) => Object.fromEntries(text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((line) => { const i = line.indexOf(separator); return i < 0 ? [line, ""] : [line.slice(0, i).trim(), line.slice(i + separator.length).trim()]; }).filter(([key]) => key));
+  const escape = (value) => String(value ?? "").replace(/[&<>]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+  const requestData = () => ({ method: $("request-method").value, url: $("request-url").value.trim(), query: parseLines($("request-query").value, "="), headers: parseLines($("request-headers").value, ":"), body: $("request-body").value });
+  const withQuery = (data) => { const url = new URL(data.url); Object.entries(data.query).forEach(([key, value]) => url.searchParams.set(key, value)); return url.toString(); };
+  const jsonBody = (data) => { if (!data.body.trim()) return ""; try { return JSON.stringify(JSON.parse(data.body), null, 2); } catch { return data.body; } };
+  const shellQuote = (value) => `'${String(value).replaceAll("'", "'\\''")}'`;
+  function snippets(data) {
+    const url = withQuery(data), headers = Object.entries(data.headers).map(([key, value]) => `  -H ${shellQuote(`${key}: ${value}`)}`).join(" \\\n");
+    const body = jsonBody(data); const bodyArg = body ? ` \\\n  --data ${shellQuote(body)}` : "";
+    const curl = [`curl -X ${data.method} ${shellQuote(url)}`, headers, bodyArg].filter(Boolean).join(" \\\n");
+    const jsHeaders = JSON.stringify(data.headers, null, 2), jsBody = body ? `,\n  body: ${JSON.stringify(body)}` : "";
+    const javascript = `const response = await fetch(${JSON.stringify(url)}, {\n  method: ${JSON.stringify(data.method)},\n  headers: ${jsHeaders}${jsBody}\n});\nconst text = await response.text();\nconsole.log(response.status, text);`;
+    const pythonHeaders = JSON.stringify(data.headers, null, 2).replaceAll('"', "'");
+    const pythonBody = body ? `, json=${body}` : "";
+    const python = `import requests\n\nresponse = requests.request(${data.method ? JSON.stringify(data.method) : "'GET'"}, ${JSON.stringify(url)}, headers=${pythonHeaders}${pythonBody})\nprint(response.status_code, response.text)`;
+    const luaHeaders = Object.entries(data.headers).map(([key, value]) => `    [${JSON.stringify(key)}] = ${JSON.stringify(value)},`).join("\n");
+    const luaBody = body ? `local body = ${JSON.stringify(body)}` : "local body = nil";
+    const lua = `${luaBody}\n\nPerformHttpRequest(${JSON.stringify(url)}, function(statusCode, responseBody, headers)\n    print(statusCode, responseBody)\nend, ${JSON.stringify(data.method)}, body, {\n${luaHeaders}\n})`;
+    const javaHeaders = Object.entries(data.headers).map(([key, value]) => `requestBuilder.header(${JSON.stringify(key)}, ${JSON.stringify(value)});`).join("\n");
+    const java = `HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(URI.create(${JSON.stringify(url)}));\n${javaHeaders}\nHttpRequest request = requestBuilder.method(${JSON.stringify(data.method)}, ${body ? `HttpRequest.BodyPublishers.ofString(${JSON.stringify(body)})` : "HttpRequest.BodyPublishers.noBody()"}).build();\nHttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());`;
+    return { curl, javascript, python, lua, java };
+  }
+  function render() { const snippetsByLanguage = snippets(requestData()); let content = response.body; if (responseTab === "headers") content = response.headers || "No response headers."; if (responseTab === "code") content = snippetsByLanguage.javascript; output.textContent = content; $("response-status").textContent = response.status; $("response-time").textContent = response.time; $("response-size").textContent = response.size; $("response-type").textContent = response.type; $("snippet-language").textContent = responseTab === "code" ? "JavaScript snippet shown. Use Copy snippet for the selected language." : "Code snippets are generated from the current request."; document.querySelectorAll("[data-response-tab]").forEach((tab) => tab.classList.toggle("active", tab.dataset.responseTab === responseTab)); }
+  function setStatus(message, error = false) { status.textContent = message; status.classList.toggle("is-error", error); }
+  form.addEventListener("submit", async (event) => { event.preventDefault(); const data = requestData(); let url; try { url = withQuery(data); new URL(url); } catch { setStatus("Enter a valid URL before sending.", true); return; } const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), Number($("request-timeout").value)); $("send-request").disabled = true; setStatus("Sending request..."); const started = performance.now(); try { const init = { method: data.method, headers: data.headers, signal: controller.signal }; if (!["GET", "HEAD"].includes(data.method) && data.body.trim()) init.body = jsonBody(data); const res = await fetch(url, init); const text = await res.text(); let body = text; try { body = JSON.stringify(JSON.parse(text), null, 2); } catch {} const headers = [...res.headers.entries()].map(([key, value]) => `${key}: ${value}`).join("\n"); response = { body: body || "(empty response)", headers, status: `${res.status} ${res.statusText}`.trim(), time: `${Math.round(performance.now() - started)} ms`, size: `${new Blob([text]).size} B`, type: res.headers.get("content-type")?.split(";")[0] || "unknown" }; setStatus(`Received ${response.status}.`); } catch (error) { response = { body: error.name === "AbortError" ? "Request timed out." : `Request failed: ${error.message}\n\nIf this is a browser CORS error, the target API must allow your origin.`, headers: "", status: "ERR", time: `${Math.round(performance.now() - started)} ms`, size: "-", type: "error" }; setStatus(response.body.split("\n")[0], true); } finally { clearTimeout(timer); $("send-request").disabled = false; render(); } });
+  $("format-body").addEventListener("click", () => { try { $("request-body").value = JSON.stringify(JSON.parse($("request-body").value), null, 2); setStatus("JSON body formatted."); } catch { setStatus("The body is not valid JSON; it was left unchanged.", true); } });
+  $("clear-request").addEventListener("click", () => { $("request-query").value = ""; $("request-headers").value = ""; $("request-body").value = ""; response = { body: "Send a request to inspect its response.", headers: "", status: "-", time: "-", size: "-", type: "-" }; setStatus("Request cleared."); render(); });
+  $("copy-curl").addEventListener("click", async () => { try { await navigator.clipboard.writeText(snippets(requestData()).curl); setStatus("cURL copied to the clipboard."); } catch { setStatus("Clipboard access was unavailable.", true); } });
+  $("copy-snippet").addEventListener("click", async () => { try { await navigator.clipboard.writeText(snippets(requestData()).javascript); setStatus("JavaScript snippet copied to the clipboard."); } catch { setStatus("Clipboard access was unavailable.", true); } });
+  document.querySelectorAll("[data-response-tab]").forEach((tab) => tab.addEventListener("click", () => { responseTab = tab.dataset.responseTab; render(); }));
+  render();
+})();

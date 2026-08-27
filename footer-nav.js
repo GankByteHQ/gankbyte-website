@@ -3,11 +3,11 @@
   if (!footer) return;
 
   const existingSiteShell = document.querySelector('link[data-site-shell-style]');
-  if (existingSiteShell) existingSiteShell.href = "/site-shell.css?v=8";
+  if (existingSiteShell) existingSiteShell.href = "/site-shell.css?v=10";
   if (!existingSiteShell) {
     const style = document.createElement("link");
     style.rel = "stylesheet";
-    style.href = "/site-shell.css?v=8";
+    style.href = "/site-shell.css?v=10";
     style.dataset.siteShellStyle = "true";
     document.head.append(style);
   }
@@ -302,5 +302,20 @@
   if (window.location.pathname.endsWith("/fivem.html") && toolsGrid && !toolsGrid.querySelector('[data-tool-card="lua"]')) {
     toolsGrid.insertAdjacentHTML("beforeend", luaCard);
   }
+  if (window.location.pathname.endsWith("/tools.html") && toolsGrid && !toolsGrid.querySelector('[data-tool-card="api"]')) {
+    toolsGrid.insertAdjacentHTML("beforeend", '<article class="content-card" data-tool-card="api"><span class="status-badge">Live tool</span><h3>API Request Builder</h3><p>Compose HTTP requests, inspect responses, and copy starter snippets for JavaScript, Python, Lua, and Java.</p><ul><li>Headers, query parameters, JSON bodies</li><li>Status, timing, size, and response headers</li><li>cURL and code snippets</li><li>Direct browser requests with CORS explained</li><li>No request history or secrets are stored</li></ul><a class="button button-primary" href="api-request-builder.html">Open API builder <span>&nearr;</span></a></article>');
+  }
+  if (window.location.pathname.endsWith("/tools.html") && toolsGrid && !toolsGrid.querySelector('[data-tool-card="sql"]')) {
+    toolsGrid.insertAdjacentHTML("beforeend", '<article class="content-card" data-tool-card="sql"><span class="status-badge">Live tool</span><h3>SQL Builder</h3><p>Build and format common PostgreSQL, MySQL, and SQLite queries locally before you run them.</p><ul><li>SELECT, INSERT, UPDATE, DELETE, and CREATE TABLE</li><li>JOIN, filters, ordering, and limits</li><li>Safety warnings for broad updates and deletes</li><li>Copy or download generated SQL</li></ul><a class="button button-primary" href="sql-builder.html">Open SQL builder <span>&nearr;</span></a></article>');
+  }
+  if (window.location.pathname.endsWith("/tools.html") && toolsGrid && !toolsGrid.querySelector('[data-tool-card="health"]')) {
+    toolsGrid.insertAdjacentHTML("beforeend", '<article class="content-card" data-tool-card="health"><span class="status-badge">Live tool</span><h3>Project Health Scanner</h3><p>Check whether a project is ready to share by reviewing documentation, licensing, tests, secrets, and platform markers locally.</p><ul><li>Folder or file selection in the browser</li><li>Release-readiness score with evidence</li><li>Copyable and downloadable report</li><li>No source upload</li></ul><a class="button button-primary" href="project-health.html">Open health scanner <span>&nearr;</span></a></article>');
+  }
+  if (window.location.pathname.endsWith("/tools.html") && toolsGrid && !toolsGrid.querySelector('[data-tool-card="readme"]')) {
+    toolsGrid.insertAdjacentHTML("beforeend", '<article class="content-card" data-tool-card="readme"><span class="status-badge">Live tool</span><h3>README Generator</h3><p>Create practical documentation for installation, dependencies, configuration, commands, troubleshooting, licensing, and contribution.</p><ul><li>FiveM, Lua, Python, JavaScript, TypeScript, Java, Minecraft, RuneLite, and SQL</li><li>Copy or download Markdown</li><li>Useful sections with honest placeholders</li><li>Runs locally</li></ul><a class="button button-primary" href="readme-generator.html">Open README generator <span>&nearr;</span></a></article>');
+  }
 
+  if (window.location.pathname.endsWith("/tools.html") && toolsGrid && !toolsGrid.querySelector('[data-tool-card="packager"]')) {
+    toolsGrid.insertAdjacentHTML("beforeend", '<article class="content-card" data-tool-card="packager"><span class="status-badge">Live tool</span><h3>Project Release Packager</h3><p>Review a project locally, exclude common generated folders and secrets, and download a cleaner release ZIP.</p><ul><li>Folder or multi-file selection</li><li>Secret-looking filenames and content flagged</li><li>Release checklist added to the bundle</li><li>No source upload</li></ul><a class="button button-primary" href="release-packager.html">Open release packager <span>&nearr;</span></a></article>');
+  }
 })();
