@@ -60,7 +60,7 @@
     enemies = [];
     pickups = [];
     particles = [];
-    player = { x: 90, y: 350, w: 22, h: 56, vx: 190, vy: 0, jumps: 0, lives: 3, grounded: false, facing: 1, attack: 0, attackKind: "punch", counter: 0, dash: 0, slide: 0, invuln: 0, shield: 0, wall: false };
+    player = { x: 90, y: 350, w: 22, h: 56, vx: 190, vy: 0, jumps: 0, lives: 3, grounded: false, facing: 1, attack: 0, attackKind: "punch", blocking: false, counter: 0, dash: 0, slide: 0, invuln: 0, shield: 0, wall: false };
     camera = 0; score = 0; distance = 0; kills = 0; combo = 0; bestCombo = 0; perfectKills = 0; bosses = 0; flowStates = 0; flow = 0; flowUntil = 0; gankUntil = 0; comboTimeout = 0; spawnAt = 500; bossSpawned = false;
     updateHud();
   }
@@ -103,7 +103,7 @@
     reset();
     running = true; paused = false; ended = false; lastFrame = worldTime();
     $("ninja-message").hidden = true; $("ninja-result").hidden = true; $("ninja-start").hidden = true; $("ninja-pause").hidden = false; $("ninja-restart").hidden = false;
-    $("ninja-status").textContent = "Run, strike, and keep the chain alive.";
+    $("ninja-status").textContent = "A/D move · W jump · L block · P punch · K kick · E dash · Space Flow.";
     canvas.focus(); draw();
   }
 
@@ -163,6 +163,7 @@
 
   function hurt() {
     if (player.invuln > 0) return;
+    if (player.blocking) { player.invuln = .45; addFlow(4); $("ninja-status").textContent = "BLOCKED"; burst(player.x, player.y + 24, "#55e8ff", 8); return; }
     if (player.shield > 0) { player.shield = 0; player.invuln = 1.1; $("ninja-status").textContent = "SHIELD BROKEN"; burst(player.x, player.y, "#55e8ff", 18); return; }
     player.lives -= 1; player.invuln = 1.1; combo = 0; gankUntil = 0; score = Math.max(0, score - 100); $("ninja-status").textContent = player.lives ? "Hit. Keep moving." : "NULL DOWN"; burst(player.x, player.y, "#ff526b", 18);
     if (!player.lives || player.y > H + 80) finish("NULL DOWN");
@@ -175,9 +176,11 @@
     const gankActive = gankUntil > now;
     const left = keys.has("arrowleft") || keys.has("a");
     const right = keys.has("arrowright") || keys.has("d");
+    player.blocking = keys.has("l");
     if (left) { player.vx = Math.max(125, player.vx - 800 * dt); player.facing = -1; }
     else if (right) { player.vx = Math.min(300 + currentLevel() * 12, player.vx + 800 * dt); player.facing = 1; }
     else if (player.dash <= 0) player.vx += (190 + currentLevel() * 5 - player.vx) * Math.min(1, dt * 3);
+    if (player.blocking) player.vx = Math.min(player.vx, 145);
     if (keys.has("arrowdown") || keys.has("s")) player.slide = Math.max(player.slide, .05);
     player.dash = Math.max(0, player.dash - dt); player.attack = Math.max(0, player.attack - dt); player.counter = Math.max(0, player.counter - dt); player.slide = Math.max(0, player.slide - dt); player.invuln = Math.max(0, player.invuln - dt);
     if (flowActive) player.vx = Math.max(player.vx, 255);
@@ -238,6 +241,9 @@
     const shoulder = point(0, 23); const hip = point(0, 39);
     if (player.slide > 0) {
       ctx.beginPath(); ctx.moveTo(x - facing * 5, y + 22); ctx.lineTo(x + facing * 21, y + 26); ctx.lineTo(x + facing * 31, y + bodyH); ctx.stroke();
+    } else if (player.blocking) {
+      limb(shoulder, point(14, 18), point(23, 30), 5);
+      limb(point(0, 27), point(10, 36), point(21, 31), 5);
     } else if (player.attackKind === "kick" && player.attack > 0) {
       limb(shoulder, point(14, 28), point(25, 40), 5);
       limb(hip, point(13 + attackPhase * 16, 45 - attackPhase * 15), point(28 + attackPhase * 38, 44 - attackPhase * 24), 6);
@@ -253,6 +259,7 @@
     if (player.attackKind !== "kick" || player.attack <= 0) { limb(hip, point(-11, 49 + gait * 7), point(-15, 67 + gait * 9), 5); limb(hip, point(12, 49 - gait * 7), point(19, 67 - gait * 9), 5); }
     else limb(hip, point(-12, 50), point(-17, 68), 5);
     if (!player.grounded) { ctx.beginPath(); ctx.moveTo(x - facing * 2, y + 39); ctx.lineTo(x - facing * 17, y + 49); ctx.moveTo(x + facing * 2, y + 39); ctx.lineTo(x + facing * 18, y + 52); ctx.stroke(); }
+    if (player.blocking) { ctx.strokeStyle = "#55e8ff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x + facing * 14, y + 31, 25, facing > 0 ? -1.2 : 1.9, facing > 0 ? 1.2 : 4.3); ctx.stroke(); }
     if (player.shield > 0) { ctx.strokeStyle = "#55e8ff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x + facing * 14, y + 31, 25, facing > 0 ? -1.2 : 1.9, facing > 0 ? 1.2 : 4.3); ctx.stroke(); }
     ctx.restore();
   }
@@ -280,12 +287,12 @@
   async function loadLeaderboard() { if (!client) return; const result = await client.from("null_ninja_leaderboard").select("display_name,best_score,best_distance,best_kills").order("best_score", { ascending: false }).limit(500); const body = $("ninja-leaderboard-body"); if (result.error) { body.innerHTML = "<tr><td colspan=\"5\">Leaderboard temporarily unavailable.</td></tr>"; return; } body.innerHTML = result.data?.length ? result.data.map((row, i) => `<tr><td>${i + 1}</td><td>${escapeHtml(row.display_name || "Player")}</td><td>${Number(row.best_score || 0).toLocaleString()}</td><td>${row.best_distance || 0}m</td><td>${row.best_kills || 0}</td></tr>`).join("") : "<tr><td colspan=\"5\">No approved runs yet. Be the first.</td></tr>"; }
   function escapeHtml(value) { return String(value).replace(/[&<>\"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[c])); }
   function togglePause() { if (!running || ended) return; paused = !paused; $("ninja-pause").innerHTML = paused ? "Resume <span>▶</span>" : "Pause <span>Ⅱ</span>"; draw(); }
-  function doAction(name) { if (name === "kick") attack(false, "kick"); else ({ jump, attack, dash, counter, slide: () => { if (running && !paused) player.slide = .45; } }[name] || (() => {}))(); }
+  function doAction(name) { if (name === "kick") attack(false, "kick"); else if (name === "block") player.blocking = true; else ({ jump, attack, dash, counter, slide: () => { if (running && !paused) player.slide = .45; } }[name] || (() => {}))(); }
 
   const keys = new Set();
-  window.addEventListener("keydown", (event) => { const key = event.key.toLowerCase(); if (["arrowleft", "arrowright", "arrowup", "arrowdown", " ", "a", "d", "w", "s", "e", "f", "g", "j", "k", "shift", "escape", "r"].includes(key)) event.preventDefault(); keys.add(key); if (key === "w" || key === "arrowup") jump(); if (key === " " || key === "shift") dash(); if (key === "f" || key === "j" || key === "enter") attack(false, "punch"); if (key === "g") attack(false, "kick"); if (key === "k") counter(); if (key === "e") activateFlow(); if (key === "escape") togglePause(); if (key === "r") start(); }, { passive: false });
+  window.addEventListener("keydown", (event) => { const key = event.key.toLowerCase(); if (["arrowleft", "arrowright", "arrowup", "arrowdown", " ", "a", "d", "w", "s", "e", "k", "l", "p", "shift", "escape", "r"].includes(key)) event.preventDefault(); keys.add(key); if (key === "w" || key === "arrowup") jump(); if (key === " " || key === "shift") activateFlow(); if (key === "p") attack(false, "punch"); if (key === "k") attack(false, "kick"); if (key === "e") dash(); if (key === "escape") togglePause(); if (key === "r") start(); }, { passive: false });
   window.addEventListener("keyup", (event) => keys.delete(event.key.toLowerCase()));
-  document.querySelectorAll("[data-ninja-action]").forEach((button) => { button.addEventListener("click", () => doAction(button.dataset.ninjaAction)); });
+  document.querySelectorAll("[data-ninja-action]").forEach((button) => { const name = button.dataset.ninjaAction; button.addEventListener("pointerdown", (event) => { event.preventDefault(); if (name === "block") { button.setPointerCapture?.(event.pointerId); player.blocking = true; } else doAction(name); }); const release = () => { if (name === "block") player.blocking = false; }; button.addEventListener("pointerup", release); button.addEventListener("pointercancel", release); button.addEventListener("pointerleave", release); });
   canvas.addEventListener("pointerdown", (event) => { pointerStart = { x: event.clientX, y: event.clientY }; canvas.setPointerCapture?.(event.pointerId); });
   canvas.addEventListener("pointerup", (event) => { if (!pointerStart) return; const dx = event.clientX - pointerStart.x; const dy = event.clientY - pointerStart.y; pointerStart = null; if (Math.abs(dy) > 35 && dy < 0) jump(); else if (Math.abs(dx) > 35) dash(); else attack(); });
   $("ninja-start").addEventListener("click", start); $("ninja-run-again").addEventListener("click", start); $("ninja-restart").addEventListener("click", start); $("ninja-pause").addEventListener("click", togglePause); $("ninja-help-button").addEventListener("click", () => $("ninja-help").showModal()); $("ninja-help-close").addEventListener("click", () => $("ninja-help").close()); $("ninja-login").addEventListener("click", () => { window.location.href = `login.html?returnTo=${encodeURIComponent("null-ninja.html")}`; }); $("ninja-logout").addEventListener("click", async () => { if (client) await client.auth.signOut(); });
