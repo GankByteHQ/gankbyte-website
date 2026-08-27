@@ -70,10 +70,12 @@
             <button class="signal-ability" type="button" data-ability="cleanse" aria-label="Cleanse, 3 charges"><kbd>3</kbd><span>Cleanse</span><b id="charges-cleanse">3</b></button>
             <button class="signal-ability" type="button" data-ability="pulse" aria-label="Signal Pulse, 2 charges"><kbd>4</kbd><span>Pulse</span><b id="charges-pulse">2</b></button>
             <button class="signal-ability" type="button" data-ability="recall" aria-label="Emergency Recall, 1 charge"><kbd>5</kbd><span>Recall</span><b id="charges-recall">1</b></button>
+            <button class="signal-ability" type="button" data-ability="blocker" aria-label="Blocker, 3 charges"><kbd>6</kbd><span>Blocker</span><b id="charges-blocker">3</b></button>
+            <button class="signal-ability" type="button" data-ability="floater" aria-label="Floater, 3 charges"><kbd>7</kbd><span>Floater</span><b id="charges-floater">3</b></button>
           </div>
 
           <div class="signal-actions">
-            <div class="game-actions"><button class="button button-primary" id="swarm-start" type="button">Start run <span>&rarr;</span></button><button class="button button-ghost" id="swarm-pause" type="button" hidden>Pause <span>&#10074;&#10074;</span></button><button class="button button-ghost" id="swarm-restart" type="button" hidden>Restart <span>&orarr;</span></button></div>
+            <div class="game-actions"><button class="button button-primary" id="swarm-start" type="button">Start run <span>&rarr;</span></button><button class="button button-ghost" id="swarm-pause" type="button" hidden>Pause <span>&#10074;&#10074;</span></button><button class="button button-ghost" id="swarm-restart" type="button" hidden>Restart <span>&orarr;</span></button><button class="button button-ghost" id="swarm-help" type="button">How to play <span>?</span></button></div>
             <p id="swarm-status" aria-live="polite">Save the swarm or push the score. Your best run is saved on this device.</p>
           </div>
 
@@ -84,6 +86,16 @@
             <div class="signal-result-grid"><div><span>CREATURES SAVED</span><b id="result-saved">0</b></div><div><span>CREATURES LOST</span><b id="result-lost">0</b></div><div><span>BEST COMBO</span><b id="result-combo">x1</b></div><div><span>FASTEST RESCUE</span><b id="result-fastest">--</b></div><div><span>HIGHEST WAVE</span><b>FINAL PHASE</b></div><div><span>LEADERBOARD</span><b id="result-rank">Sign in</b></div></div>
             <div class="game-result-actions"><button class="button button-primary" id="swarm-run-again" type="button">Run again <span>&rarr;</span></button><a class="button button-ghost" href="#leaderboard">View leaderboard <span>&darr;</span></a><a class="button button-ghost" href="profile.html">View profile <span>&nearr;</span></a></div>
           </article>
+
+          <dialog class="signal-help-dialog" id="swarm-help-dialog" aria-labelledby="swarm-help-title">
+            <div class="signal-help-dialog-inner">
+              <div class="signal-result-heading"><div><span class="eyebrow">FIELD GUIDE // SIGNAL SWARM</span><h2 id="swarm-help-title">Save the swarm.<br /><em>Use the right skill.</em></h2></div><button class="button button-ghost" id="swarm-help-close" type="button">Close <span>&times;</span></button></div>
+              <p class="section-intro">Signals walk by themselves. You do not steer them directly. Select a skill, then click the Signal, corruption, or gap where you want to intervene.</p>
+              <div class="signal-help-grid"><div><strong>Redirect</strong><span>Turn a nearby Signal around.</span></div><div><strong>Bridge</strong><span>Build a temporary route across a gap.</span></div><div><strong>Cleanse</strong><span>Remove nearby corruption.</span></div><div><strong>Pulse</strong><span>Overclock a Signal or the whole swarm.</span></div><div><strong>Recall</strong><span>Return nearby Signals to safety.</span></div><div><strong>Blocker</strong><span>Stop one Signal so the others turn around.</span></div><div><strong>Floater</strong><span>Give a Signal a parachute for safer drops.</span></div></div>
+              <p class="section-copy"><strong>First move:</strong> let the Signals fall onto the lower platforms, then select <strong>Bridge</strong> and click the large gap before they reach it. Rescue them at the green exit. Use Safe speed while learning, then Push or Gank for higher scores.</p>
+              <p class="section-copy"><strong>Keyboard:</strong> <kbd>1–7</kbd> select a skill, <kbd>Space</kbd> uses it at the last target, <kbd>Escape</kbd> pauses, and <kbd>R</kbd> restarts.</p>
+            </div>
+          </dialog>
         </div>
       </section>
 
