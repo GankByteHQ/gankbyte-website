@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0a0b0f" />
+  <meta name="description" content="A local-first NUI developer toolkit for checking FiveM HTML, CSS, JavaScript, Lua callbacks, assets, and resource paths." />
+  <link rel="icon" href="gb-logo.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="site-spacing.css" />
+  <link rel="stylesheet" href="page-compact.css" />
+  <link rel="stylesheet" href="site-shell.css?v=8" data-site-shell-style="true" />
+  <link rel="stylesheet" href="nui-developer-toolkit.css?v=1" />
+  <link rel="canonical" href="https://gankbyte.com/nui-developer-toolkit.html" />
+  <meta property="og:title" content="NUI Developer Toolkit - GankByte" />
+  <meta property="og:description" content="Check a FiveM NUI resource locally for missing assets, callback mismatches, broken paths, and practical fixes." />
+  <meta property="og:url" content="https://gankbyte.com/nui-developer-toolkit.html" />
+  <meta property="og:site_name" content="GankByte" />
+  <meta property="og:image" content="https://gankbyte.com/gankbyte-og.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="NUI Developer Toolkit - GankByte" />
+  <meta name="twitter:description" content="Local-first checks for FiveM NUI resources." />
+  <meta name="twitter:image" content="https://gankbyte.com/gankbyte-og.png" />
+  <title>NUI Developer Toolkit &mdash; GankByte</title>
+</head>
+<body>
+  <header class="site-header shell">
+    <a class="brand" href="index.html" aria-label="GankByte home"><span class="brand-mark">GB</span><span>GANKBYTE</span></a>
+    <nav class="site-nav" aria-label="Main navigation"><a href="games.html">Games</a><a href="arena-hub.html">Arena</a><a href="developers.html" aria-current="page">Developers</a><a href="community.html">Community</a><a href="xp.html">XP</a><a href="roadmap.html">Roadmap</a></nav>
+    <a class="header-cta" href="https://discord.gg/CpWjZkjtjJ" target="_blank" rel="noreferrer">Join Discord <span>&nearr;</span></a>
+  </header>
+
+  <main id="main-content">
+    <section class="page-hero shell nui-hero">
+      <p class="page-label">DEVELOPERS // FIVEM // NUI</p>
+      <h1>Find the break<br /><em>before the browser does.</em></h1>
+      <p class="hero-lede">Load a FiveM NUI resource locally and trace the parts that must agree: <code>fxmanifest.lua</code>, HTML, CSS, JavaScript, Lua callbacks, message actions, and assets.</p>
+    </section>
+
+    <section class="section shell nui-section">
+      <div class="nui-input-card content-card">
+        <div class="nui-input-copy">
+          <p class="eyebrow">LOCAL RESOURCE SCAN</p>
+          <h2>Bring the whole<br /><em>resource.</em></h2>
+          <p>Choose a resource folder, load a ZIP, or paste a log/config snippet. Everything is read in this browser; files are not uploaded or sent to an AI service.</p>
+        </div>
+        <div class="nui-input-controls">
+          <label class="nui-label" for="nui-platform">Resource type
+            <select id="nui-platform" class="nui-input"><option value="auto">Detect automatically</option><option value="nui">NUI resource</option><option value="qb">QB / Qbox resource with NUI</option><option value="esx">ESX resource with NUI</option></select>
+          </label>
+          <div class="nui-upload-row">
+            <button class="button button-primary" id="choose-nui-folder" type="button">Choose resource folder <span>&nearr;</span></button>
+            <button class="button button-ghost" id="choose-nui-zip" type="button">Load ZIP</button>
+            <input id="nui-folder" type="file" webkitdirectory multiple hidden />
+            <input id="nui-zip" type="file" accept=".zip,application/zip" hidden />
+          </div>
+          <p class="nui-or">or paste a startup error, manifest, or small file below</p>
+          <textarea id="nui-paste" class="nui-input nui-paste" rows="5" placeholder="Paste an error or source snippet here..."></textarea>
+          <div class="nui-actions"><button class="button button-primary" id="analyze-nui" type="button">Analyze resource <span>&rarr;</span></button><button class="button button-ghost" id="clear-nui" type="button">Clear</button></div>
+        </div>
+        <p class="nui-status" id="nui-status" role="status" aria-live="polite">No resource loaded yet. Nothing leaves this browser.</p>
+      </div>
+
+      <div class="nui-summary" id="nui-summary" hidden></div>
+
+      <div class="nui-toolbar" id="nui-toolbar" hidden>
+        <div class="nui-filters" role="group" aria-label="Filter findings"><button class="nui-filter active" data-filter="all" type="button">All</button><button class="nui-filter" data-filter="error" type="button">Errors</button><button class="nui-filter" data-filter="warning" type="button">Warnings</button><button class="nui-filter" data-filter="info" type="button">Notes</button></div>
+        <label class="nui-search">Search findings<input id="nui-search" type="search" placeholder="callback, asset, manifest..." /></label>
+        <div class="nui-toolbar-actions"><button class="button button-ghost" id="copy-nui-report" type="button">Copy report</button><button class="button button-ghost" id="download-nui-report" type="button">Download report</button><button class="button button-ghost" id="open-nui-preview" type="button">Preview NUI</button></div>
+      </div>
+
+      <div class="nui-report-grid" id="nui-report-grid" hidden>
+        <section class="content-card nui-findings-card">
+          <div class="nui-heading-row"><div><p class="eyebrow">ACTIONABLE FINDINGS</p><h2 id="nui-report-title">NUI report</h2></div><span class="status-badge" id="nui-type-badge">Unknown resource</span></div>
+          <div class="nui-findings" id="nui-findings"></div>
+        </section>
+        <aside class="content-card nui-inventory-card"><p class="eyebrow">INVENTORY</p><h2>What is inside.</h2><div id="nui-inventory" class="nui-inventory"></div><div class="nui-note"><strong>What this tool cannot prove</strong><p>It does not run Lua, start FiveM, execute JARs, or prove framework compatibility. It checks static relationships and shows where to investigate next.</p></div></aside>
+      </div>
+
+      <section class="content-card nui-map-card" id="nui-map-card" hidden><div class="nui-heading-row"><div><p class="eyebrow">RESOURCE MAP</p><h2>What connects to what.</h2><p class="section-copy">Manifest entries, page assets, browser callbacks, and Lua registrations are shown as a readable local map.</p></div><span class="status-badge" id="nui-map-count">0 links</span></div><div class="nui-map" id="nui-map"></div></section>
+
+      <section class="content-card nui-preview-card" id="nui-preview-card" hidden><div class="nui-heading-row"><div><p class="eyebrow">SAFE PREVIEW</p><h2>See the interface.</h2><p class="section-copy">This preview renders the selected HTML and local CSS without FiveM APIs. Browser scripts are disabled here so the preview cannot affect the page or your files.</p></div><button class="button button-ghost" id="close-nui-preview" type="button">Close preview</button></div><iframe id="nui-preview" title="NUI static preview" sandbox=""></iframe></section>
+
+      <section class="content-card nui-guide"><p class="eyebrow">WHAT IT CHECKS</p><h2>Useful checks for the messy bits.</h2><div class="nui-guide-grid"><div><strong>Manifest</strong><p>Finds the NUI page, declared files, client/server scripts, and missing resource paths.</p></div><div><strong>Browser files</strong><p>Checks HTML, CSS, image, font, and script references without executing untrusted code.</p></div><div><strong>Callbacks</strong><p>Compares JavaScript NUI requests with Lua <code>RegisterNUICallback</code> names and flags duplicates.</p></div><div><strong>Messages</strong><p>Maps <code>SendNUIMessage</code> actions to browser message listeners so silent UI failures are easier to spot.</p></div></div></section>
+    </section>
+  </main>
+
+  <footer class="site-footer shell"><div class="footer-top"><a class="brand" href="index.html"><span class="brand-mark">GB</span><span>GANKBYTE</span></a><p>Gaming. Memes. Code.</p><p class="footer-motto">BUILD. PLAY. GANK.</p></div><div class="footer-bottom"><div class="social-links"><a href="https://x.com/GankByte" target="_blank" rel="noreferrer">X</a><a href="https://discord.gg/CpWjZkjtjJ" target="_blank" rel="noreferrer">Discord</a><a href="https://github.com/GankByteHQ" target="_blank" rel="noreferrer">GitHub</a></div><a href="mailto:contact@gankbyte.com">contact@gankbyte.com</a><span>&copy; 2026 GankByte</span></div></footer>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" crossorigin="anonymous"></script>
+  <script src="footer-nav.js?v=9"></script>
+  <script src="nui-developer-toolkit.js?v=1"></script>
+</body>
+</html>
