@@ -102,7 +102,7 @@
   }
   function resetRun() {
     running = false; paused = false; finished = false; elapsed = 0; score = 0; saved = 0; lost = 0; combo = 1; bestCombo = 1; fastestRescue = null; speed = 0;
-    charges = chargesForLevel(); nextSpawn = 0; nextCorruption = 8; levelIndex = 0; levelElapsed = 0; levelSpawned = 0; levelSaved = 0; levelLost = 0; target = { x: 300, y: 450 }; signals = []; bridges = []; particles = []; selectedSignalId = null; viewOffset = { x: 0, y: 0 }; applyLevelLayout();
+    levelIndex = 0; charges = chargesForLevel(); nextSpawn = 0; nextCorruption = 8; levelElapsed = 0; levelSpawned = 0; levelSaved = 0; levelLost = 0; target = { x: 300, y: 450 }; signals = []; bridges = []; particles = []; selectedSignalId = null; viewOffset = { x: 0, y: 0 }; applyLevelLayout();
     $("signal-message").hidden = false; $("signal-message").innerHTML = "<strong>READY?</strong><span>Signals walk automatically. Select a skill, click a Signal, and build the route before the network breaks.</span>"; $("signal-collapse").classList.remove("show"); $("swarm-result").hidden = true; $("swarm-pause").hidden = true; $("swarm-restart").hidden = true; $("swarm-start").hidden = false; $("swarm-start").innerHTML = "Start run <span>&rarr;</span>"; $("swarm-status").textContent = localStorage.getItem(bestKey) ? `Best score on this device: ${format(localStorage.getItem(bestKey))}.` : "Save the swarm, build the route, and beat your best."; updateHud();
   }
   function createSignal() {
