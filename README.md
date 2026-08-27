@@ -20,6 +20,7 @@ This repository contains the public GankByte landing page. The site is a lightwe
 - `symbol-catch/` - Symbol Catch Arena reflex game
 - `codebreaker/` - Codebreaker puzzle campaign
 - `byte-snatch.html` - Byte Snatch risk-and-reward game
+- `signal-swarm.html` - Signal Swarm 60-second arcade strategy game
 - `profile.html` - personal runs, XP history, challenges, and moderation notes
 - `xp.html` - XP submission and public XP leaderboard
 - `developers.html` / `contributing.html` - project and contribution routes
@@ -54,7 +55,7 @@ The `images/` folder contains genuine captures from the current live builds:
 - [`DEVELOPER_WORKFLOW.md`](DEVELOPER_WORKFLOW.md) - proposal stages and showcase requirements
 - [`PROJECT_RULES.md`](PROJECT_RULES.md) - ownership, licensing, safety, and scope rules
 - [`LICENSE`](LICENSE) - website code and asset rights notice
-- `sql/` - ordered Supabase schema, migrations, Byte Snatch integration, and final automatic game score-sync setup
+- `sql/` - ordered Supabase schema, migrations, Byte Snatch and Signal Swarm integrations, and final automatic game score-sync setup
 
 ## Local test
 
@@ -64,7 +65,7 @@ Run the site from a local web server so OAuth redirects and module-free browser 
 py -m http.server 8000
 ```
 
-Then open `http://localhost:8000`. A complete manual check should cover all five games, mobile touch controls, Discord sign-in, score submission, XP submission, profile history, and admin review.
+Then open `http://localhost:8000`. A complete manual check should cover all six games, mobile touch controls, Discord sign-in, score submission, XP submission, profile history, and admin review.
 
 ## Deployment
 

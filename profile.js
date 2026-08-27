@@ -18,6 +18,8 @@ let profileSnatchBest = document.querySelector("#profile-snatch-best");
 let profileSnatchRuns = document.querySelector("#profile-snatch-runs");
 let profileCodebreakerBest = document.querySelector("#profile-codebreaker-best");
 let profileCodebreakerRuns = document.querySelector("#profile-codebreaker-runs");
+let profileSwarmBest = document.querySelector("#profile-swarm-best");
+let profileSwarmRuns = document.querySelector("#profile-swarm-runs");
 const profileHistory = document.querySelector("#profile-history");
 const profileRejections = document.querySelector("#profile-rejections");
 const profileChallenges = document.querySelector("#profile-challenges");
@@ -35,7 +37,9 @@ function profileLevelFor(xp) {
 }
 function renderProfileBadges(xp) {
   if (!profileBadges) return;
-  const earned = [["First signal", xp >= 100], ["Playtester", xp >= 500], ["Builder", xp >= 1500], ["Core contributor", xp >= 3000], ["Byte Snatcher", window.localStorage.getItem("gankbyte-achievement-byte-snatch") === "earned"]];
+  let swarmAchievements = [];
+  try { swarmAchievements = JSON.parse(window.localStorage.getItem("gankbyte-signal-swarm-achievements") || "[]"); } catch { swarmAchievements = []; }
+  const earned = [["First signal", xp >= 100], ["Playtester", xp >= 500], ["Builder", xp >= 1500], ["Core contributor", xp >= 3000], ["Byte Snatcher", window.localStorage.getItem("gankbyte-achievement-byte-snatch") === "earned"], ["Signal Swarm", swarmAchievements.length > 0], ["Overclocked", swarmAchievements.includes("OVERCLOCKED")]];
   profileBadges.innerHTML = earned.map(([label, active]) => `<span class="xp-badge${active ? " is-earned" : ""}">${active ? "Earned" : "Locked"} // ${label}</span>`).join("");
 }
 function profileInitials(value) { return String(value || "GB").split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "GB"; }
@@ -61,10 +65,15 @@ function ensureProfileSnatchCard() {
   }
   profileCodebreakerBest = document.querySelector("#profile-codebreaker-best");
   profileCodebreakerRuns = document.querySelector("#profile-codebreaker-runs");
+  if (grid && !grid.querySelector('[data-profile-game="signal-swarm"]')) {
+    grid.insertAdjacentHTML("beforeend", '<article class="content-card" data-profile-game="signal-swarm"><span class="status-badge">Signal Swarm</span><h3 id="profile-swarm-best">-</h3><p id="profile-swarm-runs">No Signal Swarm runs recorded</p></article>');
+  }
+  profileSwarmBest = document.querySelector("#profile-swarm-best");
+  profileSwarmRuns = document.querySelector("#profile-swarm-runs");
 }
 
-function renderHistory(arenaRows, glitchRows, symbolRows, snatchRows, codebreakerRows) {
-  const rows = [...(arenaRows || []).map((row) => ({ game: "Byte Rush", score: row.score, result: `Wave ${row.wave}`, seconds: row.run_seconds, created_at: row.created_at })), ...(glitchRows || []).map((row) => ({ game: "Glitch Dash", score: row.score, result: `Streak ${row.streak}`, seconds: row.run_seconds, created_at: row.created_at })), ...(symbolRows || []).map((row) => ({ game: "Symbol Catch", score: row.score, result: `Streak ${row.best_streak}`, seconds: row.run_seconds, created_at: row.created_at })), ...(snatchRows || []).map((row) => ({ game: "Byte Snatch", score: row.score, result: `x${row.best_multiplier} multiplier`, seconds: row.run_seconds, created_at: row.created_at })), ...(codebreakerRows || []).map((row) => ({ game: "Codebreaker", score: row.score, result: `Level ${String(row.level || 0).padStart(2, "0")}`, seconds: row.run_seconds, created_at: row.created_at }))].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 20);
+function renderHistory(arenaRows, glitchRows, symbolRows, snatchRows, codebreakerRows, swarmRows) {
+  const rows = [...(arenaRows || []).map((row) => ({ game: "Byte Rush", score: row.score, result: `Wave ${row.wave}`, seconds: row.run_seconds, created_at: row.created_at })), ...(glitchRows || []).map((row) => ({ game: "Glitch Dash", score: row.score, result: `Streak ${row.streak}`, seconds: row.run_seconds, created_at: row.created_at })), ...(symbolRows || []).map((row) => ({ game: "Symbol Catch", score: row.score, result: `Streak ${row.best_streak}`, seconds: row.run_seconds, created_at: row.created_at })), ...(snatchRows || []).map((row) => ({ game: "Byte Snatch", score: row.score, result: `x${row.best_multiplier} multiplier`, seconds: row.run_seconds, created_at: row.created_at })), ...(codebreakerRows || []).map((row) => ({ game: "Codebreaker", score: row.score, result: `Level ${String(row.level || 0).padStart(2, "0")}`, seconds: row.run_seconds, created_at: row.created_at })), ...(swarmRows || []).map((row) => ({ game: "Signal Swarm", score: row.score, result: `${row.signals_saved} saved // x${row.best_combo}`, seconds: row.run_seconds, created_at: row.created_at }))].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 20);
   if (!rows.length) { profileHistory.innerHTML = '<tr><td colspan="5">No approved runs yet. Play a game to start your history.</td></tr>'; return; }
   profileHistory.innerHTML = rows.map((row) => `<tr><td>${row.game}</td><td>${Number(row.score || 0).toLocaleString()}</td><td>${row.result}</td><td>${Number(row.seconds || 0)}s</td><td>${profileDate(row.created_at)}</td></tr>`).join("");
 }
@@ -97,14 +106,15 @@ function renderChallenges(challenges, submissions) {
   }).join("");
 }
 
-function renderRejections(submissionRows, arenaRows, glitchRows, symbolRows, dismissalRows, snatchRows, codebreakerRows) {
+function renderRejections(submissionRows, arenaRows, glitchRows, symbolRows, dismissalRows, snatchRows, codebreakerRows, swarmRows) {
   const records = [
     ...(submissionRows || []).map((row) => ({ key: profileNoticeKey("submission", row.id), group: `submission:${row.challenge_slug}`, type: "submission", id: row.id, label: row.challenge_slug === "community-contribution" ? "Community contribution" : row.challenge_slug, status: row.status, reason: row.reviewer_note, created_at: row.created_at, reviewed_at: row.reviewed_at })),
     ...(arenaRows || []).map((row) => ({ key: profileNoticeKey("arena", row.id), group: "score:Byte Rush", type: "arena", id: row.id, label: "Byte Rush score", status: row.status, reason: row.reviewer_note, created_at: row.created_at, reviewed_at: row.reviewed_at })),
     ...(glitchRows || []).map((row) => ({ key: profileNoticeKey("glitch", row.id), group: "score:Glitch Dash", type: "glitch", id: row.id, label: "Glitch Dash score", status: row.status, reason: row.reviewer_note, created_at: row.created_at, reviewed_at: row.reviewed_at })),
     ...(symbolRows || []).map((row) => ({ key: profileNoticeKey("symbol", row.id), group: "score:Symbol Catch", type: "symbol", id: row.id, label: "Symbol Catch score", status: row.status, reason: row.reviewer_note, created_at: row.created_at, reviewed_at: row.reviewed_at })),
     ...(snatchRows || []).map((row) => ({ key: profileNoticeKey("snatch", row.id), group: "score:Byte Snatch", type: "snatch", id: row.id, label: "Byte Snatch score", status: row.status, reason: row.reviewer_note, created_at: row.created_at, reviewed_at: row.reviewed_at })),
-    ...(codebreakerRows || []).map((row) => ({ key: profileNoticeKey("codebreaker", row.id), group: "score:Codebreaker", type: "codebreaker", id: row.id, label: "Codebreaker score", status: row.status, reason: row.reviewer_note, created_at: row.created_at, reviewed_at: row.reviewed_at }))
+    ...(codebreakerRows || []).map((row) => ({ key: profileNoticeKey("codebreaker", row.id), group: "score:Codebreaker", type: "codebreaker", id: row.id, label: "Codebreaker score", status: row.status, reason: row.reviewer_note, created_at: row.created_at, reviewed_at: row.reviewed_at })),
+    ...(swarmRows || []).map((row) => ({ key: profileNoticeKey("signal-swarm", row.id), group: "score:Signal Swarm", type: "signal-swarm", id: row.id, label: "Signal Swarm score", status: row.status, reason: row.reviewer_note, created_at: row.created_at, reviewed_at: row.reviewed_at }))
   ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   const latestByGroup = new Map();
   records.forEach((record) => { if (!latestByGroup.has(record.group)) latestByGroup.set(record.group, record); });
@@ -153,7 +163,7 @@ async function loadProfile(session) {
   profileCopy.textContent = "Your scores, XP, recent Arena activity, and moderation feedback are connected to this Discord account.";
   profileLogin.hidden = true; profileLogout.hidden = false;
   profileStatus.textContent = "Loading profile data...";
-  const [profileResult, xpResult, arenaResult, glitchResult, symbolResult, snatchResult, codebreakerResult, submissionResult, dismissalResult, xpHistoryResult, challengesResult] = await Promise.all([
+  const [profileResult, xpResult, arenaResult, glitchResult, symbolResult, snatchResult, codebreakerResult, swarmResult, submissionResult, dismissalResult, xpHistoryResult, challengesResult] = await Promise.all([
     profileClient.from("profiles").select("display_name").eq("id", profileUser.id).maybeSingle(),
     profileClient.from("xp_leaderboard").select("xp_total").eq("id", profileUser.id).maybeSingle(),
     profileClient.from("arena_scores").select("id,score,wave,run_seconds,created_at,status,reviewer_note,reviewed_at").eq("user_id", profileUser.id).order("created_at", { ascending: false }).limit(50),
@@ -161,12 +171,13 @@ async function loadProfile(session) {
     profileClient.from("symbol_catch_scores").select("id,score,best_streak,mode,run_seconds,created_at,status,reviewer_note,reviewed_at").eq("user_id", profileUser.id).order("created_at", { ascending: false }).limit(50),
     profileClient.from("byte_snatch_scores").select("id,score,best_multiplier,run_seconds,created_at,status,reviewer_note,reviewed_at").eq("user_id", profileUser.id).order("created_at", { ascending: false }).limit(50),
     profileClient.from("codebreaker_scores").select("id,score,level,mode,run_seconds,created_at,status,reviewer_note,reviewed_at").eq("user_id", profileUser.id).order("created_at", { ascending: false }).limit(50),
+    profileClient.from("signal_swarm_scores").select("id,score,signals_saved,signals_lost,best_combo,run_seconds,created_at,status,reviewer_note,reviewed_at").eq("user_id", profileUser.id).order("created_at", { ascending: false }).limit(50),
     profileClient.from("challenge_submissions").select("id,challenge_slug,status,reviewer_note,created_at,reviewed_at").eq("user_id", profileUser.id).order("created_at", { ascending: false }).limit(50),
     profileClient.from("moderation_notice_dismissals").select("notice_type,notice_id").eq("user_id", profileUser.id),
     profileClient.from("xp_ledger").select("amount,reason,source_type,approved,created_at").eq("user_id", profileUser.id).order("created_at", { ascending: false }).limit(50),
     profileClient.from("challenges").select("slug,title,base_xp,bonus_xp").eq("active", true).order("created_at", { ascending: true })
   ]);
-  const dataError = [profileResult, xpResult, arenaResult, glitchResult, symbolResult, snatchResult, codebreakerResult, submissionResult, dismissalResult, xpHistoryResult, challengesResult].find((result) => result?.error);
+  const dataError = [profileResult, xpResult, arenaResult, glitchResult, symbolResult, snatchResult, codebreakerResult, swarmResult, submissionResult, dismissalResult, xpHistoryResult, challengesResult].find((result) => result?.error);
   if (dataError) profileStatus.textContent = "Some profile data is temporarily unavailable. Try refreshing shortly.";
   if (profileResult.data?.display_name) profileTitle.textContent = profileResult.data.display_name;
   if (profileAvatar) profileAvatar.textContent = profileInitials(profileTitle.textContent);
@@ -179,16 +190,19 @@ async function loadProfile(session) {
   const symbolRows = symbolResult.data || [];
   const snatchRows = snatchResult.data || [];
   const codebreakerRows = codebreakerResult.data || [];
+  const swarmRows = swarmResult.data || [];
   const approvedArenaRows = arenaRows.filter((row) => row.status !== "rejected");
   const approvedGlitchRows = glitchRows.filter((row) => row.status !== "rejected");
   const approvedSymbolRows = symbolRows.filter((row) => row.status !== "rejected");
   const approvedSnatchRows = snatchRows.filter((row) => row.status !== "rejected");
   const approvedCodebreakerRows = codebreakerRows.filter((row) => row.status !== "rejected");
+  const approvedSwarmRows = swarmRows.filter((row) => row.status !== "rejected");
   const byteBest = approvedArenaRows.reduce((best, row) => Math.max(best, Number(row.score || 0)), 0);
   const glitchBest = approvedGlitchRows.reduce((best, row) => Math.max(best, Number(row.score || 0)), 0);
   const symbolBest = approvedSymbolRows.reduce((best, row) => Math.max(best, Number(row.score || 0)), 0);
   const snatchBest = approvedSnatchRows.reduce((best, row) => Math.max(best, Number(row.score || 0)), 0);
   const codebreakerBest = approvedCodebreakerRows.reduce((best, row) => Math.max(best, Number(row.score || 0)), 0);
+  const swarmBest = approvedSwarmRows.reduce((best, row) => Math.max(best, Number(row.score || 0)), 0);
   profileByteBest.textContent = byteBest ? byteBest.toLocaleString() : "-";
   profileByteRuns.textContent = `${approvedArenaRows.length} submitted run${approvedArenaRows.length === 1 ? "" : "s"}`;
   profileGlitchBest.textContent = glitchBest ? glitchBest.toLocaleString() : "-";
@@ -199,11 +213,13 @@ async function loadProfile(session) {
   if (profileSnatchRuns) profileSnatchRuns.textContent = `${approvedSnatchRows.length} submitted run${approvedSnatchRows.length === 1 ? "" : "s"}`;
   if (profileCodebreakerBest) profileCodebreakerBest.textContent = codebreakerBest ? codebreakerBest.toLocaleString() : "-";
   if (profileCodebreakerRuns) profileCodebreakerRuns.textContent = `${approvedCodebreakerRows.length} submitted run${approvedCodebreakerRows.length === 1 ? "" : "s"}`;
-  renderHistory(approvedArenaRows, approvedGlitchRows, approvedSymbolRows, approvedSnatchRows, approvedCodebreakerRows);
+  if (profileSwarmBest) profileSwarmBest.textContent = swarmBest ? swarmBest.toLocaleString() : "-";
+  if (profileSwarmRuns) profileSwarmRuns.textContent = `${approvedSwarmRows.length} submitted run${approvedSwarmRows.length === 1 ? "" : "s"}`;
+  renderHistory(approvedArenaRows, approvedGlitchRows, approvedSymbolRows, approvedSnatchRows, approvedCodebreakerRows, approvedSwarmRows);
   renderXpHistory(xpHistoryResult.data || []);
   renderChallenges(challengesResult.data || [], submissionResult.data || []);
   const dismissalRows = dismissalResult.error ? profileLocalDismissals(profileUser.id).map((key) => { const [notice_type, notice_id] = String(key).split(":"); return { notice_type, notice_id: Number(notice_id) }; }) : (dismissalResult.data || []);
-  renderRejections(submissionResult.data || [], arenaRows, glitchRows, symbolRows, dismissalRows, snatchRows, codebreakerRows);
+  renderRejections(submissionResult.data || [], arenaRows, glitchRows, symbolRows, dismissalRows, snatchRows, codebreakerRows, swarmRows);
   if (!dataError) profileStatus.textContent = "Profile updated.";
 }
 

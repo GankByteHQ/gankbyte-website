@@ -28,7 +28,7 @@
     const page = window.location.pathname.split("/").pop() || "index.html";
     const nestedGamePage = /\/(?:codebreaker|symbol-catch)\//.test(window.location.pathname);
     const navPath = (href) => href.startsWith("http") || href.startsWith("/") || href.startsWith("../") ? href : `${nestedGamePage ? "../" : ""}${href}`;
-    const activePage = page === "arena.html" || page === "glitch-dash.html" || page === "arena-hub.html" ? "arena-hub.html"
+    const activePage = page === "arena.html" || page === "glitch-dash.html" || page === "signal-swarm.html" || page === "arena-hub.html" ? "arena-hub.html"
       : page === "projects.html" || page === "contributing.html" || page === "project-submit.html" || page === "tools.html" || page === "docs.html" || page === "code-library.html" || page === "compatibility.html" || page === "fivem.html" || page === "fivem-tools.html" || page === "fivem-script-generator.html" ? "developers.html"
       : page === "challenges.html" ? "community.html"
       : page === "reviews-submit.html" ? "reviews.html"
@@ -133,14 +133,15 @@
       ["glitch-dash.html?v=8", "Glitch Dash"],
       ["symbol-catch/", "Symbol Catch"],
       ["codebreaker/", "Codebreaker"],
-      ["byte-snatch.html", "Byte Snatch"]
+      ["byte-snatch.html", "Byte Snatch"],
+      ["signal-swarm.html", "Signal Swarm"]
     ], ["games.html"]);
     makeNavDropdown('a[href$="arena-hub.html"]', "Arena", [
       ["arena-hub.html", "Arena Hub"],
       ["arena.html?v=19#leaderboard", "Leaderboards"],
       ["profile.html", "Player Profile"],
       ["challenges.html", "Challenges"]
-    ], ["arena-hub.html"]);
+    ], ["arena-hub.html", "signal-swarm.html"]);
     makeNavDropdown('a[href$="community.html"]', "Community", [
       ["community.html", "Community Hub"],
       ["https://discord.gg/CpWjZkjtjJ", "Join Discord"],
@@ -286,6 +287,11 @@
     homeGames.insertAdjacentHTML("beforeend", '<article class="live-game-card" data-home-game="byte-snatch"><img class="game-thumb" src="byte-snatch-thumb.svg" alt="Byte Snatch risk and reward arena" /><div class="live-game-card-body"><span class="status-badge">Live // Risk runs</span><h3>Byte Snatch</h3><p>Collect Bytes, build your multiplier, bank the score, and survive the glitches before they gank you.</p><div class="hero-actions"><a class="button button-primary" href="byte-snatch.html">Play Byte Snatch <span>&nearr;</span></a><a class="text-link" href="byte-snatch.html#leaderboard">Leaderboard <span>&nearr;</span></a></div></div></article>');
     const heading = document.querySelector(".live-games-section .section-heading h2");
     if (heading) heading.innerHTML = "Five games.<br><em>Start here.</em>";
+  }
+  if (homeGames && !homeGames.querySelector('[data-home-game="signal-swarm"]')) {
+    homeGames.insertAdjacentHTML("beforeend", '<article class="live-game-card" data-home-game="signal-swarm"><img class="game-thumb" src="signal-swarm-thumb.svg" alt="Signal Swarm glowing creatures moving through a corrupted network" /><div class="live-game-card-body"><span class="status-badge">Live // Strategy runs</span><h3>Signal Swarm</h3><p>Guide Signals through a failing network, rescue the swarm, and push the speed for a bigger score.</p><div class="hero-actions"><a class="button button-primary" href="signal-swarm.html">Play Signal Swarm <span>&nearr;</span></a><a class="text-link" href="signal-swarm.html#leaderboard">Leaderboard <span>&nearr;</span></a></div></div></article>');
+    const heading = document.querySelector(".live-games-section .section-heading h2");
+    if (heading) heading.innerHTML = "Six games.<br><em>Start here.</em>";
   }
 
   const toolsGrid = document.querySelector("main .content-grid");
