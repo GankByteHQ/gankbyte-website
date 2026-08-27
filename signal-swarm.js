@@ -18,8 +18,8 @@
   const statsKey = "gankbyte-signal-swarm-stats";
   const achievementsKey = "gankbyte-signal-swarm-achievements";
   const platforms = [
-    { x1: 20, x2: 345, y: 450 }, { x1: 425, x2: 625, y: 450 }, { x1: 720, x2: 940, y: 450 },
-    { x1: 205, x2: 455, y: 345 }, { x1: 520, x2: 775, y: 275 }, { x1: 610, x2: 910, y: 370 }
+    { x1: 25, x2: 240, y: 220 }, { x1: 240, x2: 465, y: 330 },
+    { x1: 465, x2: 620, y: 430 }, { x1: 700, x2: 940, y: 430 }
   ];
   const exits = [{ x: 925, y: 450 }];
 
@@ -48,9 +48,10 @@
     running = false; paused = false; finished = false; elapsed = 0; score = 0; saved = 0; lost = 0; combo = 1; bestCombo = 1; fastestRescue = null; speed = 0; charges = { ...initialCharges }; pulseUntil = 0; freezeUntil = 0; doubleUntil = 0; safeRouteUntil = 0; echoUntil = 0; nextSpawn = 0; nextHazard = 3; nextCorruption = 3; nextPowerup = 8; target = { x: 300, y: laneY }; signals = []; hazards = []; corruption = []; powerups = []; bridges = []; particles = []; viewOffset = { x: 0, y: 0 };
     $("signal-message").hidden = false; $("signal-message").innerHTML = "<strong>READY?</strong><span>Signals walk automatically. Place bridges, turn them around, and rescue as many as possible.</span>"; $("signal-collapse").classList.remove("show"); $("swarm-result").hidden = true; $("swarm-pause").hidden = true; $("swarm-restart").hidden = true; $("swarm-start").hidden = false; $("swarm-start").innerHTML = "Start run <span>&rarr;</span>"; $("swarm-speed").value = "0"; $("swarm-status").textContent = localStorage.getItem(bestKey) ? `Best score on this device: ${format(localStorage.getItem(bestKey))}.` : "Save the swarm or push the score. Your best run is saved on this device."; updateHud();
   }
-  function createSignal() { const roll = Math.random(), type = roll < .2 ? "carrier" : roll < .44 ? "spark" : "runner"; signals.push({ id: `${elapsed}-${Math.random()}`, alive: true, x: 55, y: laneY - 18, vx: type === "runner" ? 72 : type === "carrier" ? 43 : 56, vy: 0, direction: 1, type, grounded: true, lastSafeX: 55, lastSafeY: laneY - 18, spawnTime: elapsed, phase: random(0, 7), repaired: false }); }
+  function createSignal() { const roll = Math.random(), type = roll < .2 ? "carrier" : roll < .44 ? "spark" : "runner"; signals.push({ id: `${elapsed}-${Math.random()}`, alive: true, x: 55, y: 70, vx: type === "runner" ? 72 : type === "carrier" ? 43 : 56, vy: 0, direction: 1, type, grounded: false, lastSafeX: 55, lastSafeY: 202, spawnTime: elapsed, phase: random(0, 7), repaired: false }); }
   function supportAt(x, y) { const candidates = [...platforms, ...bridges.map((bridge) => ({ x1: bridge.x1, x2: bridge.x2, y: bridge.y }))]; return candidates.find((platform) => x >= platform.x1 - 5 && x <= platform.x2 + 5 && Math.abs(platform.y - (y + 18)) < 12) || null; }
-  function spawnHazard() { hazards.push({ x: random(250, 850), y: laneY - 18, direction: Math.random() > .5 ? 1 : -1, speed: random(45, 85), radius: random(13, 19), phase: random(0, 7) }); }
+  function landingAt(x, previousY, nextY) { const previousBottom = previousY + 18, nextBottom = nextY + 18; const candidates = [...platforms, ...bridges.map((bridge) => ({ x1: bridge.x1, x2: bridge.x2, y: bridge.y }))]; return candidates.find((platform) => x >= platform.x1 - 5 && x <= platform.x2 + 5 && previousBottom <= platform.y && nextBottom >= platform.y) || null; }
+  function spawnHazard() { const base = platforms[Math.floor(random(0, 4))]; hazards.push({ x: random(base.x1 + 25, base.x2 - 25), y: base.y - 18, direction: Math.random() > .5 ? 1 : -1, speed: random(45, 85), radius: random(13, 19), phase: random(0, 7) }); }
   function spawnCorruption() { const base = platforms[Math.floor(random(0, 3))]; corruption.push({ x: random(base.x1 + 25, base.x2 - 25), y: base.y - 18, ttl: elapsed + random(12, 24), pulse: random(0, 7) }); }
   function spawnPowerup() { const base = platforms[Math.floor(random(0, platforms.length))]; powerups.push({ x: random(base.x1 + 20, base.x2 - 20), y: base.y - 25, type: ["clean", "freeze", "double", "safe", "echo"][Math.floor(random(0, 5))], ttl: elapsed + 15, pulse: random(0, 7) }); }
   function currentSpeed() { return speedFactors[speed] * (pulseUntil > elapsed ? 1.35 : 1); }
@@ -73,11 +74,11 @@
   function updateSignal(signal, dt) {
     if (!signal.alive) return;
     const factor = currentSpeed();
-    if (!signal.grounded) { signal.vy += gravity * dt; signal.y += signal.vy * dt; if (signal.y > H + 30) { lose(signal, "A Signal fell through the network. Build a bridge over the gap."); return; } const support = supportAt(signal.x, signal.y); if (support && signal.vy > 0) { signal.y = support.y - 18; signal.vy = 0; signal.grounded = true; signal.lastSafeX = signal.x; signal.lastSafeY = signal.y; } return; }
+    if (!signal.grounded) { const previousY = signal.y; signal.vy += gravity * dt; signal.y += signal.vy * dt; if (signal.y > H + 30) { lose(signal, "A Signal fell through the network. Build a bridge over the gap."); return; } const landing = signal.vy > 0 ? landingAt(signal.x, previousY, signal.y) : null; if (landing) { signal.y = landing.y - 18; signal.vy = 0; signal.grounded = true; signal.lastSafeX = signal.x; signal.lastSafeY = signal.y; } return; }
     const nextX = signal.x + signal.vx * factor * dt;
     const support = supportAt(nextX, signal.y);
     const current = supportAt(signal.x, signal.y);
-    if (!support || Math.abs(support.y - (signal.y + 18)) > 14) { signal.grounded = false; signal.vy = 40; signal.x = nextX; return; }
+    if (!support || Math.abs(support.y - (signal.y + 18)) > 14) { if (current && signal.direction < 0 && nextX < current.x1) { signal.direction = 1; signal.vx = Math.abs(signal.vx); signal.x = current.x1; return; } signal.grounded = false; signal.vy = 40; signal.x = nextX; return; }
     signal.x = nextX; signal.y = support.y - 18; signal.lastSafeX = signal.x; signal.lastSafeY = signal.y; signal.phase += dt * 6;
     if (signal.x < 18 || signal.x > W - 18) { signal.direction *= -1; signal.vx = Math.abs(signal.vx) * signal.direction; }
     if (signal.x >= 902 && signal.y > 410) { rescue(signal); return; }
