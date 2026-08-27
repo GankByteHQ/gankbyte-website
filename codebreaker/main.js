@@ -974,7 +974,7 @@
   async function loadOnlineLeaderboard() {
     if (!onlineClient) return;
     const board = state.leaderboardTab === "daily" ? "codebreaker_daily_leaderboard" : state.leaderboardTab === "weekly" ? "codebreaker_weekly_leaderboard" : "codebreaker_leaderboard";
-    const result = await onlineClient.from(board).select("display_name,score,mode,level,combo,trace,lives,latest_run").order("score", { ascending: false }).limit(100);
+    const result = await onlineClient.from(board).select("display_name,score,mode,level,combo,trace,lives,latest_run").order("score", { ascending: false }).limit(500);
     if (result.error) {
       state.onlineLoaded = false;
       state.onlineError = true;

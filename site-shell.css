@@ -190,6 +190,12 @@
 .game-result-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
 .game-result-actions[hidden]{display:none!important}
 .game-result-actions .button{font-size:10px;padding:12px 14px}
+.leaderboard-pagination{align-items:center;border-top:1px solid var(--line);color:var(--muted);display:flex;font-size:11px;justify-content:space-between;gap:16px;margin-top:16px;padding-top:14px}
+.leaderboard-pagination[hidden]{display:none}
+.leaderboard-pagination-actions{display:flex;gap:8px}
+.leaderboard-pagination button{background:var(--surface);border:1px solid var(--line);color:var(--text);cursor:pointer;font:inherit;padding:9px 12px}
+.leaderboard-pagination button:hover:not(:disabled),.leaderboard-pagination button:focus-visible{border-color:var(--lime);color:var(--lime)}
+.leaderboard-pagination button:disabled{cursor:not-allowed;opacity:.45}
 .game-actions,.hero-actions,.project-actions,.dashboard-links,.leaderboard-filters,.arena-online,.touch-controls,.symbol-touch-controls,.codebreaker-actions,.powerup-bar,.cb-actions,.cb-tab-row,.cb-page-controls,.cb-menu-list,.cb-grid-2,.cb-grid-3,.cb-grid-4{
   position:relative;
   z-index:1;
@@ -221,4 +227,7 @@ button.button-ghost:hover{background:var(--surface-2);border-color:var(--lime);c
   .hero-actions{gap:10px}
   .hero-actions .button{width:100%}
   .game-result-actions .button{flex:1 1 100%;justify-content:center}
+  .leaderboard-pagination{align-items:flex-start;flex-direction:column}
+  .leaderboard-pagination-actions{width:100%}
+  .leaderboard-pagination button{flex:1}
 }

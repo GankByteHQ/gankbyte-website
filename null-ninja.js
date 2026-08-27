@@ -60,7 +60,7 @@
     enemies = [];
     pickups = [];
     particles = [];
-    player = { x: 90, y: 350, w: 22, h: 56, vx: 190, vy: 0, jumps: 0, lives: 3, grounded: false, facing: 1, attack: 0, counter: 0, dash: 0, slide: 0, invuln: 0, shield: 0, wall: false };
+    player = { x: 90, y: 350, w: 22, h: 56, vx: 190, vy: 0, jumps: 0, lives: 3, grounded: false, facing: 1, attack: 0, attackKind: "punch", counter: 0, dash: 0, slide: 0, invuln: 0, shield: 0, wall: false };
     camera = 0; score = 0; distance = 0; kills = 0; combo = 0; bestCombo = 0; perfectKills = 0; bosses = 0; flowStates = 0; flow = 0; flowUntil = 0; gankUntil = 0; comboTimeout = 0; spawnAt = 500; bossSpawned = false;
     updateHud();
   }
@@ -112,11 +112,13 @@
     if (player.grounded || player.jumps < 2 || player.wall) { player.vy = -470; player.grounded = false; player.jumps += 1; player.wall = false; addFlow(5); burst(player.x, player.y + player.h, "#55e8ff", 5); }
   }
 
-  function attack(perfect = false) {
+  function attack(perfect = false, kind = "punch") {
     if (!running || paused || ended) return;
-    player.attack = .18;
+    player.attack = kind === "kick" ? .28 : .18;
+    player.attackKind = kind;
     let hit = false;
-    const blade = { x: player.x + (player.facing > 0 ? player.w : -62), y: player.y + 10, w: 62, h: 34 };
+    const reach = kind === "kick" ? 72 : 62;
+    const blade = { x: player.x + (player.facing > 0 ? player.w : -reach), y: player.y + (kind === "kick" ? 27 : 10), w: reach, h: kind === "kick" ? 38 : 34 };
     enemies.forEach((enemy) => {
       if (!enemy.alive || !rectsOverlap(blade, enemy)) return;
       const isPerfect = perfect || Math.abs(enemy.x - player.x) < 58;
@@ -223,11 +225,35 @@
   }
 
   function drawPlayer() {
-    const x = player.x; const y = player.y; const bodyH = player.slide > 0 ? 34 : player.h; const glow = flowUntil > worldTime() ? "#55e8ff" : gankUntil > worldTime() ? "#c6ff3d" : "#f4f2ea";
-    ctx.save(); ctx.strokeStyle = glow; ctx.fillStyle = "#050608"; ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.shadowColor = glow; ctx.shadowBlur = player.invuln > 0 ? 18 : 6;
-    ctx.beginPath(); ctx.arc(x + 11, y + 9, 8, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); if (player.slide > 0) { ctx.moveTo(x + 5, y + 22); ctx.lineTo(x + 30, y + 25); ctx.lineTo(x + 38, y + 34); } else { ctx.moveTo(x + 11, y + 18); ctx.lineTo(x + 11, y + 39); ctx.moveTo(x + 11, y + 24); ctx.lineTo(x + 27 * player.facing, y + 29); ctx.moveTo(x + 11, y + 39); ctx.lineTo(x + 1, y + bodyH); ctx.moveTo(x + 11, y + 39); ctx.lineTo(x + 22, y + bodyH); } ctx.stroke();
-    if (player.attack > 0) { ctx.strokeStyle = "#c6ff3d"; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(x + (player.facing > 0 ? 31 : -8), y + 26, 25, player.facing > 0 ? -.9 : 2.2, player.facing > 0 ? .9 : 4); ctx.stroke(); }
+    const x = player.x + 11; const y = player.y; const facing = player.facing || 1; const bodyH = player.slide > 0 ? 34 : player.h;
+    const glow = player.invuln > 0 ? "#ffffff" : flowUntil > worldTime() ? "#55e8ff" : gankUntil > worldTime() ? "#c6ff3d" : "#f4f2ea";
+    const progress = player.attack > 0 ? 1 - player.attack / (player.attackKind === "kick" ? .28 : .18) : 0;
+    const attackPhase = Math.sin(clamp(progress, 0, 1) * Math.PI);
+    const gait = Math.abs(player.vx) > 210 && player.grounded && player.attack <= 0 && player.slide <= 0 ? Math.sin(worldTime() / 80) : 0;
+    const point = (px, py) => ({ x: x + px * facing, y: y + py });
+    const limb = (from, elbow, to, width = 5) => { ctx.beginPath(); ctx.moveTo(from.x, from.y); ctx.lineTo(elbow.x, elbow.y); ctx.lineTo(to.x, to.y); ctx.stroke(); ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(elbow.x, elbow.y, Math.max(2, width - 2), 0, Math.PI * 2); ctx.fill(); };
+    ctx.save(); ctx.strokeStyle = glow; ctx.fillStyle = "#050608"; ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.shadowColor = glow; ctx.shadowBlur = player.invuln > 0 ? 18 : 7;
+    ctx.beginPath(); ctx.arc(x, y + 9, 8, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, y + 18); ctx.lineTo(x, y + 39); ctx.stroke();
+    const shoulder = point(0, 23); const hip = point(0, 39);
+    if (player.slide > 0) {
+      ctx.beginPath(); ctx.moveTo(x - facing * 5, y + 22); ctx.lineTo(x + facing * 21, y + 26); ctx.lineTo(x + facing * 31, y + bodyH); ctx.stroke();
+    } else if (player.attackKind === "kick" && player.attack > 0) {
+      limb(shoulder, point(14, 28), point(25, 40), 5);
+      limb(hip, point(13 + attackPhase * 16, 45 - attackPhase * 15), point(28 + attackPhase * 38, 44 - attackPhase * 24), 6);
+      ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(x + facing * (28 + attackPhase * 38), y + 44 - attackPhase * 24, 6, 0, Math.PI * 2); ctx.fill();
+    } else if (player.attack > 0) {
+      limb(shoulder, point(14 + attackPhase * 7, 16 - attackPhase * 4), point(29 + attackPhase * 27, 15 - attackPhase * 5), 5);
+      ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(x + facing * (29 + attackPhase * 27), y + 15 - attackPhase * 5, 6, 0, Math.PI * 2); ctx.fill();
+      limb(point(0, 27), point(-12, 34), point(-20, 28 + gait * 2), 4);
+    } else {
+      limb(shoulder, point(13, 28 + gait * 6), point(23, 39 + gait * 8), 5);
+      limb(point(0, 27), point(-13, 34 - gait * 6), point(-21, 28 - gait * 8), 4);
+    }
+    if (player.attackKind !== "kick" || player.attack <= 0) { limb(hip, point(-11, 49 + gait * 7), point(-15, 67 + gait * 9), 5); limb(hip, point(12, 49 - gait * 7), point(19, 67 - gait * 9), 5); }
+    else limb(hip, point(-12, 50), point(-17, 68), 5);
+    if (!player.grounded) { ctx.beginPath(); ctx.moveTo(x - facing * 2, y + 39); ctx.lineTo(x - facing * 17, y + 49); ctx.moveTo(x + facing * 2, y + 39); ctx.lineTo(x + facing * 18, y + 52); ctx.stroke(); }
+    if (player.shield > 0) { ctx.strokeStyle = "#55e8ff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x + facing * 14, y + 31, 25, facing > 0 ? -1.2 : 1.9, facing > 0 ? 1.2 : 4.3); ctx.stroke(); }
     ctx.restore();
   }
 
@@ -251,13 +277,13 @@
 
   function readBest() { try { return JSON.parse(window.localStorage.getItem(BEST_KEY) || "null"); } catch { return null; } }
   async function saveScore(result) { if (!client || !user) return; const response = await client.from("null_ninja_scores").insert({ user_id: user.id, score: result.score, distance: result.distance, kills: result.kills, best_combo: result.bestCombo, perfect_kills: result.perfectKills, bosses_defeated: result.bosses, flow_states: result.flowStates, xp_earned: Math.min(250, 25 + result.kills * 2), status: "approved" }).select("id").single(); if (!response.error) { $("result-ninja-rank").textContent = "Submitted"; loadLeaderboard(); } }
-  async function loadLeaderboard() { if (!client) return; const result = await client.from("null_ninja_leaderboard").select("display_name,best_score,best_distance,best_kills").order("best_score", { ascending: false }).limit(10); const body = $("ninja-leaderboard-body"); if (result.error) { body.innerHTML = "<tr><td colspan=\"5\">Leaderboard temporarily unavailable.</td></tr>"; return; } body.innerHTML = result.data?.length ? result.data.map((row, i) => `<tr><td>${i + 1}</td><td>${escapeHtml(row.display_name || "Player")}</td><td>${Number(row.best_score || 0).toLocaleString()}</td><td>${row.best_distance || 0}m</td><td>${row.best_kills || 0}</td></tr>`).join("") : "<tr><td colspan=\"5\">No approved runs yet. Be the first.</td></tr>"; }
+  async function loadLeaderboard() { if (!client) return; const result = await client.from("null_ninja_leaderboard").select("display_name,best_score,best_distance,best_kills").order("best_score", { ascending: false }).limit(500); const body = $("ninja-leaderboard-body"); if (result.error) { body.innerHTML = "<tr><td colspan=\"5\">Leaderboard temporarily unavailable.</td></tr>"; return; } body.innerHTML = result.data?.length ? result.data.map((row, i) => `<tr><td>${i + 1}</td><td>${escapeHtml(row.display_name || "Player")}</td><td>${Number(row.best_score || 0).toLocaleString()}</td><td>${row.best_distance || 0}m</td><td>${row.best_kills || 0}</td></tr>`).join("") : "<tr><td colspan=\"5\">No approved runs yet. Be the first.</td></tr>"; }
   function escapeHtml(value) { return String(value).replace(/[&<>\"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[c])); }
   function togglePause() { if (!running || ended) return; paused = !paused; $("ninja-pause").innerHTML = paused ? "Resume <span>▶</span>" : "Pause <span>Ⅱ</span>"; draw(); }
-  function doAction(name) { ({ jump, attack, dash, counter, slide: () => { if (running && !paused) player.slide = .45; } }[name] || (() => {}))(); }
+  function doAction(name) { if (name === "kick") attack(false, "kick"); else ({ jump, attack, dash, counter, slide: () => { if (running && !paused) player.slide = .45; } }[name] || (() => {}))(); }
 
   const keys = new Set();
-  window.addEventListener("keydown", (event) => { const key = event.key.toLowerCase(); if (["arrowleft", "arrowright", "arrowup", "arrowdown", " ", "a", "d", "w", "s", "e", "f", "g", "j", "k", "shift", "escape", "r"].includes(key)) event.preventDefault(); keys.add(key); if (key === "w" || key === "arrowup") jump(); if (key === " " || key === "shift") dash(); if (key === "f" || key === "j" || key === "enter") attack(); if (key === "g" || key === "k") counter(); if (key === "e") activateFlow(); if (key === "escape") togglePause(); if (key === "r") start(); }, { passive: false });
+  window.addEventListener("keydown", (event) => { const key = event.key.toLowerCase(); if (["arrowleft", "arrowright", "arrowup", "arrowdown", " ", "a", "d", "w", "s", "e", "f", "g", "j", "k", "shift", "escape", "r"].includes(key)) event.preventDefault(); keys.add(key); if (key === "w" || key === "arrowup") jump(); if (key === " " || key === "shift") dash(); if (key === "f" || key === "j" || key === "enter") attack(false, "punch"); if (key === "g") attack(false, "kick"); if (key === "k") counter(); if (key === "e") activateFlow(); if (key === "escape") togglePause(); if (key === "r") start(); }, { passive: false });
   window.addEventListener("keyup", (event) => keys.delete(event.key.toLowerCase()));
   document.querySelectorAll("[data-ninja-action]").forEach((button) => { button.addEventListener("click", () => doAction(button.dataset.ninjaAction)); });
   canvas.addEventListener("pointerdown", (event) => { pointerStart = { x: event.clientX, y: event.clientY }; canvas.setPointerCapture?.(event.pointerId); });

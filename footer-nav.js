@@ -280,6 +280,12 @@
     script.dataset.siteAuth = "true";
     document.body.append(script);
   }
+  if (!document.querySelector('script[data-leaderboard-pagination]')) {
+    const script = document.createElement("script");
+    script.src = "/leaderboard-pagination.js?v=1";
+    script.dataset.leaderboardPagination = "true";
+    document.body.append(script);
+  }
 
   const homeGames = document.querySelector(".live-games-section .live-games-grid");
   if (homeGames && /^(?:index\.html)?$/.test(window.location.pathname.split("/").pop())) {

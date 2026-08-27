@@ -38,6 +38,9 @@
   let wallCooldown = 0;
   let shootCooldown = 0;
   let enemyShotCooldown = 1.2;
+  let stationaryTime = 0;
+  let lastPlayerX = WIDTH / 2;
+  let pressureCooldown = 0;
   let waveMessage = 0;
   let screenPulse = 0;
   let running = false;
@@ -174,6 +177,9 @@
     weaponMode = "single";
     weaponUntil = 0;
     shieldCharges = 0;
+    stationaryTime = 0;
+    lastPlayerX = WIDTH / 2;
+    pressureCooldown = 0;
     player = { x: WIDTH / 2, y: HEIGHT - 62, width: 28, height: 22, speed: 390, invulnerable: 0 };
     enemies = [];
     bullets = [];
@@ -268,7 +274,8 @@
       const proximity = clamp((enemy.y - 90) / 340, 0, 1);
       const riskMultiplier = 1 + proximity * 2;
       const powerMultiplier = activePower === "overdrive" && powerUntil > elapsed ? 2 : 1;
-      const gained = Math.round(info.value * combo * riskMultiplier * powerMultiplier);
+      const movementMultiplier = stationaryTime > 4 ? .55 : stationaryTime > 2.5 ? .8 : 1;
+      const gained = Math.round(info.value * combo * riskMultiplier * powerMultiplier * movementMultiplier);
       score += gained;
       combo = Math.min(12, combo + 1);
       bestCombo = Math.max(bestCombo, combo);
@@ -337,6 +344,11 @@
       enemyBullets.push({ x: enemy.x, y: enemy.y, vx: 120, vy: 240, width: 5, height: 13, boss: true });
     }
   }
+  function stationaryPressure() {
+    const fromRight = player.x < WIDTH / 2;
+    enemyBullets.push({ x: fromRight ? WIDTH + 24 : -24, y: clamp(player.y, 80, HEIGHT - 100), vx: fromRight ? -310 : 310, vy: 0, width: 18, height: 8, boss: false, pressure: true });
+    floatText(player.x, player.y - 34, "MOVE OR GET PINNED", "#ff526b");
+  }
   function update(dt) {
     elapsed += dt;
     shootCooldown = Math.max(0, shootCooldown - dt);
@@ -349,6 +361,18 @@
     if (keys.has("ArrowLeft") || keys.has("a") || touchKeys.has("left")) direction -= 1;
     if (keys.has("ArrowRight") || keys.has("d") || touchKeys.has("right")) direction += 1;
     movePlayer(direction, dt);
+    if (Math.abs(player.x - lastPlayerX) > 1) {
+      stationaryTime = 0;
+      pressureCooldown = 0;
+      lastPlayerX = player.x;
+    } else {
+      stationaryTime += dt;
+    }
+    pressureCooldown = Math.max(0, pressureCooldown - dt);
+    if (stationaryTime > 2.5 && pressureCooldown <= 0) {
+      stationaryPressure();
+      pressureCooldown = 1.35;
+    }
     updateFormation(dt);
     enemyShotCooldown -= dt;
     if (enemyShotCooldown <= 0) { enemyShotCooldown = Math.max(.42, 1.25 - wave * .025); enemyFire(); }
@@ -418,7 +442,7 @@
     powerups.forEach((item) => { const info = { rapid:"#c6ff3d", pierce:"#55e8ff", lightning:"#f7d35b", shield:"#55e8ff", bomb:"#ff526b", overdrive:"#b55cff", rocket:"#f7d35b", double:"#55e8ff", triple:"#c6ff3d" }[item.type]; const label = { rocket:"ROC", double:"2X", triple:"3X" }[item.type] || item.type.slice(0, 3).toUpperCase(); ctx.save(); ctx.translate(item.x, item.y); ctx.rotate(item.pulse); ctx.shadowBlur = 20; ctx.shadowColor = info; ctx.strokeStyle = info; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = info; ctx.font = "bold 9px monospace"; ctx.textAlign = "center"; ctx.fillText(label, 0, 3); ctx.restore(); });
     drawBunkers();
     bullets.forEach((bullet) => { ctx.fillStyle = bullet.rocket ? "#f7d35b" : "#c6ff3d"; ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle; ctx.fillRect(bullet.x - (bullet.rocket ? 4 : 2), bullet.y - (bullet.rocket ? 14 : 10), bullet.rocket ? 8 : 4, bullet.rocket ? 24 : 18); ctx.shadowBlur = 0; });
-    enemyBullets.forEach((bullet) => { ctx.fillStyle = bullet.boss ? "#ff526b" : "#b55cff"; ctx.shadowBlur = 14; ctx.shadowColor = ctx.fillStyle; ctx.fillRect(bullet.x - 2, bullet.y - 7, 4, 14); ctx.shadowBlur = 0; });
+    enemyBullets.forEach((bullet) => { ctx.fillStyle = bullet.pressure ? "#ff526b" : (bullet.boss ? "#ff526b" : "#b55cff"); ctx.shadowBlur = 14; ctx.shadowColor = ctx.fillStyle; if (bullet.pressure) ctx.fillRect(bullet.x - 9, bullet.y - 3, 18, 6); else ctx.fillRect(bullet.x - 2, bullet.y - 7, 4, 14); ctx.shadowBlur = 0; });
     ctx.save(); ctx.translate(player.x, player.y); ctx.globalAlpha = player.invulnerable > 0 && Math.floor(player.invulnerable * 12) % 2 === 0 ? .35 : 1; ctx.shadowBlur = 26; ctx.shadowColor = "#55e8ff"; ctx.fillStyle = "#55e8ff"; ctx.strokeStyle = "#c6ff3d"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, -20); ctx.lineTo(18, 16); ctx.lineTo(7, 12); ctx.lineTo(0, 20); ctx.lineTo(-7, 12); ctx.lineTo(-18, 16); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.fillStyle = "#080b10"; ctx.fillRect(-4, 3, 8, 4); if (shieldCharges) { ctx.strokeStyle = "#55e8ff"; ctx.beginPath(); ctx.arc(0, 0, 29, 0, Math.PI * 2); ctx.stroke(); } ctx.restore();
     ctx.fillStyle = "#55e8ff"; ctx.font = "11px monospace"; ctx.textAlign = "center"; ctx.fillText("NETWORK CORE", WIDTH / 2, HEIGHT - 26); ctx.fillStyle = "rgba(85,232,255,.15)"; ctx.fillRect(WIDTH / 2 - 70, HEIGHT - 18, 140, 3); ctx.fillStyle = "#55e8ff"; ctx.fillRect(WIDTH / 2 - 70, HEIGHT - 18, 140 * coreHealth / 100, 3);
     particles.forEach((particle) => { ctx.globalAlpha = clamp(particle.life * 2, 0, 1); ctx.fillStyle = particle.color; ctx.fillRect(particle.x, particle.y, particle.size, particle.size); }); ctx.globalAlpha = 1;
@@ -443,7 +467,7 @@
   async function loadLeaderboard() {
     const body = $("packet-leaderboard-body");
     if (!client) { body.innerHTML = '<tr><td colspan="6">Global scores need the XP backend connection.</td></tr>'; return; }
-    const result = await client.from("packet_siege_leaderboard").select("id,display_name,best_score,best_wave,best_combo,best_destroyed").order("best_score", { ascending: false }).limit(25);
+    const result = await client.from("packet_siege_leaderboard").select("id,display_name,best_score,best_wave,best_combo,best_destroyed").order("best_score", { ascending: false }).limit(500);
     if (result.error) { body.innerHTML = '<tr><td colspan="6">Run the Packet Siege migration to enable scores.</td></tr>'; return; }
     body.innerHTML = result.data?.length ? result.data.map((row, index) => `<tr><td>${index + 1}</td><td>${escapeHtml(row.display_name || "GankByte Player")}</td><td>${format(row.best_score)}</td><td>${row.best_wave}</td><td>x${row.best_combo}</td><td>${row.best_destroyed}</td></tr>`).join("") : '<tr><td colspan="6">No scores yet. Be the first to defend the core.</td></tr>';
     if (lastRun && user) { const rank = (result.data || []).findIndex((row) => row.id === user.id); $("result-rank").textContent = rank >= 0 ? `#${rank + 1}` : "Posted"; }

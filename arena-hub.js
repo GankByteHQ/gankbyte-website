@@ -96,7 +96,7 @@
     if ($("hub-ninja-best")) $("hub-ninja-best").textContent = ninja.data?.[0] ? format(ninja.data[0].best_score) : "No runs yet";
     if ($("hub-ninja-detail")) $("hub-ninja-detail").textContent = ninja.data?.[0] ? `${ninja.data[0].best_kills || 0} kills by ${ninja.data[0].display_name || "GankByte Player"}` : "Be the first on the board";
     if ($("hub-fighter-best")) $("hub-fighter-best").textContent = fighter.data?.[0] ? format(fighter.data[0].best_score) : "No matches yet";
-    if ($("hub-fighter-detail")) $("hub-fighter-detail").textContent = fighter.data?.[0] ? `Level ${fighter.data[0].level_reached || 1} // ${fighter.data[0].best_wins || 0} wins by ${fighter.data[0].display_name || "GankByte Player"}` : "Be the first on the board";
+    if ($("hub-fighter-detail")) $("hub-fighter-detail").textContent = fighter.data?.[0] ? `Level ${fighter.data[0].level_reached || 1} // ${fighter.data[0].best_wins || 0} levels by ${fighter.data[0].display_name || "GankByte Player"}` : "Be the first on the board";
     if (!user) {
       $("hub-xp-total").textContent = "Sign in";
       $("hub-xp-detail").textContent = "Connect Discord for your progress.";
@@ -115,7 +115,7 @@
       ,client.from("packet_siege_scores").select("score,wave,packets_destroyed,best_combo,created_at,status").eq("user_id", user.id).neq("status", "rejected").order("created_at", { ascending: false }).limit(5)
       ,client.from("byte_stack_scores").select("score,level,lines,best_combo,created_at,status").eq("user_id", user.id).neq("status", "rejected").order("created_at", { ascending: false }).limit(5)
       ,client.from("null_ninja_scores").select("score,distance,kills,best_combo,created_at,status").eq("user_id", user.id).neq("status", "rejected").order("created_at", { ascending: false }).limit(5)
-      ,client.from("stick_fighter_scores").select("score,rounds_won,hits_landed,created_at,status").eq("user_id", user.id).neq("status", "rejected").order("created_at", { ascending: false }).limit(5)
+      ,client.from("stick_fighter_scores").select("score,levels_cleared,hits_landed,created_at,status").eq("user_id", user.id).neq("status", "rejected").order("created_at", { ascending: false }).limit(5)
     ]);
     const rows = [
       ...(arena.data || []).map((row) => ({ game: "Byte Rush", score: row.score, result: `Wave ${row.wave}`, created_at: row.created_at })),
@@ -127,7 +127,7 @@
       ,...(packetRuns.data || []).map((row) => ({ game: "Packet Siege", score: row.score, result: `Wave ${row.wave} // ${row.packets_destroyed} packets`, created_at: row.created_at }))
       ,...(stackRuns.data || []).map((row) => ({ game: "Byte Stack", score: row.score, result: `Level ${row.level} // ${row.lines} lines`, created_at: row.created_at }))
       ,...(ninjaRuns.data || []).map((row) => ({ game: "Null Ninja", score: row.score, result: `${row.distance}m // ${row.kills} kills`, created_at: row.created_at }))
-      ,...(fighterRuns.data || []).map((row) => ({ game: "Stick Fighter", score: row.score, result: `${row.rounds_won} wins // ${row.hits_landed} hits`, created_at: row.created_at }))
+      ,...(fighterRuns.data || []).map((row) => ({ game: "Stick Fighter", score: row.score, result: `${row.levels_cleared || 0} levels // ${row.hits_landed} hits`, created_at: row.created_at }))
     ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 8);
     recent.innerHTML = rows.length ? rows.map((row) => `<tr><td>${row.game}</td><td>${format(row.score)}</td><td>${row.result}</td><td>${date(row.created_at)}</td></tr>`).join("") : '<tr><td colspan="4">No runs yet. Play a game to create your first result.</td></tr>';
     if (!byte.error && !glitch.error && (!user || !xp.error)) status.textContent = "Arena snapshot updated.";

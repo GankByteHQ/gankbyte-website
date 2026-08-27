@@ -448,7 +448,7 @@
 
   async function loadLeaderboard() {
     if (!client) return;
-    const result = await client.from("byte_stack_leaderboard").select("display_name,best_score,best_level,best_lines").order("best_score", { ascending: false }).limit(10);
+    const result = await client.from("byte_stack_leaderboard").select("display_name,best_score,best_level,best_lines").order("best_score", { ascending: false }).limit(500);
     const body = $("stack-leaderboard-body");
     if (result.error) { body.innerHTML = "<tr><td colspan=\"5\">Leaderboard temporarily unavailable.</td></tr>"; return; }
     body.innerHTML = result.data?.length ? result.data.map((row, index) => `<tr><td>${index + 1}</td><td>${escapeHtml(row.display_name || "Player")}</td><td>${Number(row.best_score || 0).toLocaleString()}</td><td>${row.best_level || 1}</td><td>${row.best_lines || 0}</td></tr>`).join("") : "<tr><td colspan=\"5\">No approved runs yet. Be the first.</td></tr>";

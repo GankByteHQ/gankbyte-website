@@ -137,7 +137,7 @@
 
   async function loadLeaderboard() {
     if (!leaderboardBody) return;
-    const result = await client.from("xp_leaderboard").select("display_name,xp_total").order("xp_total", { ascending: false }).limit(25);
+    const result = await client.from("xp_leaderboard").select("display_name,xp_total").order("xp_total", { ascending: false }).limit(500);
     if (result.error) {
       leaderboardBody.innerHTML = '<tr><td colspan="4">The leaderboard is not available yet.</td></tr>';
       setStatus("The XP leaderboard is temporarily unavailable.", true);

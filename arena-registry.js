@@ -9,7 +9,7 @@ window.GANKBYTE_ARENA_GAMES = {
   "packet-siege": { slug: "packet-siege", title: "Packet Siege", displayGame: "Packet Siege", url: "packet-siege.html", scoreView: "packet_siege_leaderboard", statLabel: "Wave", resultLabel: (value) => `Wave ${value}` },
   "byte-stack": { slug: "byte-stack", title: "Byte Stack", displayGame: "Byte Stack", url: "byte-stack.html", scoreView: "byte_stack_leaderboard", statLabel: "Lines", resultLabel: (value) => `${value} lines` },
   "null-ninja": { slug: "null-ninja", title: "Null Ninja", displayGame: "Null Ninja", url: "null-ninja.html", scoreView: "null_ninja_leaderboard", statLabel: "Kills", resultLabel: (value) => `${value} kills` },
-  "stick-fighter": { slug: "stick-fighter", title: "Stick Fighter", displayGame: "Stick Fighter", url: "stick-fighter.html", scoreView: "stick_fighter_leaderboard", statLabel: "Wins", resultLabel: (value) => `${value} wins` }
+  "stick-fighter": { slug: "stick-fighter", title: "Stick Fighter", displayGame: "Stick Fighter", url: "stick-fighter.html", scoreView: "stick_fighter_leaderboard", statLabel: "Levels", resultLabel: (value) => `${value} levels` }
 };
 
 window.GANKBYTE_ARENA_ADAPTER = {

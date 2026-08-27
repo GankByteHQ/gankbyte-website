@@ -105,7 +105,7 @@ async function loadDashLeaderboard(scope = "all") {
     return;
   }
   const view = scope === "week" ? "glitch_dash_weekly_leaderboard" : "glitch_dash_leaderboard";
-  const result = await dashClient.from(view).select("display_name,best_score,best_streak").order("best_score", { ascending: false }).limit(25);
+  const result = await dashClient.from(view).select("display_name,best_score,best_streak").order("best_score", { ascending: false }).limit(500);
   if (result.error) {
     dashLeaderboardBody.innerHTML = '<tr><td colspan="4">Global scores are not available yet.</td></tr>';
     return;

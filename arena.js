@@ -122,7 +122,7 @@ async function loadArenaLeaderboard(scope = "all") {
     return;
   }
   const view = scope === "week" ? "arena_weekly_leaderboard" : "arena_leaderboard";
-  const result = await arenaClient.from(view).select("display_name,best_score,best_wave,mode").eq("mode", arenaLeaderboardMode?.value || arenaMode).order("best_score", { ascending: false }).limit(25);
+  const result = await arenaClient.from(view).select("display_name,best_score,best_wave,mode").eq("mode", arenaLeaderboardMode?.value || arenaMode).order("best_score", { ascending: false }).limit(500);
   if (result.error) {
     arenaLeaderboardBody.innerHTML = '<tr><td colspan="4">Global scores are not available yet.</td></tr>';
     return;

@@ -15,7 +15,7 @@
       return;
     }
     const client = window.supabase.createClient(config.supabaseUrl, config.supabasePublishableKey);
-    const result = await client.from("xp_leaderboard").select("display_name,xp_total").order("xp_total", { ascending: false }).limit(25);
+    const result = await client.from("xp_leaderboard").select("display_name,xp_total").order("xp_total", { ascending: false }).limit(500);
     if (result.error) {
       body.innerHTML = '<tr><td colspan="4">The XP leaderboard is temporarily unavailable.</td></tr>';
       return;
