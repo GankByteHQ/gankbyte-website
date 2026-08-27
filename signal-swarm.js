@@ -99,12 +99,13 @@
     if (!signal.alive) return;
     const factor = currentSpeed(signal);
     if (!signal.grounded) { const previousY = signal.y; signal.vy += gravity * dt; signal.y += signal.vy * dt; if (signal.routeStarted) signal.x += signal.vx * factor * dt; if (signal.y > H + 30) { lose(signal, "A Signal fell through the network. Build a bridge before the drop."); return; } const landing = signal.vy > 0 ? landingAt(signal.x, previousY, signal.y) : null; if (landing) { signal.y = landing.y - 18; signal.vy = 0; signal.grounded = true; signal.routeStarted = true; signal.lastSafeX = signal.x; signal.lastSafeY = signal.y; } return; }
+    const previousX = signal.x;
     const nextX = signal.x + signal.vx * factor * dt;
     const support = supportAt(nextX, signal.y);
     if (!support || Math.abs(support.y - (signal.y + 18)) > 14) { signal.grounded = false; signal.vy = 40; signal.x = nextX; return; }
     signal.x = nextX; signal.y = support.y - 18; signal.lastSafeX = signal.x; signal.lastSafeY = signal.y; signal.phase += dt * 6;
-    const blocker = blockers.find((item) => item.cooldownUntil <= elapsed && distance(item, signal) < 28);
-    if (blocker) { blocker.cooldownUntil = elapsed + .8; signal.direction *= -1; signal.vx = Math.abs(signal.vx) * signal.direction; signal.x = clamp(signal.x + signal.direction * 16, 18, W - 18); signal.dangerCooldownUntil = elapsed + .8; combo = 1; $("swarm-status").textContent = "BLOCKER triggered. It remains active and changed the Signal's direction."; burst(blocker.x, blocker.y, "#ffb347", 24); }
+    const blocker = blockers.find((item) => { if (item.cooldownUntil > elapsed || Math.abs(item.y - signal.y) > 26) return false; const crossed = signal.direction > 0 ? previousX <= item.x + 16 && nextX >= item.x - 16 : previousX >= item.x - 16 && nextX <= item.x + 16; return crossed || distance(item, signal) < 28; });
+    if (blocker) { const incomingDirection = signal.direction; blocker.cooldownUntil = elapsed + .8; signal.direction *= -1; signal.vx = Math.abs(signal.vx) * signal.direction; signal.x = clamp(blocker.x - incomingDirection * 20, 18, W - 18); signal.dangerCooldownUntil = elapsed + .8; combo = 1; $("swarm-status").textContent = "BLOCKER triggered. It remains active and changed the Signal's direction."; burst(blocker.x, blocker.y, "#ffb347", 24); }
     const exit = exits[0]; if (exit && Math.abs(signal.x - exit.x) < 24 && signal.y > exit.y - 42) { rescue(signal); return; }
     const zone = corruption.find((item) => distance(item, signal) < 24);
     if ((!signal.shieldUntil || signal.shieldUntil <= elapsed) && signal.dangerCooldownUntil <= elapsed) {
