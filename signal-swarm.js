@@ -189,6 +189,15 @@
     if (landing) { if (signal.fallDistance > 150 && !signal.floater) { lose(signal, "The drop was too far."); return; } signal.platformId = landing.id; signal.y = landing.y - signalHeight; signal.state = "walking"; signal.vy = 0; signal.fallDistance = 0; signal.lastSafeX = signal.x; signal.lastSafeY = signal.y; return; }
     if (signal.y > H + 30 || (signal.fallDistance > 190 && !signal.floater)) lose(signal, "Signal lost in the gap.");
   }
+  function beginFall(signal, x = signal.x, y = signal.y) {
+    signal.x = clamp(x, 20, W - 20);
+    signal.y = y;
+    signal.platformId = null;
+    signal.state = "falling";
+    signal.fallStartY = signal.y;
+    signal.fallDistance = 0;
+    signal.vy = 20;
+  }
   function updateClimbing(signal, dt) {
     const wall = walls.find((item) => Math.abs(item.x - signal.x) < 16);
     if (!wall) { signal.state = "walking"; return; }
@@ -214,12 +223,18 @@
   }
   function updateMiner(signal, dt) {
     signal.actionClock += dt; if (signal.actionClock < .26) return; signal.actionClock = 0;
-    const platform = currentPlatform(signal); if (platform) splitPlatformAt(platform, signal.x + signal.direction * 28, 20);
-    signal.x += signal.direction * 13; signal.y += 9; signal.platformId = null; signal.state = "falling"; signal.fallStartY = signal.y; signal.fallDistance = 0; signal.vy = 40; $("swarm-status").textContent = "Miner broke through. The Signal is dropping to the next route.";
+    const platform = currentPlatform(signal);
+    if (platform) {
+      const cutMargin = Math.min(22, Math.max(4, (platform.x2 - platform.x1) / 2 - 2));
+      const cutX = clamp(signal.x + signal.direction * 28, platform.x1 + cutMargin, platform.x2 - cutMargin);
+      splitPlatformAt(platform, cutX, 20);
+      beginFall(signal, cutX, signal.y + 9);
+    } else beginFall(signal, signal.x, signal.y + 9);
+    signal.vy = 40; $("swarm-status").textContent = "Miner broke through. The Signal is dropping to the next route.";
   }
   function updateDigger(signal, dt) {
     signal.actionClock += dt; if (signal.actionClock < .24) return; signal.actionClock = 0;
-    const platform = currentPlatform(signal); if (platform) splitPlatformAt(platform, signal.x, 24); signal.y += 9; signal.platformId = null; signal.state = "falling"; signal.fallStartY = signal.y; signal.fallDistance = 0; signal.vy = 40; $("swarm-status").textContent = "Digger opened a shaft. The Signal is falling through it.";
+    const platform = currentPlatform(signal); if (platform) splitPlatformAt(platform, signal.x, 24); beginFall(signal, signal.x, signal.y + 9); signal.vy = 40; $("swarm-status").textContent = "Digger opened a shaft. The Signal is falling through it.";
   }
   function updateWalking(signal, dt) {
     const platform = currentPlatform(signal); if (!platform) { signal.platformId = null; signal.state = "falling"; signal.fallStartY = signal.y; signal.fallDistance = 0; signal.vy = 20; return; }
@@ -231,8 +246,8 @@
     const blocker = blockerAhead(signal, nextX); if (blocker) { turnSignal(signal, "A Blocker turned the following Signal around."); return; }
     const wall = wallAhead(signal, nextX); if (wall) { if (signal.climber) { signal.state = "climbing"; signal.actionClock = 0; $("swarm-status").textContent = "Climber engaged on the wall."; } else turnSignal(signal, "A wall turned the Signal around. Assign Climber to scale it."); return; }
     const glitch = signal.dangerCooldown <= elapsed ? glitchAt(signal, nextX) : null; if (glitch) { signal.dangerCooldown = elapsed + .75; turnSignal(signal, "Red glitch reversed the Signal."); return; }
-    signal.x = nextX;
-    if (nextX < platform.x1 || nextX > platform.x2) { signal.platformId = null; signal.state = "falling"; signal.fallStartY = signal.y; signal.fallDistance = 0; signal.vy = 20; }
+    if (nextX < platform.x1 || nextX > platform.x2) beginFall(signal, clamp(nextX, platform.x1, platform.x2), signal.y);
+    else signal.x = nextX;
   }
   function updateSignal(signal, dt) {
     if (!signal.alive) return; signal.phase += dt * 5;
