@@ -114,6 +114,7 @@
 
   function attack(perfect = false, kind = "punch") {
     if (!running || paused || ended) return;
+    player.blocking = false;
     player.attack = kind === "kick" ? .28 : .18;
     player.attackKind = kind;
     let hit = false;
@@ -290,7 +291,7 @@
   function doAction(name) { if (name === "kick") attack(false, "kick"); else if (name === "block") player.blocking = true; else ({ jump, attack, dash, counter, slide: () => { if (running && !paused) player.slide = .45; } }[name] || (() => {}))(); }
 
   const keys = new Set();
-  window.addEventListener("keydown", (event) => { const key = event.key.toLowerCase(); if (["arrowleft", "arrowright", "arrowup", "arrowdown", " ", "a", "d", "w", "s", "e", "k", "l", "p", "shift", "escape", "r"].includes(key)) event.preventDefault(); keys.add(key); if (key === "w" || key === "arrowup") jump(); if (key === " " || key === "shift") activateFlow(); if (key === "p") attack(false, "punch"); if (key === "k") attack(false, "kick"); if (key === "e") dash(); if (key === "escape") togglePause(); if (key === "r") start(); }, { passive: false });
+  window.addEventListener("keydown", (event) => { const key = event.key.toLowerCase(); if (["arrowleft", "arrowright", "arrowup", "arrowdown", " ", "a", "d", "w", "s", "e", "k", "l", "p", "escape", "r"].includes(key)) event.preventDefault(); keys.add(key); if (key === "w" || key === "arrowup") jump(); if (key === " ") activateFlow(); if (key === "p") attack(false, "punch"); if (key === "k") attack(false, "kick"); if (key === "e") dash(); if (key === "escape") togglePause(); if (key === "r") start(); }, { passive: false });
   window.addEventListener("keyup", (event) => keys.delete(event.key.toLowerCase()));
   document.querySelectorAll("[data-ninja-action]").forEach((button) => { const name = button.dataset.ninjaAction; button.addEventListener("pointerdown", (event) => { event.preventDefault(); if (name === "block") { button.setPointerCapture?.(event.pointerId); player.blocking = true; } else doAction(name); }); const release = () => { if (name === "block") player.blocking = false; }; button.addEventListener("pointerup", release); button.addEventListener("pointercancel", release); button.addEventListener("pointerleave", release); });
   canvas.addEventListener("pointerdown", (event) => { pointerStart = { x: event.clientX, y: event.clientY }; canvas.setPointerCapture?.(event.pointerId); });
