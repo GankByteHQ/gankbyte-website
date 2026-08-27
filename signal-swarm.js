@@ -13,16 +13,16 @@
   const TH = Math.ceil(H / TILE);
   const SIGNAL_H = 18;
   const GRAVITY = 760;
-  const skillKeys = ["climber", "floater", "bomber", "blocker", "builder", "basher", "miner", "digger"];
+  const skillKeys = ["bridge", "floater", "bomber", "blocker", "builder", "basher", "miner", "digger"];
   const skillNames = {
-    climber: "CLIMBER", floater: "FLOATER", bomber: "BOMBER", blocker: "BLOCKER",
+    bridge: "BRIDGE", floater: "FLOATER", bomber: "BOMBER", blocker: "BLOCKER",
     builder: "BUILDER", basher: "BASHER", miner: "MINER", digger: "DIGGER"
   };
   const speedNames = ["SAFE", "PUSH", "GANK", "OVERCLOCK"];
   const speedFactors = [0.72, 1, 1.28, 1.55];
 
   // Levels use terrain, not invisible platform routes. Signals always walk
-  // forwards until a wall, blocker or turner changes their direction.
+  // forwards until a wall or blocker changes their direction.
   const levelPlans = [
     { name: "FIRST DROP", signals: 12, goal: 58, release: 1.25, layout: 0 },
     { name: "THE CROSSING", signals: 14, goal: 62, release: 1.12, layout: 1 },
@@ -34,27 +34,27 @@
     { name: "SYSTEM COLLAPSE", signals: 24, goal: 78, release: 0.74, layout: 7 }
   ];
   const levelLayouts = [
-    { hatch: { x: 92, y: 44 }, platforms: [[52, 330, 148], [388, 610, 226], [240, 520, 306], [548, 900, 386], [170, 910, 474]], walls: [[285, 78, 148]], turners: [] },
-    { hatch: { x: 842, y: 44 }, platforms: [[650, 908, 136], [470, 760, 208], [790, 930, 274], [610, 900, 340], [300, 720, 410], [70, 900, 484]], walls: [[690, 74, 136], [820, 274, 340]], turners: [[2, 0.62]] },
-    { hatch: { x: 96, y: 44 }, platforms: [[42, 210, 132], [290, 610, 202], [100, 780, 280], [300, 920, 356], [80, 430, 426], [470, 910, 492]], walls: [[468, 80, 132], [610, 202, 280]], turners: [[3, 0.38]] },
-    { hatch: { x: 490, y: 44 }, platforms: [[350, 780, 136], [230, 510, 202], [585, 850, 264], [480, 920, 330], [250, 680, 402], [80, 900, 490]], walls: [[565, 76, 136], [730, 202, 264]], turners: [[1, 0.58], [4, 0.68]] },
-    { hatch: { x: 570, y: 44 }, platforms: [[430, 880, 142], [270, 590, 208], [60, 440, 276], [500, 930, 344], [350, 720, 416], [100, 900, 490]], walls: [[620, 82, 142], [370, 208, 276]], turners: [[2, 0.5]] },
-    { hatch: { x: 94, y: 44 }, platforms: [[56, 280, 132], [350, 710, 198], [170, 560, 262], [620, 930, 326], [370, 760, 392], [180, 910, 484]], walls: [[220, 72, 132], [500, 198, 262], [770, 326, 392]], turners: [[1, 0.48], [3, 0.58]] },
-    { hatch: { x: 470, y: 44 }, platforms: [[340, 610, 120], [670, 820, 176], [520, 920, 232], [310, 680, 292], [80, 470, 352], [500, 780, 416], [250, 920, 490]], walls: [[560, 60, 120], [740, 176, 232], [430, 292, 352]], turners: [[2, 0.48], [5, 0.64]] },
-    { hatch: { x: 88, y: 44 }, platforms: [[42, 176, 132], [250, 560, 192], [100, 390, 254], [450, 930, 318], [690, 930, 382], [430, 790, 438], [140, 910, 494]], walls: [[130, 72, 132], [430, 192, 254], [760, 318, 382]], turners: [[3, 0.6], [5, 0.4]] }
+    { hatch: { x: 92, y: 44 }, platforms: [[52, 330, 148], [388, 610, 226], [240, 520, 306], [548, 900, 386], [170, 910, 474]], walls: [[285, 78, 148]] },
+    { hatch: { x: 842, y: 44 }, platforms: [[650, 908, 136], [470, 760, 208], [790, 930, 274], [610, 900, 340], [300, 720, 410], [70, 900, 484]], walls: [[690, 74, 136], [820, 274, 340]] },
+    { hatch: { x: 96, y: 44 }, platforms: [[42, 210, 132], [290, 610, 202], [100, 780, 280], [300, 920, 356], [80, 430, 426], [470, 910, 492]], walls: [[468, 80, 132], [610, 202, 280]] },
+    { hatch: { x: 490, y: 44 }, platforms: [[350, 780, 136], [230, 510, 202], [585, 850, 264], [480, 920, 330], [250, 680, 402], [80, 900, 490]], walls: [[565, 76, 136], [730, 202, 264]] },
+    { hatch: { x: 570, y: 44 }, platforms: [[430, 880, 142], [270, 590, 208], [60, 440, 276], [500, 930, 344], [350, 720, 416], [100, 900, 490]], walls: [[620, 82, 142], [370, 208, 276]] },
+    { hatch: { x: 94, y: 44 }, platforms: [[56, 280, 132], [350, 710, 198], [170, 560, 262], [620, 930, 326], [370, 760, 392], [180, 910, 484]], walls: [[220, 72, 132], [500, 198, 262], [770, 326, 392]] },
+    { hatch: { x: 470, y: 44 }, platforms: [[340, 610, 120], [670, 820, 176], [520, 920, 232], [310, 680, 292], [80, 470, 352], [500, 780, 416], [250, 920, 490]], walls: [[560, 60, 120], [740, 176, 232], [430, 292, 352]] },
+    { hatch: { x: 88, y: 44 }, platforms: [[42, 176, 132], [250, 560, 192], [100, 390, 254], [450, 930, 318], [690, 930, 382], [430, 790, 438], [140, 910, 494]], walls: [[130, 72, 132], [430, 192, 254], [760, 318, 382]] }
   ];
 
   const bestKey = "gankbyte-signal-swarm-best";
   const statsKey = "gankbyte-signal-swarm-stats";
   const achievementsKey = "gankbyte-signal-swarm-achievements";
   let terrain = new Uint8Array(TW * TH);
-  let platforms = [], walls = [], turners = [], exit = null, spawnPoint = { x: 90, y: 44 };
+  let platforms = [], walls = [], exit = null, spawnPoint = { x: 90, y: 44 };
   let signals = [], particles = [];
   let running = false, paused = false, finished = false, lastFrame = 0;
-  let elapsed = 0, levelElapsed = 0, nextSpawn = 0, nextTurner = 0;
+  let elapsed = 0, levelElapsed = 0, nextSpawn = 0;
   let levelIndex = 0, levelSpawned = 0, levelSaved = 0, levelLost = 0;
   let score = 0, saved = 0, lost = 0, combo = 1, bestCombo = 1, fastestRescue = null, speed = 0;
-  let selectedAbility = "climber", charges = {}, selectedSignalId = null, target = { x: 300, y: 430 };
+  let selectedAbility = "bridge", charges = {}, selectedSignalId = null, target = { x: 300, y: 430 };
   let client = null, user = null, lastRun = null;
   let pointerStart = null, pointerMoved = false, viewOffset = { x: 0, y: 0 };
 
@@ -106,17 +106,20 @@
   function currentPlan() { return levelPlans[levelIndex] || { name: `OVERCLOCK ${levelIndex + 1}`, signals: Math.min(30, 24 + (levelIndex - 7) * 2), goal: Math.min(92, 78 + (levelIndex - 7) * 2), release: .7, layout: levelIndex % levelLayouts.length }; }
   function chargesForLevel() {
     const extra = Math.min(4, Math.floor(levelIndex / 2));
-    return { climber: 1 + extra, floater: 1 + extra, bomber: 1 + extra, blocker: 2 + extra, builder: 8 + extra * 2, basher: 2 + extra, miner: 2 + extra, digger: 2 + extra };
+    return { bridge: 1 + extra, floater: 1 + extra, bomber: 1 + extra, blocker: 2 + extra, builder: 4 + extra, basher: 2 + extra, miner: 2 + extra, digger: 2 + extra };
   }
   function applyLevelLayout() {
     const layout = levelLayouts[currentPlan().layout % levelLayouts.length];
     platforms = layout.platforms.map((p, i) => ({ id: `platform-${i}`, x1: p[0], x2: p[1], y: p[2], built: false }));
     spawnPoint = { ...layout.hatch };
     walls = layout.walls.map((wall, i) => ({ id: `wall-${i}`, x: wall[0], y1: wall[1], y2: wall[2] }));
-    turners = (layout.turners || []).map((spot, i) => {
-      const platform = platforms[spot[0] % platforms.length];
-      return { id: `turner-${i}`, x: platform.x1 + (platform.x2 - platform.x1) * spot[1], y: platform.y - SIGNAL_H, pulse: random(0, 7) };
-    });
+    const startPlatform = platforms[0];
+    const startWallTop = spawnPoint.y + 24;
+    const startWallBottom = startPlatform.y - 3;
+    walls.push(
+      { id: "start-left", x: clamp(spawnPoint.x - 30, 14, W - 14), y1: startWallTop, y2: startWallBottom },
+      { id: "start-right", x: clamp(spawnPoint.x + 30, 14, W - 14), y1: startWallTop, y2: startWallBottom }
+    );
     const last = platforms[platforms.length - 1];
     exit = { x: last.x2 - 28, y: last.y, platformId: last.id };
     terrain.fill(0);
@@ -142,7 +145,7 @@
     Object.keys(charges).forEach((name) => { const node = $(`charges-${name}`); if (!node) return; node.textContent = charges[name]; node.closest(".signal-ability")?.classList.toggle("is-empty", charges[name] === 0); node.closest(".signal-ability")?.setAttribute("aria-label", `${skillNames[name]}, ${charges[name]} charges`); });
   }
   function resetRun() {
-    running = false; paused = false; finished = false; elapsed = 0; levelElapsed = 0; levelIndex = 0; nextSpawn = 0; nextTurner = 8;
+    running = false; paused = false; finished = false; elapsed = 0; levelElapsed = 0; levelIndex = 0; nextSpawn = 0;
     score = 0; saved = 0; lost = 0; combo = 1; bestCombo = 1; fastestRescue = null; speed = 0; levelSpawned = 0; levelSaved = 0; levelLost = 0;
     charges = chargesForLevel(); signals = []; particles = []; selectedSignalId = null; target = { x: 300, y: 430 }; viewOffset = { x: 0, y: 0 }; applyLevelLayout();
     $("signal-message").hidden = false; $("signal-message").innerHTML = "<strong>READY?</strong><span>Signals walk automatically. Assign a skill to one Signal, then shape the terrain and route the swarm to the gate.</span>";
@@ -151,7 +154,7 @@
   }
   function createSignal() {
     const roll = Math.random(); const type = roll < .2 ? "carrier" : roll < .44 ? "spark" : "runner"; const first = platforms[0];
-    signals.push({ id: `${elapsed}-${Math.random()}`, alive: true, x: spawnPoint.x, y: spawnPoint.y, vx: type === "runner" ? 66 : type === "carrier" ? 42 : 54, vy: 20, direction: 1, type, state: "falling", platformId: null, fallStartY: spawnPoint.y, fallDistance: 0, phase: random(0, 7), spawnTime: elapsed, lastSafeX: spawnPoint.x, lastSafeY: first.y - SIGNAL_H, climber: false, floater: false, bombAt: 0, blockerUntil: 0, buildSteps: 0, actionClock: 0, actionStarted: false, dangerCooldown: 0, wallId: null, skill: null });
+    signals.push({ id: `${elapsed}-${Math.random()}`, alive: true, x: spawnPoint.x, y: spawnPoint.y, vx: type === "runner" ? 66 : type === "carrier" ? 42 : 54, vy: 20, direction: 1, type, state: "falling", platformId: null, fallStartY: spawnPoint.y, fallDistance: 0, phase: random(0, 7), spawnTime: elapsed, lastSafeX: spawnPoint.x, lastSafeY: first.y - SIGNAL_H, bridge: false, floater: false, bombAt: 0, buildSteps: 0, bridgeSteps: 0, mineSteps: 0, actionClock: 0, actionStarted: false, dangerCooldown: 0, wallId: null, skill: null });
   }
   function nearestSignal(point, maxDistance = 58) { return signals.filter((signal) => signal.alive && distance(signal, point) <= maxDistance).sort((a, b) => distance(a, point) - distance(b, point))[0]; }
   function setStatus(message) { $("swarm-status").textContent = message; }
@@ -163,7 +166,6 @@
     const front = nextX + signal.direction * 7;
     return walls.find((wall) => Math.abs(wall.x - front) < 12 && signal.y + 5 < wall.y2 && signal.y + SIGNAL_H - 4 > wall.y1) || null;
   }
-  function turnerAt(signal, nextX) { return turners.find((turner) => signal.dangerCooldown <= elapsed && Math.abs(turner.x - nextX) < 14 && Math.abs(turner.y - signal.y) < 20) || null; }
   function blockerAhead(signal, nextX) {
     return signals.find((other) => other !== signal && other.alive && other.state === "blocked" && Math.abs(other.y - signal.y) < 18 && ((signal.direction > 0 && other.x > signal.x && other.x <= nextX + 18) || (signal.direction < 0 && other.x < signal.x && other.x >= nextX - 18))) || null;
   }
@@ -171,18 +173,18 @@
     if (!running || paused || !charges[name]) return;
     target = point; const signal = nearestSignal(point) || signals.find((item) => item.alive && item.id === selectedSignalId);
     if (!signal) { setStatus("Select an active Signal first."); return; }
-    if (["climber", "floater"].includes(name) && signal[name]) { setStatus(`${skillNames[name]} is already active on this Signal.`); return; }
+    if (["bridge", "floater"].includes(name) && signal[name]) { setStatus(`${skillNames[name]} is already active on this Signal.`); return; }
     if (name === "blocker" && signal.state !== "walking") { setStatus("Blocker must be assigned to a walking Signal."); return; }
-    if (["builder", "basher", "miner", "digger"].includes(name) && signal.state !== "walking") { setStatus(`${skillNames[name]} needs a walking Signal on terrain.`); return; }
+    if (["bridge", "builder", "basher", "miner", "digger"].includes(name) && signal.state !== "walking") { setStatus(`${skillNames[name]} needs a walking Signal on terrain.`); return; }
     if (name === "bomber" && signal.bombAt) { setStatus("This Signal is already armed."); return; }
     charges[name] -= 1; selectedSignalId = signal.id; signal.actionClock = 0; signal.actionStarted = true; signal.skill = name;
-    if (name === "climber") { signal.climber = true; setStatus("Climber assigned. It will scale the next wall."); }
+    if (name === "bridge") { signal.bridge = true; signal.state = "bridging"; signal.bridgeSteps = 0; setStatus("Bridge assigned. It is building a temporary route across the gap."); }
     if (name === "floater") { signal.floater = true; setStatus("Floater assigned. Long drops are now survivable."); }
-    if (name === "bomber") { signal.bombAt = elapsed + 4.5; setStatus("Bomber armed. The Signal will detonate after the countdown."); }
-    if (name === "blocker") { signal.state = "blocked"; signal.blockerUntil = elapsed + 7; signal.vx = 0; setStatus("Blocker active for about 7 seconds. Followers will turn around."); }
+    if (name === "bomber") { signal.bombAt = elapsed + 3; setStatus("Bomber armed. Detonation in 3 seconds."); }
+    if (name === "blocker") { signal.state = "blocked"; signal.vx = 0; setStatus("Blocker placed permanently. Followers will turn around."); }
     if (name === "builder") { signal.state = "building"; signal.buildSteps = 0; setStatus("Builder started. It is laying a staircase across the route."); }
     if (name === "basher") { signal.state = "bashing"; setStatus("Basher started. It is cutting horizontally through the terrain."); }
-    if (name === "miner") { signal.state = "mining"; setStatus("Miner started. It is cutting a diagonal tunnel."); }
+    if (name === "miner") { signal.state = "mining"; signal.mineSteps = 0; setStatus("Miner started. It is cutting horizontally across the terrain."); }
     if (name === "digger") { signal.state = "digging"; setStatus("Digger started. It is opening a vertical shaft."); }
     burst(signal.x, signal.y, name === "bomber" ? "#ff4f68" : "#c6ff3d", 16); updateHud();
   }
@@ -196,23 +198,19 @@
     }
     if (signal.y > H + 30) lose(signal, "The Signal fell out of the network.");
   }
-  function updateClimbing(signal, dt) {
-    const wall = walls.find((item) => item.id === signal.wallId) || walls.find((item) => Math.abs(item.x - signal.x) < 16 && signal.y < item.y2 + 8 && signal.y + SIGNAL_H > item.y1 - 10);
-    if (!wall) { signal.state = "walking"; return; }
-    signal.x = wall.x - signal.direction * 10; signal.y -= 58 * dt;
-    if (signal.y <= wall.y1 - SIGNAL_H) {
-      signal.y = wall.y1 - SIGNAL_H; signal.state = "walking"; signal.wallId = null;
-      if (!solidAt(signal.x, signal.y + SIGNAL_H + 3)) { const ledge = addPlatform(signal.x - 34, signal.x + 34, signal.y + SIGNAL_H, true); signal.platformId = ledge.id; }
-      setStatus("Climber reached the top of the wall."); burst(signal.x, signal.y, "#55e8ff", 12);
-    }
-  }
   function updateBuilder(signal, dt) {
     signal.actionClock += dt; if (signal.actionClock < .28) return; signal.actionClock = 0;
     const nextStepX = signal.x + signal.direction * 24;
     if (nextStepX <= 20 || nextStepX >= W - 20) { signal.state = "walking"; signal.skill = null; setStatus("Builder reached the board edge and stopped building."); return; }
     const stepX = nextStepX; const stepY = Math.max(34, signal.y - 10);
     addPlatform(stepX - 22, stepX + 22, stepY, true); signal.x = stepX; signal.y = stepY - SIGNAL_H; signal.platformId = platformAt(signal)?.id || null; signal.buildSteps += 1; burst(signal.x, signal.y + SIGNAL_H, "#55e8ff", 5);
-    if (signal.buildSteps >= 8) { signal.state = "walking"; signal.skill = null; setStatus("Builder finished the staircase. The route is open."); }
+    if (signal.buildSteps >= 4) { signal.state = "walking"; signal.skill = null; setStatus("Builder finished its short staircase. The route is open."); }
+  }
+  function updateBridge(signal, dt) {
+    signal.actionClock += dt; if (signal.actionClock < .22) return; signal.actionClock = 0;
+    const bridgeX = signal.x + signal.direction * 24; const bridgeY = signal.y + SIGNAL_H;
+    addPlatform(bridgeX - 24, bridgeX + 24, bridgeY, true); signal.x = clamp(bridgeX, 24, W - 24); signal.y = bridgeY - SIGNAL_H; signal.platformId = platformAt(signal)?.id || signal.platformId; signal.bridgeSteps += 1; burst(signal.x, signal.y + SIGNAL_H, "#55e8ff", 6);
+    if (signal.bridgeSteps >= 6) { signal.state = "walking"; signal.skill = null; setStatus("Bridge finished. The temporary route is open."); }
   }
   function updateBasher(signal, dt) {
     signal.actionClock += dt; if (signal.actionClock < .18) return; signal.actionClock = 0;
@@ -223,8 +221,10 @@
   }
   function updateMiner(signal, dt) {
     signal.actionClock += dt; if (signal.actionClock < .16) return; signal.actionClock = 0;
-    const x = signal.x + signal.direction * 18, y = signal.y + SIGNAL_H + 14; clearTerrainCircle(x, y, 18); clearTerrainCircle(x + signal.direction * 12, y + 12, 16); signal.x += signal.direction * 8; signal.y += 5; signal.actionStarted = false; burst(x, y, "#e7b35d", 5);
-    if (!solidAt(signal.x, signal.y + SIGNAL_H + 4)) { beginFall(signal, signal.x, signal.y); setStatus("Miner broke through. The Signal is dropping."); }
+    const x = signal.x + signal.direction * 22; const y = signal.y + SIGNAL_H / 2; const wall = wallAhead(signal, x);
+    clearTerrainCircle(x, y, 18); clearTerrainRect(x - 14, signal.y - 3, x + 14, signal.y + SIGNAL_H + 3); if (wall) walls = walls.filter((item) => item.id !== wall.id);
+    signal.x = clamp(signal.x + signal.direction * 10, 18, W - 18); signal.mineSteps += 1; signal.actionStarted = false; burst(x, y, "#e7b35d", 5);
+    if (signal.mineSteps >= 8 || (signal.mineSteps >= 3 && !wallAhead(signal, signal.x + signal.direction * 18))) { signal.state = "walking"; signal.skill = null; setStatus("Miner finished. The horizontal route is open."); }
   }
   function updateDigger(signal, dt) {
     signal.actionClock += dt; if (signal.actionClock < .16) return; signal.actionClock = 0;
@@ -240,9 +240,7 @@
     if (exit && Math.abs(signal.x - exit.x) < 18 && Math.abs(signal.y + SIGNAL_H - exit.y) < 16 && platformAt(signal)?.id === exit.platformId) { rescue(signal); return; }
     if (blockerAhead(signal, nextX)) { turnSignal(signal, "A Blocker turned the following Signal around."); return; }
     const wall = wallAhead(signal, nextX);
-    if (wall) { if (signal.climber) { signal.state = "climbing"; signal.wallId = wall.id; setStatus("Climber engaged on the wall."); } else turnSignal(signal, "A wall turned the Signal around. Assign Climber or Basher."); return; }
-    const turner = turnerAt(signal, nextX);
-    if (turner) { turnSignal(signal, "A red turner reversed the Signal."); return; }
+    if (wall) { turnSignal(signal, "A wall turned the Signal around. Use Basher to open it."); return; }
     const nextSurface = surfaceAt(nextX, bottom, 18);
     if (nextSurface === null || Math.abs(nextSurface - bottom) > 22) { beginFall(signal, nextX, signal.y); return; }
     signal.x = nextX; signal.y += nextSurface - (signal.y + SIGNAL_H); signal.platformId = platformAt(signal)?.id || signal.platformId;
@@ -250,10 +248,10 @@
   function updateSignal(signal, dt) {
     if (!signal.alive) return; signal.phase += dt * 5;
     if (signal.bombAt && elapsed >= signal.bombAt && signal.state !== "falling") { explode(signal); return; }
-    if (signal.state === "blocked") { if (elapsed >= signal.blockerUntil) { signal.state = "walking"; signal.vx = signal.type === "runner" ? 66 : signal.type === "carrier" ? 42 : 54; signal.skill = null; setStatus("Blocker expired. The Signal is moving again."); } return; }
+    if (signal.state === "blocked") return;
     if (signal.state === "falling") updateFalling(signal, dt);
     else if (signal.state === "walking") updateWalking(signal, dt);
-    else if (signal.state === "climbing") updateClimbing(signal, dt);
+    else if (signal.state === "bridging") updateBridge(signal, dt);
     else if (signal.state === "building") updateBuilder(signal, dt);
     else if (signal.state === "bashing") updateBasher(signal, dt);
     else if (signal.state === "mining") updateMiner(signal, dt);
@@ -262,33 +260,31 @@
   function explode(signal) { clearTerrainCircle(signal.x, signal.y + SIGNAL_H / 2, 48); burst(signal.x, signal.y, "#ff4f68", 28); lose(signal, "Bomber detonation removed the terrain."); }
   function lose(signal, reason) { if (!signal.alive) return; signal.alive = false; if (selectedSignalId === signal.id) selectedSignalId = null; lost += 1; levelLost += 1; combo = 1; score = Math.max(0, score - 25); burst(signal.x, signal.y, "#ff4f68", 18); setStatus(reason || "Signal lost. Combo broken."); }
   function rescue(signal) { if (!signal.alive) return; signal.alive = false; if (selectedSignalId === signal.id) selectedSignalId = null; saved += 1; levelSaved += 1; const base = signal.type === "carrier" ? 180 : signal.type === "spark" ? 110 : 75; combo = Math.min(10, combo + (signal.type === "carrier" ? 2 : 1)); bestCombo = Math.max(bestCombo, combo); const rescueTime = Math.max(0, elapsed - signal.spawnTime); fastestRescue = fastestRescue === null ? rescueTime : Math.min(fastestRescue, rescueTime); score += Math.round(base * combo * (1 + speed * .18)); setStatus(`${signal.type.toUpperCase()} rescued. Keep the chain alive.`); burst(signal.x, signal.y, "#c6ff3d", 20); }
-  function spawnTurner() { const candidates = platforms.filter((platform) => platform.x2 - platform.x1 > 90 && !turners.some((turner) => Math.abs(turner.x - (platform.x1 + platform.x2) / 2) < 35)); if (!candidates.length || turners.length >= Math.min(4, 1 + Math.floor(levelIndex / 2))) return; const platform = candidates[Math.floor(random(0, candidates.length))]; const x = random(platform.x1 + 28, platform.x2 - 28); turners.push({ id: `turner-${elapsed}-${Math.random()}`, x, y: platform.y - SIGNAL_H, pulse: random(0, 7) }); }
   function resolveLevel() {
     const plan = currentPlan(); const percentage = levelSpawned ? Math.round((levelSaved / levelSpawned) * 100) : 0;
     if (percentage < plan.goal) { setStatus(`LEVEL ${levelIndex + 1} FAILED // ${percentage}% rescued. ${plan.goal}% is required.`); finishRun(); return; }
-    levelIndex += 1; levelElapsed = 0; levelSpawned = 0; levelSaved = 0; levelLost = 0; signals = []; particles = []; turners = []; nextSpawn = elapsed + .8; nextTurner = elapsed + 7; charges = chargesForLevel(); applyLevelLayout();
+    levelIndex += 1; levelElapsed = 0; levelSpawned = 0; levelSaved = 0; levelLost = 0; signals = []; particles = []; nextSpawn = elapsed + .8; charges = chargesForLevel(); applyLevelLayout();
     setStatus(`LEVEL ${levelIndex + 1} // ${currentPlan().name}. Rescue at least ${currentPlan().goal}%.`); $("signal-message").hidden = false; $("signal-message").innerHTML = `<strong>LEVEL ${levelIndex + 1}</strong><span>${currentPlan().name} // Shape the terrain and guide the swarm.</span>`; window.setTimeout(() => { if (running && !finished) $("signal-message").hidden = true; }, 1200); burst(W / 2, H / 2, "#c6ff3d", 30); updateHud();
   }
   function update(dt) {
     if (!running || paused || finished) return; elapsed += dt; levelElapsed += dt; const plan = currentPlan();
     if (levelSpawned < plan.signals && elapsed >= nextSpawn) { createSignal(); levelSpawned += 1; nextSpawn = elapsed + plan.release / speedFactors[speed]; }
-    if (levelElapsed >= 10 && elapsed >= nextTurner) { spawnTurner(); nextTurner = elapsed + random(8, 13); }
-    turners.forEach((turner) => { turner.pulse += dt * 4; }); signals.forEach((signal) => updateSignal(signal, dt)); signals = signals.filter((signal) => signal.alive);
+    signals.forEach((signal) => updateSignal(signal, dt)); signals = signals.filter((signal) => signal.alive);
     particles = particles.filter((particle) => { particle.x += particle.vx * dt; particle.y += particle.vy * dt; particle.vx *= .96; particle.vy *= .96; particle.life -= dt; return particle.life > 0; }); updateHud();
     if (levelSpawned >= plan.signals && levelSaved + levelLost >= plan.signals) resolveLevel();
   }
 
   function drawHatch() {
-    ctx.save(); ctx.translate(spawnPoint.x, spawnPoint.y); ctx.fillStyle = "#151b22"; ctx.strokeStyle = "#c6ff3d"; ctx.lineWidth = 2; ctx.shadowBlur = 12; ctx.shadowColor = "#c6ff3d"; ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(0, -18); ctx.lineTo(20, 0); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0; ctx.fillStyle = "#20262d"; ctx.fillRect(-16, 0, 32, 20); ctx.strokeRect(-16, 0, 32, 20); ctx.fillStyle = "#c6ff3d"; ctx.fillRect(-6, 8, 12, 12); ctx.fillStyle = "#0b0f14"; ctx.fillRect(-3, 12, 2, 2); ctx.fillRect(2, 12, 2, 2); ctx.fillStyle = "#8f949c"; ctx.font = "700 8px Arial"; ctx.textAlign = "center"; ctx.fillText("HATCH", 0, 32); ctx.restore();
+    ctx.save(); ctx.translate(spawnPoint.x, spawnPoint.y); ctx.fillStyle = "#151b22"; ctx.strokeStyle = "#c6ff3d"; ctx.lineWidth = 2; ctx.shadowBlur = 12; ctx.shadowColor = "#c6ff3d"; ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(0, -18); ctx.lineTo(20, 0); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0; ctx.fillStyle = "#20262d"; ctx.fillRect(-16, 0, 32, 20); ctx.strokeRect(-16, 0, 32, 20); ctx.fillStyle = "#c6ff3d"; ctx.fillRect(-6, 8, 12, 12); ctx.fillStyle = "#0b0f14"; ctx.fillRect(-3, 12, 2, 2); ctx.fillRect(2, 12, 2, 2); ctx.restore();
   }
   function drawGate() {
-    if (!exit) return; ctx.save(); ctx.translate(exit.x, exit.y - 27); const pulse = 1 + Math.sin(elapsed * 4) * .08; ctx.scale(pulse, pulse); ctx.fillStyle = "rgba(198,255,61,.12)"; ctx.strokeStyle = "#c6ff3d"; ctx.shadowBlur = 22; ctx.shadowColor = "#c6ff3d"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-17, 27); ctx.lineTo(-17, -9); ctx.quadraticCurveTo(0, -28, 17, -9); ctx.lineTo(17, 27); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0; ctx.fillStyle = "#c6ff3d"; ctx.fillRect(-2, -18, 4, 45); ctx.fillStyle = "#0b0f14"; ctx.font = "700 8px Arial"; ctx.textAlign = "center"; ctx.fillText("EXIT", 0, 4); ctx.restore();
+    if (!exit) return; ctx.save(); ctx.translate(exit.x, exit.y - 27); const pulse = 1 + Math.sin(elapsed * 4) * .08; ctx.scale(pulse, pulse); ctx.fillStyle = "rgba(198,255,61,.12)"; ctx.strokeStyle = "#c6ff3d"; ctx.shadowBlur = 22; ctx.shadowColor = "#c6ff3d"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-17, 27); ctx.lineTo(-17, -9); ctx.quadraticCurveTo(0, -28, 17, -9); ctx.lineTo(17, 27); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0; ctx.fillStyle = "#c6ff3d"; ctx.fillRect(-2, -18, 4, 45); ctx.restore();
   }
   function drawSignal(signal) {
     const color = signal.type === "carrier" ? "#c6ff3d" : signal.type === "spark" ? "#e6f7a5" : "#b7f64d"; ctx.save(); ctx.translate(signal.x, signal.y); if (signal.id === selectedSignalId) { ctx.strokeStyle = "#f4f2ea"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 21 + Math.sin(signal.phase) * 2, 0, Math.PI * 2); ctx.stroke(); }
     ctx.fillStyle = color; ctx.shadowBlur = 14; ctx.shadowColor = color; ctx.scale(signal.direction, 1); ctx.beginPath(); ctx.moveTo(0, -12); ctx.lineTo(12, 0); ctx.lineTo(0, 12); ctx.lineTo(-12, 0); ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0; ctx.fillStyle = "#172018"; ctx.fillRect(-5, -2, 2, 2); ctx.fillRect(3, -2, 2, 2);
     if (signal.state === "blocked") { ctx.strokeStyle = "#ffb347"; ctx.lineWidth = 2; ctx.strokeRect(-17, -17, 34, 34); ctx.fillStyle = "#ffb347"; ctx.font = "700 7px Arial"; ctx.textAlign = "center"; ctx.fillText("BLOCK", 0, -22); }
-    if (signal.climber) { ctx.strokeStyle = "#55e8ff"; ctx.lineWidth = 2; ctx.strokeRect(-18, -18, 36, 36); }
+    if (signal.bridge) { ctx.strokeStyle = "#55e8ff"; ctx.lineWidth = 2; ctx.strokeRect(-18, -18, 36, 36); }
     if (signal.floater && signal.state === "falling") { ctx.strokeStyle = "#f4f2ea"; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.arc(0, 0, 19, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); }
     if (signal.bombAt) { ctx.fillStyle = "#ff4f68"; ctx.font = "700 10px Arial"; ctx.textAlign = "center"; ctx.fillText(Math.max(1, Math.ceil(signal.bombAt - elapsed)), 0, -21); }
     ctx.restore();
@@ -309,13 +305,12 @@
     ctx.clearRect(0, 0, W, H); ctx.fillStyle = "#0b0f14"; ctx.fillRect(0, 0, W, H); ctx.save(); ctx.translate(viewOffset.x, viewOffset.y);
     ctx.strokeStyle = "rgba(244,242,234,.05)"; ctx.lineWidth = 1; for (let x = 0; x <= W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); } for (let y = 0; y <= H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
     drawTerrain(); drawHatch(); drawGate(); walls.forEach((wall) => { ctx.fillStyle = "#1c2229"; ctx.strokeStyle = "#55e8ff"; ctx.shadowBlur = 10; ctx.shadowColor = "#55e8ff"; ctx.fillRect(wall.x - 7, wall.y1, 14, wall.y2 - wall.y1); ctx.strokeRect(wall.x - 7, wall.y1, 14, wall.y2 - wall.y1); ctx.shadowBlur = 0; });
-    turners.forEach((turner) => { const pulse = 1 + Math.sin(turner.pulse) * .12; ctx.save(); ctx.translate(turner.x, turner.y); ctx.scale(pulse, pulse); ctx.fillStyle = "rgba(255,79,104,.2)"; ctx.strokeStyle = "#ff4f68"; ctx.shadowBlur = 16; ctx.shadowColor = "#ff4f68"; ctx.lineWidth = 2; ctx.fillRect(-11, -11, 22, 22); ctx.strokeRect(-11, -11, 22, 22); ctx.shadowBlur = 0; ctx.fillStyle = "#ff4f68"; ctx.font = "700 8px Arial"; ctx.textAlign = "center"; ctx.fillText("TURN", 0, 3); ctx.restore(); });
     signals.forEach(drawSignal); particles.forEach((particle) => { ctx.globalAlpha = Math.max(0, particle.life / .8); ctx.fillStyle = particle.color; ctx.fillRect(particle.x, particle.y, particle.size, particle.size); }); ctx.globalAlpha = 1; ctx.fillStyle = "#646a74"; ctx.font = "700 10px Arial"; ctx.textAlign = "left"; ctx.fillText("SELECT A SIGNAL // ASSIGN A SKILL // SHAPE THE TERRAIN", 24, H - 24); ctx.restore();
   }
 
   function collapse() { const overlay = $("signal-collapse"); overlay.innerHTML = "<span>WARNING</span><small>SIGNAL UNSTABLE</small>"; overlay.classList.add("show"); window.setTimeout(() => { overlay.innerHTML = "<span>ROUTE COLLAPSED</span><small>CRITICAL</small>"; }, 260); window.setTimeout(() => { overlay.innerHTML = "<span>SIGNAL LOST</span>"; }, 550); }
   async function finishRun() {
-    if (!running || finished) return; finished = true; running = false; paused = false; signals.filter((signal) => signal.alive).forEach((signal) => lose(signal, "The run ended before this Signal reached the exit."));
+    if (!running || finished) return; finished = true; running = false; paused = false; signals.filter((signal) => signal.alive).forEach((signal) => lose(signal, "The run ended before this Signal reached the goal."));
     const previousBest = Number(localStorage.getItem(bestKey) || 0); const newBest = score > previousBest; if (newBest) localStorage.setItem(bestKey, String(score)); const stats = localStats(); stats.runs += 1; stats.saved += saved; stats.bestCombo = Math.max(stats.bestCombo, bestCombo); if (lost === 0 && saved > 0) stats.perfect += 1; localStorage.setItem(statsKey, JSON.stringify(stats));
     if (saved) achievement("FIRST SIGNAL"); if (lost === 0 && saved) achievement("CLEAN RUN"); if (bestCombo >= 10) achievement("OVERCLOCKED"); if (previousBest > 0 && score >= previousBest * 1.25) achievement("GANK THE SCORE");
     lastRun = { score: Math.round(score), saved, lost, bestCombo, fastestRescueMs: fastestRescue === null ? 0 : Math.round(fastestRescue * 1000), highestPhase: levelIndex + 1, levelReached: levelIndex + 1, runSeconds: Math.round(elapsed), xpEarned: Math.min(250, Math.max(10, Math.round(score / 100))), achievements: JSON.parse(localStorage.getItem(achievementsKey) || "[]"), submitted: false };
