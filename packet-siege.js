@@ -382,8 +382,10 @@
     const gradient = ctx.createRadialGradient(WIDTH / 2, HEIGHT - 30, 10, WIDTH / 2, HEIGHT - 30, 230);
     gradient.addColorStop(0, "rgba(85,232,255,.18)"); gradient.addColorStop(1, "rgba(85,232,255,0)");
     ctx.fillStyle = gradient; ctx.fillRect(0, HEIGHT - 220, WIDTH, 220);
-    ctx.strokeStyle = "rgba(255,82,107,.35)"; ctx.setLineDash([6, 10]); ctx.beginPath(); ctx.moveTo(0, HEIGHT - 104); ctx.lineTo(WIDTH, HEIGHT - 104); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle = "#ff526b"; ctx.font = "10px monospace"; ctx.fillText("CORE LINE", 16, HEIGHT - 112);
+    const dangerY = HEIGHT - 104;
+    ctx.strokeStyle = "rgba(255,82,107,.72)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, dangerY); ctx.lineTo(WIDTH, dangerY); ctx.stroke();
+    ctx.fillStyle = "rgba(8,11,16,.94)"; ctx.fillRect(12, dangerY - 18, 96, 18);
+    ctx.fillStyle = "#ff526b"; ctx.font = "bold 10px monospace"; ctx.textAlign = "left"; ctx.fillText("DANGER LINE", 18, dangerY - 6);
   }
   function drawEnemy(enemy) {
     const info = typeInfo[enemy.type];
