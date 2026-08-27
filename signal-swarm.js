@@ -136,7 +136,9 @@
     return candidates[0] || null;
   }
   function landingAt(x, previousBottom, nextBottom) {
-    return platforms.filter((platform) => x >= platform.x1 - 3 && x <= platform.x2 + 3 && platform.y >= previousBottom - 1 && platform.y <= nextBottom + 3).sort((a, b) => a.y - b.y)[0] || null;
+    const lower = Math.min(previousBottom, nextBottom);
+    const upper = Math.max(previousBottom, nextBottom);
+    return platforms.filter((platform) => x >= platform.x1 - 3 && x <= platform.x2 + 3 && platform.y >= lower - 1 && platform.y <= upper + 3).sort((a, b) => a.y - b.y)[0] || null;
   }
   function currentPlatform(signal) {
     const bottom = signal.y + signalHeight;
@@ -206,11 +208,11 @@
   function updateMiner(signal, dt) {
     signal.actionClock += dt; if (signal.actionClock < .26) return; signal.actionClock = 0;
     const platform = currentPlatform(signal); if (platform) splitPlatformAt(platform, signal.x + signal.direction * 28, 20);
-    signal.x += signal.direction * 13; signal.y += 9; signal.state = "falling"; signal.fallStartY = signal.y; signal.fallDistance = 0; signal.vy = 40; $("swarm-status").textContent = "Miner broke through. The Signal is dropping to the next route.";
+    signal.x += signal.direction * 13; signal.y += 9; signal.platformId = null; signal.state = "falling"; signal.fallStartY = signal.y; signal.fallDistance = 0; signal.vy = 40; $("swarm-status").textContent = "Miner broke through. The Signal is dropping to the next route.";
   }
   function updateDigger(signal, dt) {
     signal.actionClock += dt; if (signal.actionClock < .24) return; signal.actionClock = 0;
-    const platform = currentPlatform(signal); if (platform) splitPlatformAt(platform, signal.x, 24); signal.y += 9; signal.state = "falling"; signal.fallStartY = signal.y; signal.fallDistance = 0; signal.vy = 40; $("swarm-status").textContent = "Digger opened a shaft. The Signal is falling through it.";
+    const platform = currentPlatform(signal); if (platform) splitPlatformAt(platform, signal.x, 24); signal.y += 9; signal.platformId = null; signal.state = "falling"; signal.fallStartY = signal.y; signal.fallDistance = 0; signal.vy = 40; $("swarm-status").textContent = "Digger opened a shaft. The Signal is falling through it.";
   }
   function updateWalking(signal, dt) {
     const platform = currentPlatform(signal); if (!platform) { signal.platformId = null; signal.state = "falling"; signal.fallStartY = signal.y; signal.fallDistance = 0; signal.vy = 20; return; }
