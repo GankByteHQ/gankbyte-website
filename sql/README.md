@@ -15,9 +15,10 @@ Run these files in Supabase SQL Editor, in this order:
 11. `010_COMMUNITY_REVIEWS_ADMIN_DELETE.sql`
 12. `011_CODEBREAKER_PERIOD_LEADERBOARDS.sql`
 13. `SIGNAL_SWARM_MIGRATION.sql`
+14. `PACKET_SIEGE_MIGRATION.sql`
 
 The game score migration adds Codebreaker's saved scores, completes Byte Snatch's weekly board, adds indexes, and installs automatic XP triggers for every connected game. Migration 011 adds database-backed Codebreaker daily and weekly boards. `SIGNAL_SWARM_MIGRATION.sql` adds the Signal Swarm score table, public board, XP trigger, profile history fields, and stored achievement list. Leaderboards are views over the score tables, so approved scores appear automatically without a refresh job.
 
-All game pages publish successful signed-in runs with `status = 'approved'`. The browser never contains a service-role key.
+`PACKET_SIEGE_MIGRATION.sql` adds the Packet Siege score table, public board, automatic XP trigger, profile history fields, and challenge registration. All game pages publish successful signed-in runs with `status = 'approved'`. The browser never contains a service-role key.
 
 `008_CUSTOM_SCRIPT_REQUESTS.sql` creates the private request table used by the custom FiveM script form. Inserts are performed by the `submit-custom-request` Supabase Edge Function; admins can read and update requests through authenticated Supabase access.

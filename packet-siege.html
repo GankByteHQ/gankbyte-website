@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0a0b0f" />
+    <meta name="description" content="Play Packet Siege in GankByte Arena. Defend the core, destroy corrupted packets, build combos, and survive the waves." />
+    <link rel="icon" href="gb-logo.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="site-spacing.css" />
+    <link rel="stylesheet" href="page-compact.css" />
+    <link rel="stylesheet" href="arena-online.css" />
+    <link rel="stylesheet" href="game-controls.css" />
+    <link rel="stylesheet" href="auth-controls.css" />
+    <link rel="stylesheet" href="site-shell.css?v=10" />
+    <link rel="stylesheet" href="packet-siege.css?v=1" />
+    <link rel="canonical" href="https://gankbyte.com/packet-siege.html" />
+    <meta property="og:title" content="Packet Siege — GankByte Arena" />
+    <meta property="og:description" content="Defend the core, push the risk, and survive one more wave." />
+    <meta property="og:url" content="https://gankbyte.com/packet-siege.html" />
+    <meta property="og:site_name" content="GankByte" />
+    <meta property="og:image" content="https://gankbyte.com/packet-siege-thumb.svg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Packet Siege — GankByte Arena" />
+    <meta name="twitter:description" content="Defend the core and survive one more wave." />
+    <meta name="twitter:image" content="https://gankbyte.com/packet-siege-thumb.svg" />
+    <title>Packet Siege — GankByte Arena</title>
+  </head>
+  <body>
+    <header class="site-header shell">
+      <a class="brand" href="index.html" aria-label="GankByte home"><span class="brand-mark">GB</span><span>GANKBYTE</span></a>
+      <nav class="site-nav" aria-label="Main navigation"><a href="games.html">Games</a><a href="arena-hub.html" aria-current="page">Arena</a><a href="developers.html">Developers</a><a href="community.html">Community</a><a href="xp.html">XP</a><a href="roadmap.html">Roadmap</a></nav>
+      <a class="header-cta" href="https://discord.gg/CpWjZkjtjJ" target="_blank" rel="noreferrer">Join Discord <span>&nearr;</span></a>
+    </header>
+
+    <main id="main-content">
+      <section class="page-hero shell arena-hero"><p class="page-label">GANKBYTE ARENA // GAME 07</p><h1>Packet<br /><em>Siege.</em></h1><p class="hero-lede">Defend the network core against corrupted packets. Shoot, survive, build the combo, and push your luck for a better score.</p></section>
+
+      <section class="section shell"><div class="packet-wrap">
+        <div class="arena-hud packet-hud" aria-label="Packet Siege run statistics"><div><span class="hud-label">SCORE</span><strong id="packet-score">0</strong></div><div><span class="hud-label">WAVE</span><strong id="packet-wave">1</strong></div><div><span class="hud-label">COMBO</span><strong id="packet-combo">x1</strong></div><div><span class="hud-label">PACKETS</span><strong id="packet-destroyed">0</strong></div><div><span class="hud-label">CORE</span><strong id="packet-core">100%</strong></div><div><span class="hud-label">POWER</span><strong id="packet-power">NONE</strong></div></div>
+        <div class="packet-board" id="packet-board"><canvas id="packet-canvas" width="960" height="540" tabindex="0" aria-label="Packet Siege game board"></canvas><div class="packet-message" id="packet-message"><strong>READY?</strong><span>Move the cannon, shoot the packets, and keep the core alive. Press Start run to begin.</span></div></div>
+        <p class="packet-core-note">Desktop: A/D or arrow keys to move, Space to shoot, Escape to pause, R to restart. Mobile: drag to move and tap the board or SHOOT to fire.</p>
+        <div class="packet-touch" aria-label="Packet Siege touch controls"><button type="button" data-packet-move="left" aria-label="Move cannon left">&larr;</button><button type="button" data-packet-shoot="true" aria-label="Shoot">Shoot</button><button type="button" data-packet-move="right" aria-label="Move cannon right">&rarr;</button></div>
+        <div class="arena-controls"><div class="game-actions"><button class="button button-primary" id="packet-start" type="button">Start run <span>&rarr;</span></button><button class="button button-ghost" id="packet-pause" type="button" hidden>Pause <span>&#10074;&#10074;</span></button><button class="button button-ghost" id="packet-restart" type="button" hidden>Restart <span>&orarr;</span></button><button class="button button-ghost" id="packet-help-button" type="button">How to play <span>?</span></button></div><p class="packet-status" id="packet-status" aria-live="polite">No best score yet. Defend the core.</p></div>
+        <div class="arena-online"><span id="packet-auth-status">Sign in with Discord to submit scores.</span><button class="button button-ghost" id="packet-login" type="button">Sign in with Discord <span>&nearr;</span></button><button class="button button-ghost" id="packet-logout" type="button" hidden>Sign out</button></div>
+        <article class="packet-result-card" id="packet-result" hidden aria-live="polite"><div class="packet-result-heading"><div><span class="eyebrow">RUN RESULT // PACKET SIEGE</span><strong id="result-score">0</strong><p id="result-record">Run complete.</p></div><span class="packet-result-mark" id="result-mark">CORE LOST</span></div><div class="packet-result-grid"><div><span>WAVE</span><b id="result-wave">1</b></div><div><span>BEST COMBO</span><b id="result-combo">x1</b></div><div><span>PACKETS DESTROYED</span><b id="result-destroyed">0</b></div><div><span>CORE HEALTH</span><b id="result-core">0%</b></div><div><span>LEADERBOARD</span><b id="result-rank">Sign in</b></div></div><div class="game-result-actions"><button class="button button-primary" id="packet-run-again" type="button">Run again <span>&rarr;</span></button><a class="button button-ghost" href="#leaderboard">View leaderboard <span>&darr;</span></a><a class="button button-ghost" href="profile.html">View profile <span>&nearr;</span></a></div></article>
+        <dialog class="signal-help-dialog" id="packet-help" aria-labelledby="packet-help-title"><div class="signal-help-dialog-inner"><div class="packet-result-heading"><div><span class="eyebrow">FIELD GUIDE // PACKET SIEGE</span><h2 id="packet-help-title">Hold the core.<br /><em>Push the score.</em></h2></div><button class="button button-ghost" id="packet-help-close" type="button">Close <span>&times;</span></button></div><p class="section-intro">Packets descend in a moving formation. Shoot them before they reach the core, then survive the next wave. Enemies that get closer are worth more, so skilled players can take a controlled risk for a higher score.</p><div class="signal-help-grid"><div><strong>Basic</strong><span>One hit, reliable points.</span></div><div><strong>Fast</strong><span>Quick and worth more.</span></div><div><strong>Tank</strong><span>Needs several hits.</span></div><div><strong>Shooter</strong><span>Fires back at the cannon.</span></div><div><strong>Splitter</strong><span>Breaks into fragments.</span></div><div><strong>Boss</strong><span>Arrives every fifth wave.</span></div></div><p class="section-copy"><strong>Power-ups:</strong> Rapid Fire, Pierce, Lightning, Shield, Bomb, and Overdrive. Move with A/D or the arrow keys. Space shoots. On a phone, drag the board to move and tap to shoot.</p></div></dialog>
+      </div></section>
+
+      <section class="section section-dark" id="leaderboard"><div class="shell"><div class="section-heading"><div><p class="eyebrow">GLOBAL SCORES</p><h2>Defend more.<br /><em>Push harder.</em></h2></div><p class="section-intro">Approved Packet Siege runs are ranked by score, then wave and packets destroyed.</p></div><div class="leaderboard-wrap"><table class="leaderboard"><thead><tr><th>#</th><th>Player</th><th>Score</th><th>Wave</th><th>Combo</th><th>Packets</th></tr></thead><tbody id="packet-leaderboard-body"><tr><td colspan="6">Loading Packet Siege scores...</td></tr></tbody></table></div><p class="score-rules-note">All competitive players use the same cannon, power-ups, and wave rules. Permanent progression never gives a gameplay advantage.</p></div></section>
+      <section class="section shell packet-howto"><div class="section-heading"><div><p class="eyebrow">HOW TO PLAY</p><h2>Protect the core.<br /><em>One more wave.</em></h2></div><div><p class="section-intro">Shoot the descending packets, collect power-ups, and keep enemies away from the core. The deeper a packet reaches, the more score it gives, but it also becomes a bigger threat.</p><ul class="perk-list"><li><strong>Move and shoot</strong> Use A/D, arrows, or the touch controls.</li><li><strong>Build a combo</strong> Consecutive kills raise your multiplier to x12.</li><li><strong>Take the risk</strong> Close packets pay more, but damage the core if they break through.</li><li><strong>Defeat the boss</strong> Every fifth wave introduces a heavy boss with a unique attack pattern.</li></ul><a class="text-link" href="arena-hub.html">Back to GankByte Arena <span>&nearr;</span></a></div></div></section>
+    </main>
+    <footer class="site-footer shell"><div class="footer-top"><a class="brand" href="index.html"><span class="brand-mark">GB</span><span>GANKBYTE</span></a><p>Gaming. Memes. Code.</p><p class="footer-motto">BUILD. PLAY. GANK.</p></div><div class="footer-bottom"><div class="social-links"><a href="https://x.com/GankByte" target="_blank" rel="noreferrer">X</a><a href="https://www.youtube.com/@GankByte" target="_blank" rel="noreferrer">YouTube</a><a href="https://www.tiktok.com/@GankByte" target="_blank" rel="noreferrer">TikTok</a><a href="https://www.instagram.com/GankByte" target="_blank" rel="noreferrer">Instagram</a><a href="https://www.reddit.com/user/GankByteHQ" target="_blank" rel="noreferrer">Reddit</a><a href="https://github.com/GankByteHQ" target="_blank" rel="noreferrer">GitHub</a></div><a href="mailto:contact@gankbyte.com">contact@gankbyte.com</a><span>&copy; 2026 GankByte</span></div></footer>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="xp-config.js"></script><script src="packet-siege.js?v=1"></script><script src="footer-nav.js?v=11"></script>
+  </body>
+</html>
