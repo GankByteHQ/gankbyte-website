@@ -112,14 +112,14 @@
     const layout = levelLayouts[currentPlan().layout % levelLayouts.length];
     platforms = layout.platforms.map((p, i) => ({ id: `platform-${i}`, x1: p[0], x2: p[1], y: p[2], built: false }));
     spawnPoint = { ...layout.hatch };
-    walls = layout.walls.map((wall, i) => ({ id: `wall-${i}`, x: wall[0], y1: wall[1], y2: wall[2] }));
+    walls = layout.walls.map((wall, i) => {
+      const isTopPlatformWall = wall[2] <= platforms[0].y + 1 && wall[1] < platforms[0].y;
+      return { id: `wall-${i}`, x: isTopPlatformWall ? platforms[0].x2 - 8 : wall[0], y1: wall[1], y2: wall[2] };
+    });
     const startPlatform = platforms[0];
     const startWallTop = spawnPoint.y + 24;
     const startWallBottom = startPlatform.y - 3;
-    walls.push(
-      { id: "start-left", x: clamp(spawnPoint.x - 30, 14, W - 14), y1: startWallTop, y2: startWallBottom },
-      { id: "start-right", x: clamp(spawnPoint.x + 30, 14, W - 14), y1: startWallTop, y2: startWallBottom }
-    );
+    walls.push({ id: "start-left", x: clamp(spawnPoint.x - 30, 14, W - 14), y1: startWallTop, y2: startWallBottom });
     const last = platforms[platforms.length - 1];
     exit = { x: last.x2 - 28, y: last.y, platformId: last.id };
     terrain.fill(0);
