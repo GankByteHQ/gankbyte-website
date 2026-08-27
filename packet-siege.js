@@ -21,6 +21,7 @@
   let bullets = [];
   let enemyBullets = [];
   let powerups = [];
+  let bunkers = [];
   let particles = [];
   let floaters = [];
   let score = 0;
@@ -46,6 +47,8 @@
   let user = null;
   let activePower = null;
   let powerUntil = 0;
+  let weaponMode = "single";
+  let weaponUntil = 0;
   let shieldCharges = 0;
 
   const typeInfo = {
@@ -82,11 +85,46 @@
     $("packet-combo").textContent = `x${combo}`;
     $("packet-destroyed").textContent = destroyed;
     $("packet-core").textContent = `${Math.max(0, Math.round(coreHealth))}%`;
-    $("packet-power").textContent = activePower && powerUntil > elapsed ? activePower.toUpperCase() : shieldCharges ? `SHIELD x${shieldCharges}` : "NONE";
+    $("packet-power").textContent = weaponMode !== "single" && weaponUntil > elapsed ? weaponMode.toUpperCase() : activePower && powerUntil > elapsed ? activePower.toUpperCase() : shieldCharges ? `SHIELD x${shieldCharges}` : "NONE";
   }
   function createEnemy(type, x, y, extra = {}) {
     const info = typeInfo[type];
     return { type, x, y, width: info.width, height: info.height, hp: info.hp + (type === "boss" ? Math.floor(wave / 5) * 2 : 0), maxHp: info.hp + (type === "boss" ? Math.floor(wave / 5) * 2 : 0), phase: random(0, 7), shieldUntil: 0, ...extra };
+  }
+  function createBunkers() {
+    const pattern = ["00111100", "11111111", "11111111", "11100111"];
+    return [WIDTH * .25, WIDTH * .5, WIDTH * .75].map((x) => ({
+      x, y: HEIGHT - 148, cell: 12,
+      cells: pattern.flatMap((row, rowIndex) => [...row].map((value, colIndex) => ({ row: rowIndex, col: colIndex, hp: value === "1" ? 3 : 0 })))
+    }));
+  }
+  function damageBunker(x, y, amount = 1) {
+    for (const bunker of bunkers) {
+      for (const cell of bunker.cells) {
+        if (cell.hp <= 0) continue;
+        const cx = bunker.x - 48 + cell.col * bunker.cell + bunker.cell / 2;
+        const cy = bunker.y + cell.row * bunker.cell + bunker.cell / 2;
+        if (x >= cx - bunker.cell / 2 && x <= cx + bunker.cell / 2 && y >= cy - bunker.cell / 2 && y <= cy + bunker.cell / 2) {
+          cell.hp = Math.max(0, cell.hp - amount);
+          burst(cx, cy, cell.hp ? "#55e8ff" : "#ff526b", cell.hp ? 3 : 8);
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  function drawBunkers() {
+    bunkers.forEach((bunker) => {
+      bunker.cells.forEach((cell) => {
+        if (cell.hp <= 0) return;
+        const x = bunker.x - 48 + cell.col * bunker.cell;
+        const y = bunker.y + cell.row * bunker.cell;
+        ctx.fillStyle = cell.hp === 3 ? "#55e8ff" : cell.hp === 2 ? "#3daabd" : "#296a78";
+        ctx.shadowBlur = cell.hp === 3 ? 9 : 0; ctx.shadowColor = "#55e8ff";
+        ctx.fillRect(x + 1, y + 1, bunker.cell - 2, bunker.cell - 2);
+      });
+      ctx.shadowBlur = 0; ctx.fillStyle = "#55e8ff"; ctx.font = "9px monospace"; ctx.textAlign = "center"; ctx.fillText("COVER", bunker.x, bunker.y - 8);
+    });
   }
   function chooseType(row, col) {
     if (wave < 2) return "basic";
@@ -130,12 +168,15 @@
     coreHealth = 100;
     activePower = null;
     powerUntil = 0;
+    weaponMode = "single";
+    weaponUntil = 0;
     shieldCharges = 0;
     player = { x: WIDTH / 2, y: HEIGHT - 62, width: 28, height: 22, speed: 390, invulnerable: 0 };
     enemies = [];
     bullets = [];
     enemyBullets = [];
     powerups = [];
+    bunkers = createBunkers();
     particles = [];
     floaters = [];
     $("packet-pause").hidden = true;
@@ -172,7 +213,9 @@
     if (!running || paused || shootCooldown > 0) return;
     const rapid = activePower === "rapid" && powerUntil > elapsed;
     shootCooldown = rapid ? .13 : .31;
-    bullets.push({ x: player.x, y: player.y - 20, speed: 620, pierce: activePower === "pierce" && powerUntil > elapsed, hit: new Set() });
+    const mode = weaponMode !== "single" && weaponUntil > elapsed ? weaponMode : "single";
+    const offsets = mode === "double" ? [-9, 9] : mode === "triple" ? [-14, 0, 14] : [0];
+    offsets.forEach((offset) => bullets.push({ x: player.x + offset, y: player.y - 20, speed: mode === "rocket" ? 470 : 620, rocket: mode === "rocket", pierce: activePower === "pierce" && powerUntil > elapsed, hit: new Set() }));
     burst(player.x, player.y - 20, "#c6ff3d", 3);
     shots += 1;
   }
@@ -195,7 +238,7 @@
   }
   function spawnPowerup(x, y) {
     if (powerups.length >= 3 || Math.random() > .1) return;
-    const types = ["rapid", "pierce", "lightning", "shield", "bomb", "overdrive"];
+    const types = ["rapid", "pierce", "lightning", "shield", "bomb", "overdrive", "rocket", "double", "triple"];
     powerups.push({ x, y, type: types[Math.floor(random(0, types.length))], speed: 70, pulse: 0 });
   }
   function activatePowerup(item) {
@@ -205,8 +248,9 @@
       nearby.forEach((enemy) => destroyEnemy(enemy, false));
       floatText(player.x, player.y - 55, `BOMB ${nearby.length}`, "#f7d35b");
     } else if (item.type === "shield") { shieldCharges = Math.min(3, shieldCharges + 1); }
+    else if (["rocket", "double", "triple"].includes(item.type)) { weaponMode = item.type; weaponUntil = elapsed + (item.type === "rocket" ? 8 : 10); }
     else { activePower = item.type; powerUntil = elapsed + (item.type === "overdrive" ? 8 : 6); }
-    $("packet-status").textContent = `${item.type.toUpperCase()} active.`;
+    $("packet-status").textContent = item.type === "rocket" ? "ROCKETS active. Direct hits clear nearby packets." : item.type === "double" ? "DOUBLE MISSILE active." : item.type === "triple" ? "TRIPLE MISSILE active." : `${item.type.toUpperCase()} active.`;
     burst(item.x, item.y, item.type === "overdrive" ? "#f7d35b" : "#55e8ff", 24);
     updateHud();
   }
@@ -292,10 +336,16 @@
     bullets = bullets.filter((bullet) => {
       bullet.y -= bullet.speed * dt;
       if (bullet.y < -20) { combo = 1; return false; }
+      if (damageBunker(bullet.x, bullet.y)) return false;
       for (const enemy of [...enemies]) {
         if (!bullet.hit.has(enemy) && collide({ x: bullet.x, y: bullet.y, width: 5, height: 16 }, enemy)) {
           bullet.hit.add(enemy);
           const didDamage = damageEnemy(enemy);
+          if (bullet.rocket) {
+            enemies.filter((other) => other !== enemy && other.type !== "boss" && Math.hypot(other.x - enemy.x, other.y - enemy.y) < 74).forEach((other) => damageEnemy(other));
+            burst(enemy.x, enemy.y, "#f7d35b", 26);
+            return false;
+          }
           if (didDamage && activePower === "lightning" && powerUntil > elapsed) {
             const chain = enemies.find((other) => other !== enemy && Math.hypot(other.x - enemy.x, other.y - enemy.y) < 130);
             if (chain) damageEnemy(chain);
@@ -308,6 +358,7 @@
     enemyBullets = enemyBullets.filter((bullet) => {
       bullet.x += bullet.vx * dt;
       bullet.y += bullet.vy * dt;
+      if (damageBunker(bullet.x, bullet.y)) return false;
       if (collide({ x: bullet.x, y: bullet.y, width: bullet.width, height: bullet.height }, player)) { hitPlayer(); return false; }
       return bullet.y < HEIGHT + 30 && bullet.x > -30 && bullet.x < WIDTH + 30;
     });
@@ -344,8 +395,9 @@
   function draw() {
     drawGrid();
     enemies.forEach(drawEnemy);
-    powerups.forEach((item) => { const info = { rapid:"#c6ff3d", pierce:"#55e8ff", lightning:"#f7d35b", shield:"#55e8ff", bomb:"#ff526b", overdrive:"#b55cff" }[item.type]; ctx.save(); ctx.translate(item.x, item.y); ctx.rotate(item.pulse); ctx.shadowBlur = 20; ctx.shadowColor = info; ctx.strokeStyle = info; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = info; ctx.font = "bold 9px monospace"; ctx.textAlign = "center"; ctx.fillText(item.type.slice(0, 3).toUpperCase(), 0, 3); ctx.restore(); });
-    bullets.forEach((bullet) => { ctx.fillStyle = "#c6ff3d"; ctx.shadowBlur = 15; ctx.shadowColor = "#c6ff3d"; ctx.fillRect(bullet.x - 2, bullet.y - 10, 4, 18); ctx.shadowBlur = 0; });
+    powerups.forEach((item) => { const info = { rapid:"#c6ff3d", pierce:"#55e8ff", lightning:"#f7d35b", shield:"#55e8ff", bomb:"#ff526b", overdrive:"#b55cff", rocket:"#f7d35b", double:"#55e8ff", triple:"#c6ff3d" }[item.type]; const label = { rocket:"ROC", double:"2X", triple:"3X" }[item.type] || item.type.slice(0, 3).toUpperCase(); ctx.save(); ctx.translate(item.x, item.y); ctx.rotate(item.pulse); ctx.shadowBlur = 20; ctx.shadowColor = info; ctx.strokeStyle = info; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = info; ctx.font = "bold 9px monospace"; ctx.textAlign = "center"; ctx.fillText(label, 0, 3); ctx.restore(); });
+    drawBunkers();
+    bullets.forEach((bullet) => { ctx.fillStyle = bullet.rocket ? "#f7d35b" : "#c6ff3d"; ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle; ctx.fillRect(bullet.x - (bullet.rocket ? 4 : 2), bullet.y - (bullet.rocket ? 14 : 10), bullet.rocket ? 8 : 4, bullet.rocket ? 24 : 18); ctx.shadowBlur = 0; });
     enemyBullets.forEach((bullet) => { ctx.fillStyle = bullet.boss ? "#ff526b" : "#b55cff"; ctx.shadowBlur = 14; ctx.shadowColor = ctx.fillStyle; ctx.fillRect(bullet.x - 2, bullet.y - 7, 4, 14); ctx.shadowBlur = 0; });
     ctx.save(); ctx.translate(player.x, player.y); ctx.globalAlpha = player.invulnerable > 0 && Math.floor(player.invulnerable * 12) % 2 === 0 ? .35 : 1; ctx.shadowBlur = 26; ctx.shadowColor = "#55e8ff"; ctx.fillStyle = "#55e8ff"; ctx.strokeStyle = "#c6ff3d"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, -20); ctx.lineTo(18, 16); ctx.lineTo(7, 12); ctx.lineTo(0, 20); ctx.lineTo(-7, 12); ctx.lineTo(-18, 16); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.fillStyle = "#080b10"; ctx.fillRect(-4, 3, 8, 4); if (shieldCharges) { ctx.strokeStyle = "#55e8ff"; ctx.beginPath(); ctx.arc(0, 0, 29, 0, Math.PI * 2); ctx.stroke(); } ctx.restore();
     ctx.fillStyle = "#55e8ff"; ctx.font = "11px monospace"; ctx.textAlign = "center"; ctx.fillText("NETWORK CORE", WIDTH / 2, HEIGHT - 26); ctx.fillStyle = "rgba(85,232,255,.15)"; ctx.fillRect(WIDTH / 2 - 70, HEIGHT - 18, 140, 3); ctx.fillStyle = "#55e8ff"; ctx.fillRect(WIDTH / 2 - 70, HEIGHT - 18, 140 * coreHealth / 100, 3);
