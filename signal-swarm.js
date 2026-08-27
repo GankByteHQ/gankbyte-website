@@ -9,7 +9,7 @@
   const H = canvas.height;
   const gravity = 760;
   const laneY = 450;
-  const initialCharges = { redirect: 5, bridge: 3, cleanse: 3, pulse: 2, recall: 1, blocker: 3, floater: 3 };
+  const initialCharges = { redirect: 9, bridge: 8, cleanse: 8, pulse: 4, recall: 3, blocker: 5, floater: 5 };
   const abilityNames = { redirect: "REDIRECT", bridge: "BRIDGE", cleanse: "CLEANSE", pulse: "SIGNAL PULSE", recall: "EMERGENCY RECALL", blocker: "BLOCKER", floater: "FLOATER" };
   const speedNames = ["SAFE", "PUSH", "GANK"];
   const speedFactors = [0.72, 1, 1.3];
