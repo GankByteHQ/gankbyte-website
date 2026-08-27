@@ -20,7 +20,7 @@ This repository contains the public GankByte landing page. The site is a lightwe
 - `symbol-catch/` - Symbol Catch Arena reflex game
 - `codebreaker/` - Codebreaker puzzle campaign
 - `byte-snatch.html` - Byte Snatch risk-and-reward game
-- `signal-swarm.html` - Signal Swarm 60-second arcade strategy game
+- `signal-swarm.html` - Signal Swarm endless level-based arcade rescue game
 - `profile.html` - personal runs, XP history, challenges, and moderation notes
 - `xp.html` - XP submission and public XP leaderboard
 - `developers.html` / `contributing.html` - project and contribution routes
