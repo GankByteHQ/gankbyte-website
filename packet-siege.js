@@ -31,6 +31,7 @@
   let bestCombo = 1;
   let destroyed = 0;
   let coreHealth = 100;
+  let lives = 3;
   let elapsed = 0;
   let formationDirection = 1;
   let formationSpeed = 28;
@@ -85,6 +86,7 @@
     $("packet-combo").textContent = `x${combo}`;
     $("packet-destroyed").textContent = destroyed;
     $("packet-core").textContent = `${Math.max(0, Math.round(coreHealth))}%`;
+    $("packet-lives").textContent = lives;
     $("packet-power").textContent = weaponMode !== "single" && weaponUntil > elapsed ? weaponMode.toUpperCase() : activePower && powerUntil > elapsed ? activePower.toUpperCase() : shieldCharges ? `SHIELD x${shieldCharges}` : "NONE";
   }
   function createEnemy(type, x, y, extra = {}) {
@@ -166,6 +168,7 @@
     bestCombo = 1;
     destroyed = 0;
     coreHealth = 100;
+    lives = 3;
     activePower = null;
     powerUntil = 0;
     weaponMode = "single";
@@ -233,8 +236,10 @@
     player.invulnerable = 1.2;
     combo = 1;
     score = Math.max(0, score - 100);
+    lives = Math.max(0, lives - 1);
     floatText(player.x, player.y - 24, "CANNON HIT", "#ff526b");
     burst(player.x, player.y, "#ff526b", 20);
+    if (lives <= 0) finish("LIVES LOST");
   }
   function spawnPowerup(x, y) {
     if (powerups.length >= 3 || Math.random() > .1) return;
@@ -430,7 +435,7 @@
     localStorage.setItem(lastPlayedKey, new Date().toISOString());
     lastRun = { score: total, wave, bestCombo, destroyed, coreHealth: Math.max(0, Math.round(coreHealth)), runSeconds: Math.round(elapsed), xpEarned: Math.min(250, Math.max(25, Math.round(total / 250))), submitted: false };
     $("packet-pause").hidden = true; $("packet-restart").hidden = true; $("packet-start").hidden = false; $("packet-start").textContent = "Start run  →";
-    $("packet-result").hidden = false; $("result-score").textContent = format(total); $("result-record").textContent = newBest ? "NEW PERSONAL BEST." : "Run complete. The core held as long as it could."; $("result-mark").textContent = reason; $("result-wave").textContent = wave; $("result-combo").textContent = `x${bestCombo}`; $("result-destroyed").textContent = destroyed; $("result-core").textContent = `${Math.max(0, Math.round(coreHealth))}%`; $("result-rank").textContent = user ? "Posting..." : "Sign in";
+    $("packet-result").hidden = false; $("result-score").textContent = format(total); $("result-record").textContent = newBest ? "NEW PERSONAL BEST." : "Run complete. The core held as long as it could."; $("result-mark").textContent = reason; $("result-wave").textContent = wave; $("result-combo").textContent = `x${bestCombo}`; $("result-destroyed").textContent = destroyed; $("result-core").textContent = `${Math.max(0, Math.round(coreHealth))}%`; $("result-lives").textContent = lives; $("result-rank").textContent = user ? "Posting..." : "Sign in";
     $("packet-status").textContent = newBest ? `New personal best: ${format(total)}.` : `Run ended at wave ${wave}. Best on this device: ${format(Math.max(best, total))}.`;
     centerText(reason, "The core is offline. Check your result and run it again.", 999);
     submitScore();
