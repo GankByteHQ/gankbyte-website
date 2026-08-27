@@ -8,7 +8,7 @@
   const W = canvas.width, H = canvas.height, GROUND = 430;
   const BEST_KEY = "gankbyte-stick-fighter-best";
   const LAST_KEY = "gankbyte-stick-fighter-last-played";
-  const STAGE_KEY = "gankbyte-stick-fighter-unlocked-stage";
+  const STAGE_KEY = "gankbyte-stick-fighter-campaign-stage-v2";
   const config = window.GANKBYTE_XP_CONFIG || {};
   const keys = new Set();
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -39,14 +39,14 @@
     { name: "GANKBYTE FINALS", note: "The champion has every answer. Read the tell, use the guard, and finish clean.", opponents: [makeOpponent("The Champion", "boss", 220, 140, 1.2, 190, 320, true, "#f4f2ea")] }
   ];
 
-  let player, rivals = [], running = false, paused = false, ended = false, stageIndex = 0;
+  let player, rivals = [], running = false, paused = false, ended = false, stageIndex = 0, unlockedStage = 0;
   let score = 0, hits = 0, levelsCleared = 0, bestCombo = 1, combo = 1, perfectBlocks = 0, specials = 0;
   let lastFrame = 0, nextAi = 0, particles = [], floatingText = [], user = null, client = null, pointerStart = null, transitionId = 0;
 
-  try { stageIndex = clamp(Number(window.localStorage.getItem(STAGE_KEY) || 0), 0, LEVELS.length - 1); } catch { stageIndex = 0; }
+  try { unlockedStage = clamp(Number(window.localStorage.getItem(STAGE_KEY) || 0), 0, LEVELS.length - 1); stageIndex = unlockedStage; } catch { stageIndex = 0; unlockedStage = 0; }
   const currentStage = () => LEVELS[stageIndex] || LEVELS[0];
-  function saveUnlockedStage() { try { const old = Number(window.localStorage.getItem(STAGE_KEY) || 0); window.localStorage.setItem(STAGE_KEY, String(Math.max(old, stageIndex))); } catch {} }
-  function updateStageUi() { $("fighter-stage").value = String(stageIndex); $("fighter-level").textContent = `${stageIndex + 1} / ${LEVELS.length}`; $("fighter-stage-note").textContent = `${currentStage().opponents.map((opponent) => opponent.name).join(" + ")} // ${currentStage().note}`; }
+  function saveUnlockedStage() { try { unlockedStage = Math.max(unlockedStage, stageIndex); window.localStorage.setItem(STAGE_KEY, String(unlockedStage)); } catch {} }
+  function updateStageUi() { const selector = $("fighter-stage"); Array.from(selector.options).forEach((option) => { option.disabled = Number(option.value) > unlockedStage; }); selector.value = String(stageIndex); $("fighter-level").textContent = `${stageIndex + 1} / ${LEVELS.length}`; $("fighter-stage-note").textContent = `${currentStage().opponents.map((opponent) => opponent.name).join(" + ")} // ${currentStage().note}`; }
 
   function fighter(x, facing, isPlayer, spec = {}) {
     return { x, y: GROUND - 92, w: 38, h: 92, vx: 0, vy: 0, facing, hp: spec.hp || 100, maxHp: spec.hp || 100, stamina: spec.stamina || 100, maxStamina: spec.stamina || 100, focus: spec.focus || 0, grounded: true, jumps: 0, blocking: false, attacking: false, attack: null, attackTime: 0, attackHit: false, cooldown: 0, hurt: 0, invulnerable: 0, isPlayer, actionLock: 0, attackChain: 0, lastAttackKind: null, lastAttackAt: 0, name: spec.name || (isPlayer ? "PLAYER 1" : "RIVAL"), style: spec.style || "balanced", damage: spec.damage || 1, aiMin: spec.aiMin || 400, aiMax: spec.aiMax || 600, boss: Boolean(spec.boss), color: spec.color || "#ff526b" };
@@ -55,7 +55,8 @@
   function resetLevel() {
     const stage = currentStage();
     player = fighter(240, 1, true, { name: "PLAYER 1", hp: 100, stamina: 100, focus: 0, color: "#c6ff3d" });
-    rivals = stage.opponents.map((spec, index) => fighter(680 + index * 150, -1, false, spec));
+    const selectedStyle = $("fighter-style")?.value || "campaign";
+    rivals = stage.opponents.map((spec, index) => fighter(680 + index * 150, -1, false, selectedStyle === "campaign" ? spec : { ...spec, style: selectedStyle }));
     nextAi = 0; particles = []; floatingText = [];
     updateHud(); draw();
   }
@@ -184,7 +185,7 @@
   document.querySelectorAll("[data-fighter-action]").forEach((button) => { const name = button.dataset.fighterAction; button.addEventListener("pointerdown", (event) => { event.preventDefault(); if (["left", "right", "block"].includes(name)) { button.setPointerCapture?.(event.pointerId); if (name === "block") block(player, true); else action(name); } else action(name); }); const release = () => { if (name === "left" || name === "right") player.vx = 0; if (name === "block") block(player, false); }; button.addEventListener("pointerup", release); button.addEventListener("pointercancel", release); button.addEventListener("pointerleave", release); });
   canvas.addEventListener("pointerdown", (event) => { pointerStart = { x: event.clientX, y: event.clientY }; canvas.setPointerCapture?.(event.pointerId); }); canvas.addEventListener("pointerup", (event) => { if (!pointerStart) return; const dx = event.clientX - pointerStart.x, dy = event.clientY - pointerStart.y; pointerStart = null; if (Math.abs(dx) > 34) action(dx < 0 ? "left" : "right"); else if (dy < -28) action("jump"); else action("punch"); });
   $("fighter-mode").addEventListener("change", () => { $("fighter-mode-note").textContent = $("fighter-mode").value === "local" ? "Player 2 uses the arrow keys and numpad buttons." : "The CPU reads distance, stamina, and openings."; if (!running) resetLevel(); }); $("fighter-start").addEventListener("click", start); $("fighter-run-again").addEventListener("click", start); $("fighter-restart").addEventListener("click", start); $("fighter-pause").addEventListener("click", () => { if (!running || ended) return; paused = !paused; $("fighter-pause").innerHTML = paused ? "Resume <span>&rarr;</span>" : "Pause <span>&#10074;&#10074;</span>"; setStatus(paused ? "Fight paused." : "Fight resumed."); }); $("fighter-help-button").addEventListener("click", () => $("fighter-help").showModal()); $("fighter-help-close").addEventListener("click", () => $("fighter-help").close()); $("fighter-login").addEventListener("click", () => { window.location.href = `login.html?returnTo=${encodeURIComponent("stick-fighter.html")}`; }); $("fighter-logout").addEventListener("click", async () => { if (client) await client.auth.signOut(); });
-  $("fighter-stage").addEventListener("change", () => { if (running) { $("fighter-stage").value = String(stageIndex); return; } stageIndex = clamp(Number($("fighter-stage").value), 0, LEVELS.length - 1); resetMatch(); });
+  $("fighter-stage").addEventListener("change", () => { if (running) { $("fighter-stage").value = String(stageIndex); return; } const selected = clamp(Number($("fighter-stage").value), 0, LEVELS.length - 1); if (selected > unlockedStage) { updateStageUi(); return; } stageIndex = selected; resetMatch(); });
   function frame(now) { const dt = Math.min(.05, (now - lastFrame) / 1000 || 0); lastFrame = now; update(dt); draw(); window.requestAnimationFrame(frame); }
   resetMatch(); authInit().catch(() => { $("fighter-auth-status").textContent = "Local play is ready. Online scores are unavailable."; }); window.requestAnimationFrame(frame);
 })();
