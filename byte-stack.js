@@ -424,7 +424,7 @@
 
   function onKey(event) {
     const key = event.key.toLowerCase();
-    const actions = { arrowleft: "left", arrowright: "right", arrowdown: "down", arrowup: "rotate", x: "rotate", " ": "drop" };
+    const actions = { arrowleft: "left", arrowright: "right", arrowdown: "down", arrowup: "rotate", a: "left", d: "right", s: "down", w: "rotate", x: "rotate", " ": "drop" };
     if (actions[key]) { event.preventDefault(); action(actions[key]); }
     else if (key === "c") { event.preventDefault(); hold(); }
     else if (key === "escape") { event.preventDefault(); togglePause(); }
