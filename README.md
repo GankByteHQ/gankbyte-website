@@ -36,6 +36,8 @@ This repository contains the public GankByte landing page. The site is a lightwe
 - `project-health.html` - local release-readiness scanner
 - `readme-generator.html` - practical local README generator
 - `release-packager.html` - local release review and safer ZIP packaging helper
+- `docs.html` - platform and language documentation hub
+- `code-library.html` - searchable, copyable developer snippets
 - `changelog.html` - dated release notes for shipped changes
 
 ## Gameplay media
