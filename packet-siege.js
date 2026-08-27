@@ -142,8 +142,8 @@
     $("packet-restart").hidden = true;
     $("packet-result").hidden = true;
     $("packet-message").hidden = false;
-    $("packet-message strong").textContent = "READY?";
-    $("packet-message span").textContent = "Move the cannon, shoot the packets, and keep the core alive. Press Start run to begin.";
+    document.querySelector("#packet-message strong").textContent = "READY?";
+    document.querySelector("#packet-message span").textContent = "Move the cannon, shoot the packets, and keep the core alive. Press Start run to begin.";
     updateHud();
   }
   function start() {
