@@ -71,7 +71,7 @@
       client.from("packet_siege_leaderboard").select("best_score,best_wave,display_name").order("best_score", { ascending: false }).limit(1),
       client.from("byte_stack_leaderboard").select("best_score,best_level,best_lines,display_name").order("best_score", { ascending: false }).limit(1),
       client.from("null_ninja_leaderboard").select("best_score,best_distance,best_kills,display_name").order("best_score", { ascending: false }).limit(1),
-      client.from("stick_fighter_leaderboard").select("best_score,best_wins,best_hits,display_name").order("best_score", { ascending: false }).limit(1),
+      client.from("stick_fighter_leaderboard").select("best_score,best_wins,best_hits,level_reached,display_name").order("best_score", { ascending: false }).limit(1),
       user ? client.from("xp_leaderboard").select("xp_total").eq("id", user.id).maybeSingle() : Promise.resolve({ data: null })
     ]);
     if (byte.error || glitch.error || symbol.error || snatch.error || codebreaker.error || swarm.error || packet.error || stack.error || ninja.error || fighter.error || (user && xp.error)) {
@@ -96,7 +96,7 @@
     if ($("hub-ninja-best")) $("hub-ninja-best").textContent = ninja.data?.[0] ? format(ninja.data[0].best_score) : "No runs yet";
     if ($("hub-ninja-detail")) $("hub-ninja-detail").textContent = ninja.data?.[0] ? `${ninja.data[0].best_kills || 0} kills by ${ninja.data[0].display_name || "GankByte Player"}` : "Be the first on the board";
     if ($("hub-fighter-best")) $("hub-fighter-best").textContent = fighter.data?.[0] ? format(fighter.data[0].best_score) : "No matches yet";
-    if ($("hub-fighter-detail")) $("hub-fighter-detail").textContent = fighter.data?.[0] ? `${fighter.data[0].best_wins || 0} wins by ${fighter.data[0].display_name || "GankByte Player"}` : "Be the first on the board";
+    if ($("hub-fighter-detail")) $("hub-fighter-detail").textContent = fighter.data?.[0] ? `Level ${fighter.data[0].level_reached || 1} // ${fighter.data[0].best_wins || 0} wins by ${fighter.data[0].display_name || "GankByte Player"}` : "Be the first on the board";
     if (!user) {
       $("hub-xp-total").textContent = "Sign in";
       $("hub-xp-detail").textContent = "Connect Discord for your progress.";

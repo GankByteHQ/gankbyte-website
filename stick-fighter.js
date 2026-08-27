@@ -6,10 +6,10 @@
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
   const W = canvas.width, H = canvas.height, GROUND = 430;
-  const BEST_KEY = "gankbyte-stick-fighter-best", LAST_KEY = "gankbyte-stick-fighter-last-played";
+  const BEST_KEY = "gankbyte-stick-fighter-best", LAST_KEY = "gankbyte-stick-fighter-last-played", STAGE_KEY = "gankbyte-stick-fighter-unlocked-stage";
   const config = window.GANKBYTE_XP_CONFIG || {};
   const keys = new Set();
-  let player, rival, running = false, paused = false, ended = false, matchTime = 60, round = 1, playerWins = 0, rivalWins = 0;
+  let player, rival, running = false, paused = false, ended = false, matchTime = 60, round = 1, playerWins = 0, rivalWins = 0, stageIndex = 0;
   let score = 0, hits = 0, bestCombo = 1, combo = 1, perfectBlocks = 0, specials = 0, lastFrame = 0, nextAi = 0, particles = [], floatingText = [];
   let user = null, client = null, lastResult = null, pointerStart = null;
 
@@ -17,22 +17,35 @@
   const rand = (min, max) => Math.random() * (max - min) + min;
   const format = (value) => Number(value || 0).toLocaleString();
   const escapeHtml = (value) => String(value || "").replace(/[&<>'"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c]));
+  const STAGES = [
+    { name: "TRAINING RING", rival: "Rookie", style: "balanced", hp: 88, stamina: 92, focus: 0, aiMin: 420, aiMax: 650, damage: .82, color: "#55e8ff", note: "A readable first fight. Learn spacing, guard timing, and clean punches." },
+    { name: "RUSH CIRCUIT", rival: "Rush", style: "rushdown", hp: 96, stamina: 100, focus: 0, aiMin: 300, aiMax: 470, damage: .92, color: "#ff526b", note: "The rival closes distance quickly. Dash away, then punish the recovery." },
+    { name: "COUNTER VAULT", rival: "The Watcher", style: "counter", hp: 104, stamina: 100, focus: 15, aiMin: 330, aiMax: 520, damage: 1, color: "#b889ff", note: "This rival waits for you to swing. Feint with movement and break the guard." },
+    { name: "HEAVY PLATFORM", rival: "Juggernaut", style: "balanced", hp: 132, stamina: 115, focus: 20, aiMin: 360, aiMax: 540, damage: 1.12, color: "#e7b35d", note: "A tougher rival with heavier hits. Keep the combo alive without trading blows." },
+    { name: "OVERDRIVE DECK", rival: "Overclock", style: "rushdown", hp: 112, stamina: 120, focus: 30, aiMin: 220, aiMax: 360, damage: 1.08, color: "#c6ff3d", note: "The pace is fast and mistakes hurt. Save your dash for the special opening." },
+    { name: "GANKBYTE FINALS", rival: "The Champion", style: "counter", hp: 145, stamina: 125, focus: 45, aiMin: 210, aiMax: 330, damage: 1.18, color: "#f4f2ea", note: "The final test. Mix attacks, perfect blocks, and a charged special to win." }
+  ];
+  try { stageIndex = clamp(Number(window.localStorage.getItem(STAGE_KEY) || 0), 0, STAGES.length - 1); } catch { stageIndex = 0; }
+  const currentStage = () => STAGES[stageIndex] || STAGES[0];
+  function saveUnlockedStage() { try { const old = Number(window.localStorage.getItem(STAGE_KEY) || 0); window.localStorage.setItem(STAGE_KEY, String(Math.max(old, stageIndex))); } catch {} }
+  function updateStageUi() { $("fighter-stage").value = String(stageIndex); $("fighter-level").textContent = `${stageIndex + 1} / ${STAGES.length}`; $("fighter-stage-note").textContent = `${currentStage().rival} // ${currentStage().note}`; }
 
   function fighter(x, facing, isPlayer) {
-    return { x, y: GROUND - 92, w: 38, h: 92, vx: 0, vy: 0, facing, hp: 100, stamina: 100, focus: 0, grounded: true, jumps: 0, blocking: false, attacking: false, attack: null, attackTime: 0, attackHit: false, cooldown: 0, hurt: 0, invulnerable: 0, isPlayer, actionLock: 0 };
+    return { x, y: GROUND - 92, w: 38, h: 92, vx: 0, vy: 0, facing, hp: 100, maxHp: 100, stamina: 100, focus: 0, grounded: true, jumps: 0, blocking: false, attacking: false, attack: null, attackTime: 0, attackHit: false, cooldown: 0, hurt: 0, invulnerable: 0, isPlayer, actionLock: 0 };
   }
   function resetRound() {
-    player = fighter(260, 1, true); rival = fighter(700, -1, false); matchTime = 60; nextAi = 0; particles = []; floatingText = [];
+    const stage = currentStage(); player = fighter(260, 1, true); rival = fighter(700, -1, false); rival.maxHp = stage.hp; rival.hp = stage.hp; rival.stamina = stage.stamina; rival.focus = stage.focus; matchTime = 60; nextAi = 0; particles = []; floatingText = [];
     updateHud(); draw();
   }
   function resetMatch() {
+    updateStageUi();
     running = false; paused = false; ended = false; round = 1; playerWins = 0; rivalWins = 0; score = 0; hits = 0; bestCombo = 1; combo = 1; perfectBlocks = 0; specials = 0;
     resetRound(); $("fighter-message").hidden = false; $("fighter-message").innerHTML = "<strong>READY?</strong><span>Move, strike, block, and take the round.</span>"; $("fighter-result").hidden = true; $("fighter-start").hidden = false; $("fighter-start").innerHTML = "Start fight <span>&rarr;</span>"; $("fighter-pause").hidden = true; $("fighter-restart").hidden = true; setStatus("A/D move · W or Space jump · J punch · K kick · L block · Shift dash · I special.");
   }
   function setStatus(message) { if (message.includes("W or Space jump")) message = "A/D move · W jump · S block · F punch · G kick · Space dash · E special."; $("fighter-status").textContent = message; }
   function updateHud() {
     if (!player || !rival) return;
-    $("fighter-round").textContent = `${round} / 3`; $("fighter-time").textContent = Math.max(0, Math.ceil(matchTime)); $("fighter-player-health").textContent = `${Math.max(0, Math.ceil(player.hp))}%`; $("fighter-enemy-health").textContent = `${Math.max(0, Math.ceil(rival.hp))}%`; $("fighter-score").textContent = format(score);
+    $("fighter-level").textContent = `${stageIndex + 1} / ${STAGES.length}`; $("fighter-round").textContent = `${round} / 3`; $("fighter-time").textContent = Math.max(0, Math.ceil(matchTime)); $("fighter-player-health").textContent = `${Math.max(0, Math.ceil(player.hp))}%`; $("fighter-enemy-health").textContent = `${Math.max(0, Math.ceil(rival.hp))}%`; $("fighter-score").textContent = format(score);
   }
   function burst(x, y, color, amount = 12) { for (let i = 0; i < amount; i += 1) particles.push({ x, y, vx: rand(-130, 130), vy: rand(-150, 20), life: rand(.25, .7), color, size: rand(2, 5) }); }
   function pop(text, x, y, color = "#c6ff3d") { floatingText.push({ text, x, y, color, life: 1 }); }
@@ -51,6 +64,7 @@
     if (!running || paused || ended || f.cooldown > 0 || f.actionLock > 0) return;
     const data = { punch: { time: .34, hit: .11, cooldown: .24, damage: 7, reach: 60, knock: 110, focus: 7 }, kick: { time: .52, hit: .2, cooldown: .42, damage: 12, reach: 82, knock: 180, focus: 11 }, special: { time: .74, hit: .27, cooldown: .65, damage: 24, reach: 105, knock: 330, focus: 0 } }[kind];
     if (!data || (kind === "special" && f.focus < 100)) return;
+    if (!f.isPlayer) data.damage = Math.round(data.damage * currentStage().damage);
     if (kind === "special") { f.focus = 0; specials += 1; }
     f.blocking = false; f.attacking = true; f.attack = { kind, ...data }; f.attackTime = 0; f.attackHit = false; f.actionLock = data.time;
   }
@@ -67,7 +81,7 @@
   }
   function cpuThink() {
     if ($("fighter-mode").value === "local" || !running || paused || ended || rival.actionLock > 0) return;
-    const d = distance(), style = $("fighter-style").value;
+    const d = distance(), selectedStyle = $("fighter-style").value, style = selectedStyle === "balanced" ? currentStage().style : selectedStyle;
     rival.facing = player.x < rival.x ? -1 : 1;
     if (player.attacking && d < 125 && Math.random() < (style === "counter" ? .8 : .48)) { block(rival, true); return; }
     if (rival.hp < 28 && Math.random() < .34) { dash(rival); return; }
@@ -100,7 +114,7 @@
   function readBest() { try { return JSON.parse(window.localStorage.getItem(BEST_KEY) || "null"); } catch { return null; } }
   function update(dt) {
     if (!running || paused || ended) return; matchTime = Math.max(0, matchTime - dt); const pLeft = keys.has("a"); const pRight = keys.has("d"); if (pLeft) move(player, -1); else if (pRight) move(player, 1); else if (!player.attacking) player.vx *= .86; block(player, keys.has("s") || keys.has("l"));
-    if ($("fighter-mode").value === "local") { if (keys.has("arrowleft")) move(rival, -1); else if (keys.has("arrowright")) move(rival, 1); else if (!rival.attacking) rival.vx *= .86; block(rival, keys.has("numpad4")); } else if (performance.now() > nextAi) { cpuThink(); nextAi = performance.now() + rand(260, 560); }
+    if ($("fighter-mode").value === "local") { if (keys.has("arrowleft")) move(rival, -1); else if (keys.has("arrowright")) move(rival, 1); else if (!rival.attacking) rival.vx *= .86; block(rival, keys.has("numpad4")); } else if (performance.now() > nextAi) { cpuThink(); nextAi = performance.now() + rand(currentStage().aiMin, currentStage().aiMax); }
     updateFighter(player, dt, rival); updateFighter(rival, dt, player); if (player.hp <= 0 || rival.hp <= 0) roundOver(rival.hp <= 0 ? "player" : "rival", rival.hp <= 0 ? "Clean finish." : "The rival found the opening."); else if (matchTime <= 0) roundOver(player.hp > rival.hp ? "player" : player.hp < rival.hp ? "rival" : "draw", "Time expired.");
     if (combo > 1 && !player.attacking && player.cooldown > .1) combo = Math.max(1, combo - dt * .5); particles.forEach((p) => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 260 * dt; p.life -= dt; }); particles = particles.filter((p) => p.life > 0); floatingText.forEach((p) => { p.y -= 24 * dt; p.life -= dt; }); floatingText = floatingText.filter((p) => p.life > 0); updateHud();
   }
@@ -118,17 +132,17 @@
       ctx.stroke(); ctx.shadowBlur = 0; ctx.fillStyle = attackColor; ctx.beginPath(); ctx.arc(x + f.facing * (f.attack.kind === "kick" ? 42 + extension : 48 + extension), y + (f.attack.kind === "kick" ? 62 : 40), 5, 0, Math.PI * 2); ctx.fill();
     }
     if (f.blocking) { ctx.strokeStyle = "#55e8ff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x + f.facing * 16, y + 42, 29, f.facing > 0 ? -1.2 : 1.9, f.facing > 0 ? 1.2 : 4.3); ctx.stroke(); } ctx.restore();
-    ctx.fillStyle = color; ctx.font = "700 9px Arial"; ctx.textAlign = "center"; ctx.fillText(f.isPlayer ? "PLAYER 1" : "RIVAL", x, y - 12); ctx.fillStyle = "#181b22"; ctx.fillRect(x - 34, y - 4, 68, 5); ctx.fillStyle = f.isPlayer ? "#c6ff3d" : "#ff526b"; ctx.fillRect(x - 34, y - 4, 68 * (f.hp / 100), 5);
+    ctx.fillStyle = color; ctx.font = "700 9px Arial"; ctx.textAlign = "center"; ctx.fillText(f.isPlayer ? "PLAYER 1" : currentStage().rival.toUpperCase(), x, y - 12); ctx.fillStyle = "#181b22"; ctx.fillRect(x - 34, y - 4, 68, 5); ctx.fillStyle = f.isPlayer ? "#c6ff3d" : "#ff526b"; ctx.fillRect(x - 34, y - 4, 68 * (f.hp / f.maxHp), 5);
   }
   function draw() {
     ctx.clearRect(0, 0, W, H); ctx.fillStyle = "#090c12"; ctx.fillRect(0, 0, W, H); ctx.fillStyle = "rgba(154,123,255,.08)"; ctx.fillRect(0, 0, W, H); ctx.strokeStyle = "rgba(244,242,234,.055)"; ctx.lineWidth = 1; for (let x = 0; x <= W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); } for (let y = 30; y <= H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
     ctx.fillStyle = "#121922"; ctx.fillRect(0, GROUND, W, H - GROUND); ctx.strokeStyle = "#c6ff3d"; ctx.shadowColor = "#c6ff3d"; ctx.shadowBlur = 12; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, GROUND); ctx.lineTo(W, GROUND); ctx.stroke(); ctx.shadowBlur = 0; ctx.strokeStyle = "#333b46"; ctx.setLineDash([8, 12]); ctx.beginPath(); ctx.moveTo(80, GROUND + 28); ctx.lineTo(W - 80, GROUND + 28); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle = "#c6ff3d"; ctx.font = "800 10px Arial"; ctx.textAlign = "left"; ctx.fillText("GANKBYTE // NEON RING", 20, 24); ctx.textAlign = "right"; ctx.fillStyle = "#8f949c"; ctx.fillText("CLEAN HITS // TIMED GUARDS // ONE MORE ROUND", W - 20, 24); drawStick(player, "#c6ff3d", "#55e8ff"); drawStick(rival, "#ff526b", "#b889ff");
+    ctx.fillStyle = "#c6ff3d"; ctx.font = "800 10px Arial"; ctx.textAlign = "left"; ctx.fillText("GANKBYTE // NEON RING", 20, 24); ctx.font = "700 9px Arial"; ctx.fillText(`LEVEL ${stageIndex + 1} // ${currentStage().name}`, 20, 42); ctx.textAlign = "right"; ctx.fillStyle = "#8f949c"; ctx.fillText("CLEAN HITS // TIMED GUARDS // ONE MORE ROUND", W - 20, 24); drawStick(player, "#c6ff3d", "#55e8ff"); drawStick(rival, "#ff526b", "#b889ff");
     particles.forEach((p) => { ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.size, p.size); }); floatingText.forEach((p) => { ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.font = "800 15px Arial"; ctx.textAlign = "center"; ctx.fillText(p.text, p.x, p.y); }); ctx.globalAlpha = 1; if (player && player.focus >= 100) { ctx.fillStyle = "#c6ff3d"; ctx.font = "800 12px Arial"; ctx.textAlign = "left"; ctx.fillText("SPECIAL READY // E", 20, H - 22); }
     if (paused && running) { ctx.fillStyle = "rgba(5,7,10,.75)"; ctx.fillRect(0, 0, W, H); ctx.fillStyle = "#c6ff3d"; ctx.font = "800 40px Arial"; ctx.textAlign = "center"; ctx.fillText("PAUSED", W / 2, H / 2); }
   }
-  async function saveScore(result) { if (!client || !user) return; const response = await client.from("stick_fighter_scores").insert({ user_id: user.id, score: result.score, rounds_won: result.wins, hits_landed: result.hits, best_combo: result.bestCombo, perfect_blocks: result.perfectBlocks, specials: result.specials, xp_earned: Math.min(250, 25 + result.wins * 35 + result.hits), status: "approved" }).select("id").single(); if (!response.error) { $("result-fighter-rank").textContent = "Submitted"; loadLeaderboard(); } }
-  async function loadLeaderboard() { if (!client) return; const result = await client.from("stick_fighter_leaderboard").select("display_name,best_score,best_wins,best_hits").order("best_score", { ascending: false }).limit(10); const body = $("fighter-leaderboard-body"); if (result.error) { body.innerHTML = "<tr><td colspan=\"5\">Leaderboard temporarily unavailable.</td></tr>"; return; } body.innerHTML = result.data?.length ? result.data.map((row, i) => `<tr><td>${i + 1}</td><td>${escapeHtml(row.display_name || "GankByte Player")}</td><td>${format(row.best_score)}</td><td>${row.best_wins || 0}</td><td>${row.best_hits || 0}</td></tr>`).join("") : "<tr><td colspan=\"5\">No approved matches yet. Be the first.</td></tr>"; }
+  async function saveScore(result) { if (!client || !user) return; const response = await client.from("stick_fighter_scores").insert({ user_id: user.id, score: result.score, rounds_won: result.wins, hits_landed: result.hits, best_combo: result.bestCombo, perfect_blocks: result.perfectBlocks, specials: result.specials, level_reached: stageIndex + 1, xp_earned: Math.min(250, 25 + result.wins * 35 + result.hits), status: "approved" }).select("id").single(); if (!response.error) { $("result-fighter-rank").textContent = "Submitted"; loadLeaderboard(); } }
+  async function loadLeaderboard() { if (!client) return; const result = await client.from("stick_fighter_leaderboard").select("display_name,best_score,best_wins,best_hits,level_reached").order("best_score", { ascending: false }).limit(10); const body = $("fighter-leaderboard-body"); if (result.error) { body.innerHTML = "<tr><td colspan=\"6\">Leaderboard temporarily unavailable.</td></tr>"; return; } body.innerHTML = result.data?.length ? result.data.map((row, i) => `<tr><td>${i + 1}</td><td>${escapeHtml(row.display_name || "GankByte Player")}</td><td>${format(row.best_score)}</td><td>${row.level_reached || 1}</td><td>${row.best_wins || 0}</td><td>${row.best_hits || 0}</td></tr>`).join("") : "<tr><td colspan=\"6\">No approved matches yet. Be the first.</td></tr>"; }
   async function authInit() { if (!window.supabase || !config.supabaseUrl || !config.supabasePublishableKey) { $("fighter-login").disabled = true; $("fighter-auth-status").textContent = "Local play is ready. Online scores are unavailable."; return; } client = window.supabase.createClient(config.supabaseUrl, config.supabasePublishableKey); const result = await client.auth.getSession(); user = result.data?.session?.user || null; updateAuth(); client.auth.onAuthStateChange((_event, session) => { user = session?.user || null; updateAuth(); }); await loadLeaderboard(); }
   function updateAuth() { if (user) { $("fighter-auth-status").textContent = `Signed in as ${user.user_metadata?.global_name || user.user_metadata?.full_name || "Discord player"}. Scores submit automatically.`; $("fighter-login").hidden = true; $("fighter-logout").hidden = false; } else { $("fighter-auth-status").textContent = "Sign in with Discord to submit scores."; $("fighter-login").hidden = false; $("fighter-logout").hidden = true; } }
   function action(name, f = player) { if (name === "left") move(f, -1); else if (name === "right") move(f, 1); else if (name === "jump") jump(f); else if (name === "punch") attack(f, "punch"); else if (name === "kick") attack(f, "kick"); else if (name === "dash") dash(f); else if (name === "special") attack(f, "special"); }
@@ -138,6 +152,7 @@
   document.querySelectorAll("[data-fighter-action]").forEach((button) => { const name = button.dataset.fighterAction; button.addEventListener("pointerdown", (event) => { event.preventDefault(); if (["left", "right", "block"].includes(name)) { button.setPointerCapture?.(event.pointerId); if (name === "block") block(player, true); else action(name); } else action(name); }); const release = () => { if (name === "left" || name === "right") player.vx = 0; if (name === "block") block(player, false); }; button.addEventListener("pointerup", release); button.addEventListener("pointercancel", release); button.addEventListener("pointerleave", release); });
   canvas.addEventListener("pointerdown", (event) => { pointerStart = { x: event.clientX, y: event.clientY }; canvas.setPointerCapture?.(event.pointerId); }); canvas.addEventListener("pointerup", (event) => { if (!pointerStart) return; const dx = event.clientX - pointerStart.x, dy = event.clientY - pointerStart.y; pointerStart = null; if (Math.abs(dx) > 34) action(dx < 0 ? "left" : "right"); else if (dy < -28) action("jump"); else action("punch"); });
   $("fighter-mode").addEventListener("change", () => { $("fighter-mode-note").textContent = $("fighter-mode").value === "local" ? "Player 2 uses the arrow keys and numpad buttons." : "The CPU reads distance, stamina, and openings."; if (!running) resetRound(); }); $("fighter-start").addEventListener("click", start); $("fighter-run-again").addEventListener("click", start); $("fighter-restart").addEventListener("click", start); $("fighter-pause").addEventListener("click", () => { if (!running || ended) return; paused = !paused; $("fighter-pause").innerHTML = paused ? "Resume <span>&rarr;</span>" : "Pause <span>&#10074;&#10074;</span>"; setStatus(paused ? "Fight paused." : "Fight resumed."); }); $("fighter-help-button").addEventListener("click", () => $("fighter-help").showModal()); $("fighter-help-close").addEventListener("click", () => $("fighter-help").close()); $("fighter-login").addEventListener("click", () => { window.location.href = `login.html?returnTo=${encodeURIComponent("stick-fighter.html")}`; }); $("fighter-logout").addEventListener("click", async () => { if (client) await client.auth.signOut(); });
+  $("fighter-stage").addEventListener("change", () => { if (running) { $("fighter-stage").value = String(stageIndex); return; } stageIndex = clamp(Number($("fighter-stage").value), 0, STAGES.length - 1); updateStageUi(); resetMatch(); });
   function frame(now) { const dt = Math.min(.05, (now - lastFrame) / 1000 || 0); lastFrame = now; update(dt); draw(); window.requestAnimationFrame(frame); }
   resetMatch(); authInit().catch(() => { $("fighter-auth-status").textContent = "Local play is ready. Online scores are unavailable."; }); window.requestAnimationFrame(frame);
 })();
