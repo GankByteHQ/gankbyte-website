@@ -172,7 +172,7 @@
     target = point; const signal = nearestSignal(point) || signals.find((item) => item.alive && item.id === selectedSignalId);
     if (!signal) { setStatus("Select an active Signal first."); return; }
     if (["climber", "floater"].includes(name) && signal[name]) { setStatus(`${skillNames[name]} is already active on this Signal.`); return; }
-    if (name === "blocker" && !["walking", "falling"].includes(signal.state)) { setStatus("Blocker must be assigned to a moving Signal."); return; }
+    if (name === "blocker" && signal.state !== "walking") { setStatus("Blocker must be assigned to a walking Signal."); return; }
     if (["builder", "basher", "miner", "digger"].includes(name) && signal.state !== "walking") { setStatus(`${skillNames[name]} needs a walking Signal on terrain.`); return; }
     if (name === "bomber" && signal.bombAt) { setStatus("This Signal is already armed."); return; }
     charges[name] -= 1; selectedSignalId = signal.id; signal.actionClock = 0; signal.actionStarted = true; signal.skill = name;
@@ -208,7 +208,9 @@
   }
   function updateBuilder(signal, dt) {
     signal.actionClock += dt; if (signal.actionClock < .28) return; signal.actionClock = 0;
-    const stepX = clamp(signal.x + signal.direction * 24, 20, W - 20); const stepY = Math.max(34, signal.y - 10);
+    const nextStepX = signal.x + signal.direction * 24;
+    if (nextStepX <= 20 || nextStepX >= W - 20) { signal.state = "walking"; signal.skill = null; setStatus("Builder reached the board edge and stopped building."); return; }
+    const stepX = nextStepX; const stepY = Math.max(34, signal.y - 10);
     addPlatform(stepX - 22, stepX + 22, stepY, true); signal.x = stepX; signal.y = stepY - SIGNAL_H; signal.platformId = platformAt(signal)?.id || null; signal.buildSteps += 1; burst(signal.x, signal.y + SIGNAL_H, "#55e8ff", 5);
     if (signal.buildSteps >= 8) { signal.state = "walking"; signal.skill = null; setStatus("Builder finished the staircase. The route is open."); }
   }
