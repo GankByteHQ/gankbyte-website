@@ -134,7 +134,11 @@
       ["symbol-catch/", "Symbol Catch"],
       ["codebreaker/", "Codebreaker"],
       ["byte-snatch.html", "Byte Snatch"],
-      ["signal-swarm.html", "Signal Swarm"]
+      ["signal-swarm.html", "Signal Swarm"],
+      ["packet-siege.html", "Packet Siege"],
+      ["byte-stack.html", "Byte Stack"],
+      ["null-ninja.html", "Null Ninja"],
+      ["stick-fighter.html", "Stick Fighter"]
     ], ["games.html"]);
     makeNavDropdown('a[href$="arena-hub.html"]', "Arena", [
       ["arena-hub.html", "Arena Hub"],
