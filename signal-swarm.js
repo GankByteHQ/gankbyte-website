@@ -154,7 +154,7 @@
   }
   function createSignal() {
     const roll = Math.random(); const type = roll < .2 ? "carrier" : roll < .44 ? "spark" : "runner"; const first = platforms[0];
-    signals.push({ id: `${elapsed}-${Math.random()}`, alive: true, x: spawnPoint.x, y: spawnPoint.y, vx: type === "runner" ? 66 : type === "carrier" ? 42 : 54, vy: 20, direction: 1, type, state: "falling", platformId: null, fallStartY: spawnPoint.y, fallDistance: 0, phase: random(0, 7), spawnTime: elapsed, lastSafeX: spawnPoint.x, lastSafeY: first.y - SIGNAL_H, bridge: false, floater: false, bombAt: 0, buildSteps: 0, bridgeSteps: 0, mineSteps: 0, actionClock: 0, actionStarted: false, dangerCooldown: 0, wallId: null, skill: null, blockUntil: 0 });
+    signals.push({ id: `${elapsed}-${Math.random()}`, alive: true, x: spawnPoint.x, y: spawnPoint.y, vx: type === "runner" ? 66 : type === "carrier" ? 42 : 54, vy: 20, direction: 1, type, state: "falling", platformId: null, fallStartY: spawnPoint.y, fallDistance: 0, phase: random(0, 7), spawnTime: elapsed, lastSafeX: spawnPoint.x, lastSafeY: first.y - SIGNAL_H, bridge: false, floater: false, bombAt: 0, buildSteps: 0, bridgeSteps: 0, mineSteps: 0, actionClock: 0, actionStarted: false, dangerCooldown: 0, wallId: null, skill: null });
   }
   function nearestSignal(point, maxDistance = 58) { return signals.filter((signal) => signal.alive && distance(signal, point) <= maxDistance).sort((a, b) => distance(a, point) - distance(b, point))[0]; }
   function setStatus(message) { $("swarm-status").textContent = message; }
@@ -169,10 +169,16 @@
   function blockerAhead(signal, nextX) {
     return signals.find((other) => other !== signal && other.alive && other.state === "blocked" && Math.abs(other.y - signal.y) < 18 && ((signal.direction > 0 && other.x > signal.x && other.x <= nextX + 18) || (signal.direction < 0 && other.x < signal.x && other.x >= nextX - 18))) || null;
   }
+  function releaseBlocker(signal) {
+    if (!running || paused || !signal || !signal.alive || signal.state !== "blocked") return false;
+    signal.state = "walking"; signal.skill = null; signal.actionStarted = false; signal.vx = Math.abs(signal.vx || 54) * signal.direction; selectedSignalId = signal.id; burst(signal.x, signal.y, "#ffb347", 14); setStatus("Blocker released. The Signal is moving again."); updateHud(); return true;
+  }
   function assignSkill(name, point = target) {
-    if (!running || paused || !charges[name]) return;
+    if (!running || paused) return;
     target = point; const signal = nearestSignal(point) || signals.find((item) => item.alive && item.id === selectedSignalId);
     if (!signal) { setStatus("Select an active Signal first."); return; }
+    if (signal.state === "blocked") { releaseBlocker(signal); return; }
+    if (!charges[name]) return;
     if (["bridge", "floater"].includes(name) && signal[name]) { setStatus(`${skillNames[name]} is already active on this Signal.`); return; }
     if (name === "blocker" && signal.state !== "walking") { setStatus("Blocker must be assigned to a walking Signal."); return; }
     if (["bridge", "builder", "basher", "miner", "digger"].includes(name) && signal.state !== "walking") { setStatus(`${skillNames[name]} needs a walking Signal on terrain.`); return; }
@@ -181,7 +187,7 @@
     if (name === "bridge") { signal.bridge = true; signal.state = "bridging"; signal.bridgeSteps = 0; setStatus("Bridge assigned. It is building a temporary route across the gap."); }
     if (name === "floater") { signal.floater = true; setStatus("Floater assigned. Long drops are now survivable."); }
     if (name === "bomber") { signal.bombAt = elapsed + 3; setStatus("Bomber armed. Detonation in 3 seconds."); }
-    if (name === "blocker") { signal.state = "blocked"; signal.vx = 0; signal.blockUntil = elapsed + 7; setStatus("Blocker active for 7 seconds. Followers will turn around."); }
+    if (name === "blocker") { signal.state = "blocked"; signal.vx = 0; setStatus("Blocker placed. Click the blocked Signal to release it."); }
     if (name === "builder") { signal.state = "building"; signal.buildSteps = 0; setStatus("Builder started. It is laying a staircase across the route."); }
     if (name === "basher") { signal.state = "bashing"; setStatus("Basher started. It is cutting horizontally through the terrain."); }
     if (name === "miner") { signal.state = "mining"; signal.mineSteps = 0; setStatus("Miner started. It is cutting horizontally across the terrain."); }
@@ -248,7 +254,7 @@
   function updateSignal(signal, dt) {
     if (!signal.alive) return; signal.phase += dt * 5;
     if (signal.bombAt && elapsed >= signal.bombAt && signal.state !== "falling") { explode(signal); return; }
-    if (signal.state === "blocked") { if (elapsed < signal.blockUntil) return; signal.state = "walking"; signal.skill = null; signal.actionStarted = false; signal.blockUntil = 0; signal.vx = Math.abs(signal.vx || 54) * signal.direction; setStatus("Blocker expired. The Signal is moving again."); }
+    if (signal.state === "blocked") return;
     if (signal.state === "falling") updateFalling(signal, dt);
     else if (signal.state === "walking") updateWalking(signal, dt);
     else if (signal.state === "bridging") updateBridge(signal, dt);
