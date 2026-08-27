@@ -26,6 +26,8 @@
   const mainNav = header?.querySelector(".site-nav");
   if (header && mainNav && !header.querySelector(".mobile-nav-toggle")) {
     const page = window.location.pathname.split("/").pop() || "index.html";
+    const nestedGamePage = /\/(?:codebreaker|symbol-catch)\//.test(window.location.pathname);
+    const navPath = (href) => href.startsWith("http") || href.startsWith("/") || href.startsWith("../") ? href : `${nestedGamePage ? "../" : ""}${href}`;
     const activePage = page === "arena.html" || page === "glitch-dash.html" || page === "arena-hub.html" ? "arena-hub.html"
       : page === "projects.html" || page === "contributing.html" || page === "project-submit.html" || page === "tools.html" || page === "fivem.html" || page === "fivem-tools.html" || page === "fivem-script-generator.html" ? "developers.html"
       : page === "challenges.html" ? "community.html"
@@ -39,7 +41,7 @@
     const reviewsLink = mainNav.querySelector('a[href$="reviews.html"]');
     if (!reviewsLink) {
       const link = document.createElement("a");
-      link.href = "reviews.html";
+      link.href = navPath("reviews.html");
       link.textContent = "Reviews";
       if (activePage === "reviews.html") link.setAttribute("aria-current", "page");
       const xpTarget = mainNav.querySelector('a[href$="xp.html"], .site-nav-dropdown');
@@ -57,7 +59,7 @@
       panel.className = "site-nav-dropdown-panel";
       [[baseHref, "View Reviews"], [baseHref.replace("reviews.html", "reviews-submit.html"), "Submit a Review"]].forEach(([href, label]) => {
         const link = document.createElement("a");
-        link.href = href;
+        link.href = navPath(href);
         link.textContent = label;
         panel.append(link);
       });
@@ -76,7 +78,7 @@
       panel.className = "site-nav-dropdown-panel";
       [[baseHref, "Overview"], [baseHref.replace("xp.html", "xp-submit.html"), "Submit Contribution"], [baseHref.replace("xp.html", "xp-leaderboard.html"), "Leaderboard"]].forEach(([href, label]) => {
         const link = document.createElement("a");
-        link.href = href;
+        link.href = navPath(href);
         link.textContent = label;
         panel.append(link);
       });
@@ -93,9 +95,9 @@
       if (developerLink.getAttribute("aria-current")) summary.setAttribute("aria-current", "page");
       const panel = document.createElement("div");
       panel.className = "site-nav-dropdown-panel";
-      [[baseHref, "Developer Hub"], ["tools.html", "Tools"], ["fivem.html", "FiveM"], ["projects.html", "Public Projects"], ["contributing.html", "Contribute"], ["https://github.com/GankByteHQ", "GitHub"]].forEach(([href, label]) => {
+      [[baseHref, "Developer Hub"], ["tools.html", "Tools"], ["projects.html", "Public Projects"], ["contributing.html", "Contribute"], ["project-submit.html", "Submit a Project"], ["https://github.com/GankByteHQ", "GitHub"]].forEach(([href, label]) => {
         const link = document.createElement("a");
-        link.href = href;
+        link.href = href.startsWith("http") ? href : navPath(href);
         link.textContent = label;
         if (href.startsWith("http")) { link.target = "_blank"; link.rel = "noreferrer"; }
         panel.append(link);
@@ -117,7 +119,7 @@
       panel.className = "site-nav-dropdown-panel";
       items.forEach(([href, itemLabel]) => {
         const item = document.createElement("a");
-        item.href = href;
+        item.href = href.startsWith("http") ? href : navPath(href);
         item.textContent = itemLabel;
         if (href.startsWith("http")) { item.target = "_blank"; item.rel = "noreferrer"; }
         panel.append(item);
@@ -144,13 +146,14 @@
       ["https://discord.gg/CpWjZkjtjJ", "Join Discord"],
       ["reviews.html", "Reviews"],
       ["reviews-submit.html", "Submit a Review"],
+      ["contact.html", "Give Feedback"],
       ["rules.html", "Rules"]
-    ], ["community.html", "reviews.html", "reviews-submit.html", "rules.html"]);
+    ], ["community.html", "reviews.html", "reviews-submit.html", "contact.html", "rules.html"]);
     [["profile.html", "Profile"], ["account.html", "Account"], ["challenges.html", "Challenges"]].forEach(([href, label]) => {
       if (mainNav.querySelector(`a[href="${href}"]`)) return;
       const link = document.createElement("a");
       link.className = "mobile-nav-extra";
-      link.href = href;
+      link.href = navPath(href);
       link.textContent = label;
       mainNav.append(link);
     });
