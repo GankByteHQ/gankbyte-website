@@ -146,7 +146,9 @@
     if (byId && signal.x >= byId.x1 && signal.x <= byId.x2 && Math.abs(byId.y - bottom) < 18) return byId;
     return supportAt(signal.x, bottom);
   }
-  function wallAhead(signal, nextX) { return walls.find((wall) => Math.abs(wall.x - nextX) < 10 && signal.y + signalHeight > wall.y1 - 18 && signal.y < wall.y2 + 8) || null; }
+  function wallAhead(signal, nextX) {
+    return walls.find((wall) => Math.abs(wall.x - nextX) < 10 && signal.y + signalHeight > wall.y1 - 18 && signal.y < wall.y2 + 8) || null;
+  }
   function glitchAt(signal, nextX) { return corruption.find((glitch) => Math.abs(glitch.x - nextX) < 14 && Math.abs(glitch.y - signal.y) < 19) || null; }
   function blockerAhead(signal, nextX) { return signals.find((other) => other !== signal && other.alive && other.state === "blocked" && Math.abs(other.y - signal.y) < 15 && Math.abs(other.x - nextX) < 16) || null; }
   function turnSignal(signal, message) { signal.direction *= -1; signal.vx = Math.abs(signal.vx) * signal.direction; signal.x += signal.direction * 5; signal.dangerCooldown = elapsed + .65; combo = 1; $("swarm-status").textContent = message || "The route turned this Signal around."; burst(signal.x, signal.y, "#ff4f68", 12); }
@@ -195,9 +197,14 @@
   }
   function updateBuilder(signal, dt) {
     signal.actionClock += dt; if (signal.actionClock < .3) return; signal.actionClock = 0;
-    const stepX = signal.x + signal.direction * 28; const stepY = signal.y - 9; addPlatform(signal.x - (signal.direction < 0 ? 28 : 0), signal.x + (signal.direction > 0 ? 28 : 0), signal.y + signalHeight - 8, signal.direction);
-    signal.x = clamp(stepX, 20, W - 20); signal.y = stepY; signal.buildSteps += 1; burst(signal.x, signal.y + signalHeight, "#55e8ff", 6);
-    if (signal.buildSteps >= 7) { signal.state = "walking"; signal.platformId = supportAt(signal.x, signal.y + signalHeight)?.id || signal.platformId; $("swarm-status").textContent = "Builder finished its staircase. The stream can continue."; }
+    const current = currentPlatform(signal);
+    if (!current) { signal.state = "falling"; signal.platformId = null; signal.fallStartY = signal.y; signal.fallDistance = 0; signal.vy = 20; return; }
+    const stepX = clamp(signal.x + signal.direction * 28, 20, W - 20);
+    const stepY = Math.max(36, current.y - 10);
+    const step = addPlatform(Math.min(signal.x, stepX), Math.max(signal.x, stepX), stepY, signal.direction);
+    signal.x = stepX; signal.y = step.y - signalHeight; signal.platformId = step.id; signal.buildSteps += 1;
+    burst(signal.x, signal.y + signalHeight, "#55e8ff", 6);
+    if (signal.buildSteps >= 7) { signal.state = "walking"; $("swarm-status").textContent = "Builder finished its staircase. The stream can continue."; }
   }
   function updateBasher(signal, dt) {
     signal.actionClock += dt; if (signal.actionClock < .28) return; signal.actionClock = 0;

@@ -18,12 +18,18 @@
     const heading = document.querySelector("#game-select .section-intro");
     if (heading) heading.textContent = heading.textContent.replace("Six games", "Seven games").replace("Five games", "Seven games");
   }
+  if (gameGrid && !gameGrid.querySelector('[data-arena-game="byte-stack"]')) {
+    gameGrid.insertAdjacentHTML("beforeend", '<article class="content-card arena-game-card" data-arena-game="byte-stack"><img class="game-thumb" src="byte-stack-thumb.svg" alt="Byte Stack falling blocks on a digital grid" /><span class="status-badge">Playable now</span><h3>Byte Stack</h3><p>Place, rotate, and drop falling blocks, clear lines, trigger glitches, and chase the biggest combo.</p><p class="game-card-meta"><strong>Best for</strong> pattern building and score chasing.</p><div class="game-card-actions"><a class="button button-primary" href="byte-stack.html">Play Byte Stack <span>&nearr;</span></a><a class="text-link" href="byte-stack.html#leaderboard">Leaderboard <span>&nearr;</span></a></div></article>');
+  }
   const snapshot = document.querySelector(".arena-hub-snapshot");
   if (snapshot && !snapshot.querySelector("#hub-swarm-best")) {
     snapshot.insertAdjacentHTML("beforeend", '<div class="content-card"><span class="status-badge">Signal Swarm</span><h3 id="hub-swarm-best">Loading best</h3><p id="hub-swarm-detail">Global best score</p></div>');
   }
   if (snapshot && !snapshot.querySelector("#hub-packet-best")) {
     snapshot.insertAdjacentHTML("beforeend", '<div class="content-card"><span class="status-badge">Packet Siege</span><h3 id="hub-packet-best">Loading best</h3><p id="hub-packet-detail">Global best score</p></div>');
+  }
+  if (snapshot && !snapshot.querySelector("#hub-stack-best")) {
+    snapshot.insertAdjacentHTML("beforeend", '<div class="content-card"><span class="status-badge">Byte Stack</span><h3 id="hub-stack-best">Loading best</h3><p id="hub-stack-detail">Global best score</p></div>');
   }
   if (!config.supabaseUrl || !config.supabasePublishableKey || !window.supabase) {
     $("hub-byte-best").textContent = "Unavailable";
@@ -33,6 +39,7 @@
     if ($("hub-codebreaker-best")) $("hub-codebreaker-best").textContent = "Unavailable";
     if ($("hub-swarm-best")) $("hub-swarm-best").textContent = "Unavailable";
     if ($("hub-packet-best")) $("hub-packet-best").textContent = "Unavailable";
+    if ($("hub-stack-best")) $("hub-stack-best").textContent = "Unavailable";
     status.textContent = "The Arena snapshot needs the XP backend connection.";
     return;
   }
@@ -40,7 +47,7 @@
   async function load() {
     const sessionResult = await client.auth.getSession();
     const user = sessionResult.data?.session?.user || null;
-    const [byte, glitch, symbol, snatch, codebreaker, swarm, packet, xp] = await Promise.all([
+    const [byte, glitch, symbol, snatch, codebreaker, swarm, packet, stack, xp] = await Promise.all([
       client.from("arena_leaderboard").select("best_score,display_name").order("best_score", { ascending: false }).limit(1),
       client.from("glitch_dash_leaderboard").select("best_score,display_name").order("best_score", { ascending: false }).limit(1),
       client.from("symbol_catch_leaderboard").select("best_score,display_name").order("best_score", { ascending: false }).limit(1),
@@ -48,10 +55,11 @@
       client.from("codebreaker_leaderboard").select("best_score,display_name").order("best_score", { ascending: false }).limit(1),
       client.from("signal_swarm_leaderboard").select("best_score,best_saved,display_name").order("best_score", { ascending: false }).limit(1),
       client.from("packet_siege_leaderboard").select("best_score,best_wave,display_name").order("best_score", { ascending: false }).limit(1),
+      client.from("byte_stack_leaderboard").select("best_score,best_level,best_lines,display_name").order("best_score", { ascending: false }).limit(1),
       user ? client.from("xp_leaderboard").select("xp_total").eq("id", user.id).maybeSingle() : Promise.resolve({ data: null })
     ]);
-    if (byte.error || glitch.error || symbol.error || snatch.error || codebreaker.error || swarm.error || packet.error || (user && xp.error)) {
-      status.textContent = "Some Arena data is temporarily unavailable. You can still play any of the seven games.";
+    if (byte.error || glitch.error || symbol.error || snatch.error || codebreaker.error || swarm.error || packet.error || stack.error || (user && xp.error)) {
+      status.textContent = "Some Arena data is temporarily unavailable. You can still play any of the eight games.";
     }
     $("hub-byte-best").textContent = byte.data?.[0] ? format(byte.data[0].best_score) : "No runs yet";
     $("hub-byte-detail").textContent = byte.data?.[0] ? `Top score by ${byte.data[0].display_name || "GankByte Player"}` : "Be the first on the board";
@@ -67,6 +75,8 @@
     if ($("hub-swarm-detail")) $("hub-swarm-detail").textContent = swarm.data?.[0] ? `${swarm.data[0].best_saved} Signals saved by ${swarm.data[0].display_name || "GankByte Player"}` : "Be the first on the board";
     if ($("hub-packet-best")) $("hub-packet-best").textContent = packet.data?.[0] ? format(packet.data[0].best_score) : "No runs yet";
     if ($("hub-packet-detail")) $("hub-packet-detail").textContent = packet.data?.[0] ? `Wave ${packet.data[0].best_wave} by ${packet.data[0].display_name || "GankByte Player"}` : "Be the first on the board";
+    if ($("hub-stack-best")) $("hub-stack-best").textContent = stack.data?.[0] ? format(stack.data[0].best_score) : "No runs yet";
+    if ($("hub-stack-detail")) $("hub-stack-detail").textContent = stack.data?.[0] ? `${stack.data[0].best_lines || 0} lines by ${stack.data[0].display_name || "GankByte Player"}` : "Be the first on the board";
     if (!user) {
       $("hub-xp-total").textContent = "Sign in";
       $("hub-xp-detail").textContent = "Connect Discord for your progress.";
@@ -75,7 +85,7 @@
     }
     $("hub-xp-total").textContent = `${format(xp.data?.xp_total)} XP`;
     $("hub-xp-detail").textContent = "Approved community progress";
-    const [arena, dash, symbolRuns, snatchRuns, codebreakerRuns, swarmRuns, packetRuns] = await Promise.all([
+    const [arena, dash, symbolRuns, snatchRuns, codebreakerRuns, swarmRuns, packetRuns, stackRuns] = await Promise.all([
       client.from("arena_scores").select("score,wave,created_at,status").eq("user_id", user.id).neq("status", "rejected").order("created_at", { ascending: false }).limit(5),
       client.from("glitch_dash_scores").select("score,streak,created_at,status").eq("user_id", user.id).neq("status", "rejected").order("created_at", { ascending: false }).limit(5),
       client.from("symbol_catch_scores").select("score,best_streak,created_at,status").eq("user_id", user.id).neq("status", "rejected").order("created_at", { ascending: false }).limit(5)
@@ -83,6 +93,7 @@
       client.from("codebreaker_scores").select("score,level,created_at,status").eq("user_id", user.id).neq("status", "rejected").order("created_at", { ascending: false }).limit(5)
       ,client.from("signal_swarm_scores").select("score,signals_saved,best_combo,created_at,status").eq("user_id", user.id).neq("status", "rejected").order("created_at", { ascending: false }).limit(5)
       ,client.from("packet_siege_scores").select("score,wave,packets_destroyed,best_combo,created_at,status").eq("user_id", user.id).neq("status", "rejected").order("created_at", { ascending: false }).limit(5)
+      ,client.from("byte_stack_scores").select("score,level,lines,best_combo,created_at,status").eq("user_id", user.id).neq("status", "rejected").order("created_at", { ascending: false }).limit(5)
     ]);
     const rows = [
       ...(arena.data || []).map((row) => ({ game: "Byte Rush", score: row.score, result: `Wave ${row.wave}`, created_at: row.created_at })),
@@ -92,6 +103,7 @@
       ,...(codebreakerRuns.data || []).map((row) => ({ game: "Codebreaker", score: row.score, result: `Level ${String(row.level || 0).padStart(2, "0")}`, created_at: row.created_at }))
       ,...(swarmRuns.data || []).map((row) => ({ game: "Signal Swarm", score: row.score, result: `${row.signals_saved} saved // x${row.best_combo}`, created_at: row.created_at }))
       ,...(packetRuns.data || []).map((row) => ({ game: "Packet Siege", score: row.score, result: `Wave ${row.wave} // ${row.packets_destroyed} packets`, created_at: row.created_at }))
+      ,...(stackRuns.data || []).map((row) => ({ game: "Byte Stack", score: row.score, result: `Level ${row.level} // ${row.lines} lines`, created_at: row.created_at }))
     ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 8);
     recent.innerHTML = rows.length ? rows.map((row) => `<tr><td>${row.game}</td><td>${format(row.score)}</td><td>${row.result}</td><td>${date(row.created_at)}</td></tr>`).join("") : '<tr><td colspan="4">No runs yet. Play a game to create your first result.</td></tr>';
     if (!byte.error && !glitch.error && (!user || !xp.error)) status.textContent = "Arena snapshot updated.";

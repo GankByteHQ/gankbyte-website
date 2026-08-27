@@ -6,7 +6,8 @@ window.GANKBYTE_ARENA_GAMES = {
   "byte-snatch": { slug: "byte-snatch", title: "Byte Snatch", displayGame: "Byte Snatch", url: "byte-snatch.html", scoreView: "byte_snatch_leaderboard", weeklyView: "byte_snatch_weekly_leaderboard", statLabel: "Multiplier", resultLabel: (value) => `x${value} multiplier` },
   "codebreaker": { slug: "codebreaker", title: "Codebreaker", displayGame: "Codebreaker", url: "codebreaker/", scoreView: "codebreaker_leaderboard", statLabel: "Level", resultLabel: (value) => `Level ${value}` },
   "signal-swarm": { slug: "signal-swarm", title: "Signal Swarm", displayGame: "Signal Swarm", url: "signal-swarm.html", scoreView: "signal_swarm_leaderboard", statLabel: "Saved", resultLabel: (value) => `${value} Signals saved` },
-  "packet-siege": { slug: "packet-siege", title: "Packet Siege", displayGame: "Packet Siege", url: "packet-siege.html", scoreView: "packet_siege_leaderboard", statLabel: "Wave", resultLabel: (value) => `Wave ${value}` }
+  "packet-siege": { slug: "packet-siege", title: "Packet Siege", displayGame: "Packet Siege", url: "packet-siege.html", scoreView: "packet_siege_leaderboard", statLabel: "Wave", resultLabel: (value) => `Wave ${value}` },
+  "byte-stack": { slug: "byte-stack", title: "Byte Stack", displayGame: "Byte Stack", url: "byte-stack.html", scoreView: "byte_stack_leaderboard", statLabel: "Lines", resultLabel: (value) => `${value} lines` }
 };
 
 window.GANKBYTE_ARENA_ADAPTER = {
