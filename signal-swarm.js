@@ -113,8 +113,18 @@
     platforms = layout.platforms.map((p, i) => ({ id: `platform-${i}`, x1: p[0], x2: p[1], y: p[2], built: false }));
     spawnPoint = { ...layout.hatch };
     walls = layout.walls.map((wall, i) => {
+      // Blue walls are route turns, so their centre must sit on a real
+      // platform edge. The old layouts stored approximate X values; snapping
+      // them here keeps every level playable while preserving each wall's
+      // intended side of the route.
+      const anchor = platforms.find((platform) => Math.abs(platform.y - wall[1]) <= 1)
+        || platforms.find((platform) => Math.abs(platform.y - wall[2]) <= 1)
+        || platforms.reduce((closest, platform) => Math.abs(platform.y - wall[1]) < Math.abs(closest.y - wall[1]) ? platform : closest, platforms[0]);
       const isTopPlatformWall = wall[2] <= platforms[0].y + 1 && wall[1] < platforms[0].y;
-      return { id: `wall-${i}`, x: isTopPlatformWall ? platforms[0].x2 - 8 : wall[0], y1: wall[1], y2: wall[2] };
+      const edge = isTopPlatformWall
+        ? platforms[0].x2 - 7
+        : (Math.abs(wall[0] - anchor.x1) <= Math.abs(wall[0] - anchor.x2) ? anchor.x1 + 7 : anchor.x2 - 7);
+      return { id: `wall-${i}`, x: clamp(edge, 14, W - 14), y1: wall[1], y2: wall[2] };
     });
     const startPlatform = platforms[0];
     const startWallTop = spawnPoint.y + 24;
