@@ -103,7 +103,13 @@
     const layout = levelLayouts[plan.layout % levelLayouts.length];
     platforms = layout.platforms.map((platform, index) => ({ ...platform, id: `platform-${index}`, built: false }));
     spawnPoint = { ...layout.hatch };
-    walls = (wallPlans[plan.layout % wallPlans.length] || []).map((wall, index) => ({ ...wall, id: `wall-${index}` }));
+    walls = (wallPlans[plan.layout % wallPlans.length] || []).map((wall, index) => {
+      const base = platforms.find((platform) => Math.abs(platform.y - wall.y2) < 14 && wall.x >= platform.x1 - 4 && wall.x <= platform.x2 + 4);
+      if (!base || (wall.x > base.x1 + 10 && wall.x < base.x2 - 10)) return { ...wall, id: `wall-${index}` };
+      const margin = Math.min(58, Math.max(8, (base.x2 - base.x1) / 2 - 8));
+      const inward = wall.x <= base.x1 + 10 ? 1 : -1;
+      return { ...wall, id: `wall-${index}`, x: clamp(wall.x + inward * margin, base.x1 + margin, base.x2 - margin) };
+    });
     const last = platforms[platforms.length - 1];
     const direction = last.d > 0 ? 1 : -1;
     const gateX = direction > 0 ? last.x2 + 28 : last.x1 - 28;
@@ -147,9 +153,11 @@
     return supportAt(signal.x, bottom);
   }
   function wallAhead(signal, nextX) {
+    const platform = currentPlatform(signal);
     return walls.find((wall) => {
       const ahead = signal.direction > 0 ? wall.x >= signal.x - 2 : wall.x <= signal.x + 2;
-      return ahead && Math.abs(wall.x - nextX) < 10 && signal.y + signalHeight > wall.y1 - 18 && signal.y < wall.y2 + 8;
+      const sitsOnEdge = platform && (Math.abs(wall.x - platform.x1) < 10 || Math.abs(wall.x - platform.x2) < 10);
+      return !sitsOnEdge && ahead && Math.abs(wall.x - nextX) < 10 && signal.y + signalHeight > wall.y1 - 18 && signal.y < wall.y2 + 8;
     }) || null;
   }
   function glitchAt(signal, nextX) { return corruption.find((glitch) => Math.abs(glitch.x - nextX) < 14 && Math.abs(glitch.y - signal.y) < 19) || null; }
@@ -252,10 +260,10 @@
     const atExit = platform.id === exit.platformId && (exit.direction > 0 ? nextX >= platform.x2 - 3 : nextX <= platform.x1 + 3);
     if (atExit) { signal.x = nextX; rescue(signal); return; }
     const blocker = blockerAhead(signal, nextX); if (blocker) { turnSignal(signal, "A Blocker turned the following Signal around."); return; }
+    if (nextX < platform.x1 || nextX > platform.x2) { beginFall(signal, clamp(nextX, platform.x1, platform.x2), signal.y); return; }
     const wall = wallAhead(signal, nextX); if (wall) { if (signal.climber) { signal.state = "climbing"; signal.actionClock = 0; $("swarm-status").textContent = "Climber engaged on the wall."; } else turnSignal(signal, "A wall turned the Signal around. Assign Climber to scale it."); return; }
     const glitch = signal.dangerCooldown <= elapsed ? glitchAt(signal, nextX) : null; if (glitch) { signal.dangerCooldown = elapsed + .75; turnSignal(signal, "Red glitch reversed the Signal."); return; }
-    if (nextX < platform.x1 || nextX > platform.x2) beginFall(signal, clamp(nextX, platform.x1, platform.x2), signal.y);
-    else signal.x = nextX;
+    signal.x = nextX;
   }
   function updateSignal(signal, dt) {
     if (!signal.alive) return; signal.phase += dt * 5;
