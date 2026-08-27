@@ -7,7 +7,8 @@ window.GANKBYTE_ARENA_GAMES = {
   "codebreaker": { slug: "codebreaker", title: "Codebreaker", displayGame: "Codebreaker", url: "codebreaker/", scoreView: "codebreaker_leaderboard", statLabel: "Level", resultLabel: (value) => `Level ${value}` },
   "signal-swarm": { slug: "signal-swarm", title: "Signal Swarm", displayGame: "Signal Swarm", url: "signal-swarm.html", scoreView: "signal_swarm_leaderboard", statLabel: "Saved", resultLabel: (value) => `${value} Signals saved` },
   "packet-siege": { slug: "packet-siege", title: "Packet Siege", displayGame: "Packet Siege", url: "packet-siege.html", scoreView: "packet_siege_leaderboard", statLabel: "Wave", resultLabel: (value) => `Wave ${value}` },
-  "byte-stack": { slug: "byte-stack", title: "Byte Stack", displayGame: "Byte Stack", url: "byte-stack.html", scoreView: "byte_stack_leaderboard", statLabel: "Lines", resultLabel: (value) => `${value} lines` }
+  "byte-stack": { slug: "byte-stack", title: "Byte Stack", displayGame: "Byte Stack", url: "byte-stack.html", scoreView: "byte_stack_leaderboard", statLabel: "Lines", resultLabel: (value) => `${value} lines` },
+  "null-ninja": { slug: "null-ninja", title: "Null Ninja", displayGame: "Null Ninja", url: "null-ninja.html", scoreView: "null_ninja_leaderboard", statLabel: "Kills", resultLabel: (value) => `${value} kills` }
 };
 
 window.GANKBYTE_ARENA_ADAPTER = {
