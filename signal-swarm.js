@@ -89,7 +89,6 @@
     const gx = Math.floor(x / terrainTile), gy = Math.floor(y / terrainTile);
     return gx >= 0 && gx < terrainWidth && gy >= 0 && gy < terrainHeight && terrain[terrainIndex(gx, gy)] > 0;
   }
-  function clearTerrain(x1, y1, x2, y2) { terrainRect(x1, y1, x2, y2, 0); }
 
   function localStats() { try { return JSON.parse(localStorage.getItem(statsKey) || "null") || { runs: 0, saved: 0, perfect: 0, bestCombo: 1 }; } catch { return { runs: 0, saved: 0, perfect: 0, bestCombo: 1 }; } }
   function achievement(name) { let list = []; try { list = JSON.parse(localStorage.getItem(achievementsKey) || "[]"); } catch { list = []; } if (!list.includes(name)) list.push(name); localStorage.setItem(achievementsKey, JSON.stringify(list)); }
@@ -133,13 +132,18 @@
     signals.push({ id: `${elapsed}-${Math.random()}`, alive: true, x: spawnPoint.x, y: spawnPoint.y + 30, vx: type === "runner" ? 64 : type === "carrier" ? 39 : 52, vy: 0, direction: first.d || 1, type, platformId: null, state: "falling", fallStartY: spawnPoint.y + 30, fallDistance: 0, phase: random(0, 7), spawnTime: elapsed, lastSafeX: spawnPoint.x, lastSafeY: first.y - signalHeight, climber: false, floater: false, bombAt: 0, blockerUntil: 0, buildSteps: 0, actionClock: 0, actionStarted: false, dangerCooldown: 0 });
   }
   function supportAt(x, bottom, platformId = null) {
-    const candidates = platforms.filter((platform) => (!platformId || platform.id === platformId) && x >= platform.x1 - 4 && x <= platform.x2 + 4 && Math.abs(platform.y - bottom) < 13);
+    const candidates = platforms.filter((platform) => (!platformId || platform.id === platformId) && x >= platform.x1 && x <= platform.x2 && Math.abs(platform.y - bottom) < 18);
     return candidates[0] || null;
   }
   function landingAt(x, previousBottom, nextBottom) {
-    return platforms.filter((platform) => x >= platform.x1 - 5 && x <= platform.x2 + 5 && platform.y >= previousBottom - 2 && platform.y <= nextBottom + 2).sort((a, b) => a.y - b.y)[0] || null;
+    return platforms.filter((platform) => x >= platform.x1 - 3 && x <= platform.x2 + 3 && platform.y >= previousBottom - 1 && platform.y <= nextBottom + 3).sort((a, b) => a.y - b.y)[0] || null;
   }
-  function currentPlatform(signal) { return platforms.find((platform) => platform.id === signal.platformId) || supportAt(signal.x, signal.y + signalHeight); }
+  function currentPlatform(signal) {
+    const bottom = signal.y + signalHeight;
+    const byId = platforms.find((platform) => platform.id === signal.platformId);
+    if (byId && signal.x >= byId.x1 && signal.x <= byId.x2 && Math.abs(byId.y - bottom) < 18) return byId;
+    return supportAt(signal.x, bottom);
+  }
   function wallAhead(signal, nextX) { return walls.find((wall) => Math.abs(wall.x - nextX) < 10 && signal.y + signalHeight > wall.y1 - 18 && signal.y < wall.y2 + 8) || null; }
   function glitchAt(signal, nextX) { return corruption.find((glitch) => Math.abs(glitch.x - nextX) < 14 && Math.abs(glitch.y - signal.y) < 19) || null; }
   function blockerAhead(signal, nextX) { return signals.find((other) => other !== signal && other.alive && other.state === "blocked" && Math.abs(other.y - signal.y) < 15 && Math.abs(other.x - nextX) < 16) || null; }
@@ -196,30 +200,30 @@
   function updateBasher(signal, dt) {
     signal.actionClock += dt; if (signal.actionClock < .28) return; signal.actionClock = 0;
     const wall = wallAhead(signal, signal.x + signal.direction * 15); if (wall) { removeWall(wall); signal.x += signal.direction * 18; return; }
-    const platform = currentPlatform(signal); if (platform) { splitPlatformAt(platform, signal.x + signal.direction * 28, 18); clearTerrain(signal.x - 20, platform.y - 18, signal.x + 20, platform.y + 3); signal.x += signal.direction * 14; }
+    const platform = currentPlatform(signal); if (platform) { splitPlatformAt(platform, signal.x + signal.direction * 28, 18); signal.x += signal.direction * 14; }
     signal.state = "walking"; signal.platformId = currentPlatform(signal)?.id || signal.platformId; $("swarm-status").textContent = "Basher finished. The new route is open.";
   }
   function updateMiner(signal, dt) {
     signal.actionClock += dt; if (signal.actionClock < .26) return; signal.actionClock = 0;
-    const platform = currentPlatform(signal); if (platform) { splitPlatformAt(platform, signal.x + signal.direction * 28, 20); clearTerrain(signal.x - 20, platform.y - 25, signal.x + 20, platform.y + 4); }
+    const platform = currentPlatform(signal); if (platform) splitPlatformAt(platform, signal.x + signal.direction * 28, 20);
     signal.x += signal.direction * 13; signal.y += 9; signal.state = "falling"; signal.fallStartY = signal.y; signal.fallDistance = 0; signal.vy = 40; $("swarm-status").textContent = "Miner broke through. The Signal is dropping to the next route.";
   }
   function updateDigger(signal, dt) {
     signal.actionClock += dt; if (signal.actionClock < .24) return; signal.actionClock = 0;
-    const platform = currentPlatform(signal); if (platform) { splitPlatformAt(platform, signal.x, 24); clearTerrain(signal.x - 12, platform.y - 4, signal.x + 12, H); } signal.y += 9; signal.state = "falling"; signal.fallStartY = signal.y; signal.fallDistance = 0; signal.vy = 40; $("swarm-status").textContent = "Digger opened a shaft. The Signal is falling through it.";
+    const platform = currentPlatform(signal); if (platform) splitPlatformAt(platform, signal.x, 24); signal.y += 9; signal.state = "falling"; signal.fallStartY = signal.y; signal.fallDistance = 0; signal.vy = 40; $("swarm-status").textContent = "Digger opened a shaft. The Signal is falling through it.";
   }
   function updateWalking(signal, dt) {
-    const platform = currentPlatform(signal); if (!platform) { signal.state = "falling"; signal.fallStartY = signal.y; signal.fallDistance = 0; return; }
+    const platform = currentPlatform(signal); if (!platform) { signal.platformId = null; signal.state = "falling"; signal.fallStartY = signal.y; signal.fallDistance = 0; signal.vy = 20; return; }
     signal.platformId = platform.id; signal.y = platform.y - signalHeight; signal.lastSafeX = signal.x; signal.lastSafeY = signal.y;
-    if (!solidAt(signal.x, signal.y + signalHeight + 2)) { signal.state = "falling"; signal.fallStartY = signal.y; signal.fallDistance = 0; signal.vy = 20; return; }
     if (signal.bombAt && elapsed >= signal.bombAt) { explode(signal); return; }
     const step = Math.abs(signal.vx) * speedFactors[speed] * dt; const nextX = signal.x + signal.direction * step; const exit = exits[0];
-    if (platform.id === exit.platformId && (nextX >= platform.x2 - 3 || nextX <= platform.x1 + 3)) { signal.x = nextX; rescue(signal); return; }
+    const atExit = platform.id === exit.platformId && (exit.direction > 0 ? nextX >= platform.x2 - 3 : nextX <= platform.x1 + 3);
+    if (atExit) { signal.x = nextX; rescue(signal); return; }
     const blocker = blockerAhead(signal, nextX); if (blocker) { turnSignal(signal, "A Blocker turned the following Signal around."); return; }
     const wall = wallAhead(signal, nextX); if (wall) { if (signal.climber) { signal.state = "climbing"; signal.actionClock = 0; $("swarm-status").textContent = "Climber engaged on the wall."; } else turnSignal(signal, "A wall turned the Signal around. Assign Climber to scale it."); return; }
     const glitch = signal.dangerCooldown <= elapsed ? glitchAt(signal, nextX) : null; if (glitch) { signal.dangerCooldown = elapsed + .75; turnSignal(signal, "Red glitch reversed the Signal."); return; }
     signal.x = nextX;
-    if (nextX < platform.x1 - 4 || nextX > platform.x2 + 4) { signal.state = "falling"; signal.fallStartY = signal.y; signal.fallDistance = 0; signal.vy = 20; }
+    if (nextX < platform.x1 || nextX > platform.x2) { signal.platformId = null; signal.state = "falling"; signal.fallStartY = signal.y; signal.fallDistance = 0; signal.vy = 20; }
   }
   function updateSignal(signal, dt) {
     if (!signal.alive) return; signal.phase += dt * 5;
@@ -258,13 +262,13 @@
     ctx.save(); ctx.translate(x, finalPlatform.y - 27); const pulse = 1 + Math.sin(elapsed * 4) * .08; ctx.scale(pulse, pulse); ctx.fillStyle = "rgba(198,255,61,.12)"; ctx.strokeStyle = "#c6ff3d"; ctx.shadowBlur = 22; ctx.shadowColor = "#c6ff3d"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-17, 27); ctx.lineTo(-17, -9); ctx.quadraticCurveTo(0, -28, 17, -9); ctx.lineTo(17, 27); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0; ctx.fillStyle = "#c6ff3d"; ctx.fillRect(-2, -18, 4, 45); ctx.fillStyle = "#0b0f14"; ctx.font = "700 8px Arial"; ctx.textAlign = "center"; ctx.fillText("GATE", 0, 4); ctx.restore();
   }
   function drawSignal(signal) {
-    const colors = { runner: "#c6ff3d", carrier: "#55e8ff", spark: "#ff7ac8" }; const color = colors[signal.type];
+    // Every Signal uses the same GankByte mark. Type differences affect scoring
+    // and behaviour, not the game's visual language.
+    const color = "#c6ff3d";
     ctx.save(); ctx.translate(signal.x, signal.y); if (signal.id === selectedSignalId) { ctx.strokeStyle = "#f4f2ea"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 21 + Math.sin(signal.phase) * 2, 0, Math.PI * 2); ctx.stroke(); }
     ctx.fillStyle = color; ctx.shadowBlur = 14; ctx.shadowColor = color; ctx.scale(signal.direction, 1); ctx.beginPath();
-    if (signal.type === "carrier") { ctx.moveTo(-12, -9); ctx.lineTo(12, -9); ctx.lineTo(15, 0); ctx.lineTo(12, 9); ctx.lineTo(-12, 9); ctx.lineTo(-15, 0); }
-    else if (signal.type === "spark") { ctx.moveTo(0, -14); ctx.lineTo(13, 10); ctx.lineTo(-13, 10); }
-    else { ctx.moveTo(0, -13); ctx.lineTo(13, 0); ctx.lineTo(0, 13); ctx.lineTo(-13, 0); }
-    ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0; ctx.fillStyle = "#0b0f14"; ctx.font = "700 7px Arial"; ctx.textAlign = "center"; ctx.fillText(signal.type === "carrier" ? "C" : signal.type === "spark" ? "S" : "R", 0, 3);
+    ctx.moveTo(0, -13); ctx.lineTo(13, 0); ctx.lineTo(0, 13); ctx.lineTo(-13, 0);
+    ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0;
     if (signal.state === "blocked") { ctx.strokeStyle = "#ffb347"; ctx.lineWidth = 2; ctx.strokeRect(-17, -17, 34, 34); ctx.fillStyle = "#ffb347"; ctx.font = "700 7px Arial"; ctx.fillText("BLOCK", 0, -22); }
     if (signal.climber) { ctx.strokeStyle = "#55e8ff"; ctx.lineWidth = 2; ctx.strokeRect(-18, -18, 36, 36); }
     if (signal.floater) { ctx.strokeStyle = "#f4f2ea"; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.arc(0, 0, 19, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); }
