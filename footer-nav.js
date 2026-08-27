@@ -29,7 +29,7 @@
     const nestedGamePage = /\/(?:codebreaker|symbol-catch)\//.test(window.location.pathname);
     const navPath = (href) => href.startsWith("http") || href.startsWith("/") || href.startsWith("../") ? href : `${nestedGamePage ? "../" : ""}${href}`;
     const activePage = page === "arena.html" || page === "glitch-dash.html" || page === "arena-hub.html" ? "arena-hub.html"
-      : page === "projects.html" || page === "contributing.html" || page === "project-submit.html" || page === "tools.html" || page === "docs.html" || page === "code-library.html" || page === "fivem.html" || page === "fivem-tools.html" || page === "fivem-script-generator.html" ? "developers.html"
+      : page === "projects.html" || page === "contributing.html" || page === "project-submit.html" || page === "tools.html" || page === "docs.html" || page === "code-library.html" || page === "compatibility.html" || page === "fivem.html" || page === "fivem-tools.html" || page === "fivem-script-generator.html" ? "developers.html"
       : page === "challenges.html" ? "community.html"
       : page === "reviews-submit.html" ? "reviews.html"
       : page === "xp-admin.html" || page === "xp-submit.html" || page === "xp-leaderboard.html" ? "xp.html"
@@ -95,7 +95,7 @@
       if (developerLink.getAttribute("aria-current")) summary.setAttribute("aria-current", "page");
       const panel = document.createElement("div");
       panel.className = "site-nav-dropdown-panel";
-      [[baseHref, "Developer Hub"], ["docs.html", "Docs"], ["code-library.html", "Code Library"], ["tools.html", "Tools"], ["fivem.html", "FiveM"], ["projects.html", "Public Projects"], ["contributing.html", "Contribute"], ["project-submit.html", "Submit a Project"], ["https://github.com/GankByteHQ", "GitHub"]].forEach(([href, label]) => {
+      [[baseHref, "Developer Hub"], ["docs.html", "Docs"], ["code-library.html", "Code Library"], ["compatibility.html", "Compatibility"], ["tools.html", "Tools"], ["fivem.html", "FiveM"], ["projects.html", "Public Projects"], ["contributing.html", "Contribute"], ["project-submit.html", "Submit a Project"], ["https://github.com/GankByteHQ", "GitHub"]].forEach(([href, label]) => {
         const link = document.createElement("a");
         link.href = href.startsWith("http") ? href : navPath(href);
         link.textContent = label;

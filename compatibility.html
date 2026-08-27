@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0a0b0f" />
+  <meta name="description" content="GankByte compatibility matrix for FiveM, Minecraft, RuneLite, web, desktop, Lua, Python, JavaScript, TypeScript, Java, and SQL projects." />
+  <link rel="icon" href="gb-logo.png" />
+  <link rel="canonical" href="https://gankbyte.com/compatibility.html" />
+  <meta property="og:title" content="Compatibility Matrix - GankByte" />
+  <meta property="og:description" content="See which GankByte tools, starters, docs, and code patterns fit your platform and language." />
+  <meta property="og:url" content="https://gankbyte.com/compatibility.html" />
+  <meta property="og:site_name" content="GankByte" />
+  <meta property="og:image" content="https://gankbyte.com/gankbyte-og.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Compatibility Matrix - GankByte" />
+  <meta name="twitter:description" content="Find the right GankByte route for your platform, language, and project." />
+  <meta name="twitter:image" content="https://gankbyte.com/gankbyte-og.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="site-spacing.css" />
+  <link rel="stylesheet" href="docs-library.css" />
+  <link rel="stylesheet" href="compatibility.css" />
+  <link rel="stylesheet" href="site-shell.css?v=10" data-site-shell-style="true" />
+  <title>Compatibility Matrix // GankByte</title>
+</head>
+<body>
+  <header class="site-header shell">
+    <a class="brand" href="index.html" aria-label="GankByte home"><span class="brand-mark">GB</span><span>GANKBYTE</span></a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="games.html">Games</a>
+      <a href="arena-hub.html">Arena</a>
+      <a href="developers.html" aria-current="page">Developers</a>
+      <a href="community.html">Community</a>
+      <a href="xp.html">XP</a>
+      <a href="roadmap.html">Roadmap</a>
+    </nav>
+    <a class="header-cta" href="https://discord.gg/CpWjZkjtjJ" target="_blank" rel="noreferrer">Join Discord <span>&nearr;</span></a>
+  </header>
+
+  <main class="compatibility-page" id="main-content">
+    <section class="page-hero shell compatibility-hero">
+      <p class="page-label">DEVELOPERS // COMPATIBILITY</p>
+      <h1>Find the right<br /><em>starting point.</em></h1>
+      <p class="hero-lede">Match your platform, language, and project shape to the GankByte tool, docs, starter, and code patterns that make sense for it. This is a practical fit guide, not a promise that every framework behaves the same.</p>
+      <div class="hero-actions">
+        <a class="button button-primary" href="docs.html">Read the docs <span>&nearr;</span></a>
+        <a class="button button-ghost" href="resource-bench.html">Generate a starter <span>&nearr;</span></a>
+      </div>
+    </section>
+
+    <section class="section shell">
+      <div class="compatibility-summary" aria-label="Compatibility guide summary">
+        <div><span class="summary-number">07</span><span>platform routes</span></div>
+        <div><span class="summary-number">08</span><span>language routes</span></div>
+        <div><span class="summary-number">LOCAL</span><span>first-party tools</span></div>
+      </div>
+
+      <div class="compatibility-toolbar">
+        <div>
+          <p class="card-meta">FILTER THE MATRIX</p>
+          <h2>What are you building?</h2>
+        </div>
+        <label class="lab-label" for="compat-search">Search <input class="docs-search" id="compat-search" type="search" placeholder="Search Java, FiveM, SQL..." /></label>
+      </div>
+      <div class="compatibility-filters" role="group" aria-label="Filter compatibility entries">
+        <button class="compat-filter active" type="button" data-filter="all">All</button>
+        <button class="compat-filter" type="button" data-filter="fivem">FiveM</button>
+        <button class="compat-filter" type="button" data-filter="minecraft">Minecraft</button>
+        <button class="compat-filter" type="button" data-filter="runelite">RuneLite</button>
+        <button class="compat-filter" type="button" data-filter="web">Web</button>
+        <button class="compat-filter" type="button" data-filter="desktop">Desktop</button>
+        <button class="compat-filter" type="button" data-filter="language">Language</button>
+      </div>
+
+      <div class="matrix-wrap">
+        <table class="compatibility-table">
+          <caption class="sr-only">GankByte platforms, supported languages, tools, starters, documentation, and limits</caption>
+          <thead>
+            <tr><th scope="col">Route</th><th scope="col">Use this for</th><th scope="col">Languages / APIs</th><th scope="col">GankByte fit</th><th scope="col">Known limits</th></tr>
+          </thead>
+          <tbody id="compatibility-rows">
+            <tr data-entry data-tags="fivem lua javascript nui platform">
+              <th scope="row"><span class="route-kicker">PLATFORM // GTA V</span><strong>FiveM</strong><span class="route-status">Supported route</span></th>
+              <td>Server resources, client scripts, NUI interfaces, commands, events, exports, and configuration.</td>
+              <td><span class="pill">Lua</span><span class="pill">JavaScript</span><span class="pill">NUI</span></td>
+              <td><a href="fivem.html">FiveM hub</a><a href="resource-bench.html">Resource Bench</a><a href="nui-developer-toolkit.html">NUI toolkit</a><a href="lua-resource-inspector.html">Lua Inspector</a></td>
+              <td>Frameworks, target systems, database adapters, and server permissions still need to match the resource.</td>
+            </tr>
+            <tr data-entry data-tags="minecraft java platform">
+              <th scope="row"><span class="route-kicker">PLATFORM // SERVER</span><strong>Minecraft</strong><span class="route-status">Supported route</span></th>
+              <td>Java server plugins, server setup checks, configuration, dependencies, and startup troubleshooting.</td>
+              <td><span class="pill">Java</span><span class="pill">Paper API</span></td>
+              <td><a href="minecraft-server-validator.html">Server Validator</a><a href="resource-bench.html">Java starter</a><a href="docs.html">Minecraft docs</a></td>
+              <td>Plugin APIs and Java/server versions vary. Check the target server documentation before compiling.</td>
+            </tr>
+            <tr data-entry data-tags="runelite java platform">
+              <th scope="row"><span class="route-kicker">PLATFORM // CLIENT</span><strong>RuneLite</strong><span class="route-status">Supported route</span></th>
+              <td>Client plugins, overlays, configuration panels, event subscriptions, and RuneLite plugin structure.</td>
+              <td><span class="pill">Java</span><span class="pill">RuneLite API</span></td>
+              <td><a href="resource-bench.html">Java starter</a><a href="code-library.html">Code Library</a><a href="docs.html">RuneLite docs</a></td>
+              <td>Follow RuneLite review rules and game rules. Do not automate gameplay or ship private-client shortcuts.</td>
+            </tr>
+            <tr data-entry data-tags="web javascript typescript platform">
+              <th scope="row"><span class="route-kicker">PLATFORM // BROWSER</span><strong>Web tools</strong><span class="route-status">Supported route</span></th>
+              <td>Local-first utilities, dashboards, forms, API clients, documentation, and static site features.</td>
+              <td><span class="pill">JavaScript</span><span class="pill">TypeScript</span><span class="pill">HTML/CSS</span></td>
+              <td><a href="api-request-builder.html">API Builder</a><a href="project-health.html">Health Scanner</a><a href="docs.html">Web docs</a></td>
+              <td>Browser code cannot safely hide secrets or bypass CORS. Use a server-side boundary where one is genuinely required.</td>
+            </tr>
+            <tr data-entry data-tags="desktop python java platform">
+              <th scope="row"><span class="route-kicker">PLATFORM // LOCAL</span><strong>Desktop utilities</strong><span class="route-status">Supported route</span></th>
+              <td>Command-line tools, file inspectors, local automation, release helpers, and small desktop applications.</td>
+              <td><span class="pill">Python</span><span class="pill">Java</span><span class="pill">TypeScript</span></td>
+              <td><a href="resource-bench.html">Starter generator</a><a href="release-packager.html">Release Packager</a><a href="project-validator.html">Project Validator</a></td>
+              <td>Local file access is deliberate and browser tools cannot write arbitrary folders without a user action.</td>
+            </tr>
+            <tr data-entry data-tags="lua language fivem">
+              <th scope="row"><span class="route-kicker">LANGUAGE // SCRIPTING</span><strong>Lua</strong><span class="route-status">Primary pattern</span></th>
+              <td>FiveM resources, configuration, server/client logic, events, commands, and small gameplay systems.</td>
+              <td><span class="pill">FiveM</span><span class="pill">Lua 5.4</span></td>
+              <td><a href="lua-resource-inspector.html">Lua Inspector</a><a href="code-library.html">Code Library</a><a href="resource-bench.html">Lua starter</a></td>
+              <td>Runtime globals and framework assumptions differ between servers; document dependencies and permissions.</td>
+            </tr>
+            <tr data-entry data-tags="python language desktop web">
+              <th scope="row"><span class="route-kicker">LANGUAGE // UTILITY</span><strong>Python</strong><span class="route-status">Supported pattern</span></th>
+              <td>CLI tools, analyzers, file processing, local automation, and small service-side utilities.</td>
+              <td><span class="pill">Python 3</span><span class="pill">CLI</span></td>
+              <td><a href="resource-bench.html">Python starter</a><a href="code-library.html">Code Library</a><a href="docs.html">Python docs</a></td>
+              <td>Use a virtual environment and keep credentials outside source. A browser cannot execute Python directly.</td>
+            </tr>
+            <tr data-entry data-tags="javascript typescript language web fivem">
+              <th scope="row"><span class="route-kicker">LANGUAGE // WEB</span><strong>JavaScript / TypeScript</strong><span class="route-status">Supported pattern</span></th>
+              <td>Browser tools, NUI front ends, API clients, build scripts, and typed web application code.</td>
+              <td><span class="pill">Browser</span><span class="pill">NUI</span><span class="pill">Node</span></td>
+              <td><a href="api-request-builder.html">API Builder</a><a href="nui-developer-toolkit.html">NUI toolkit</a><a href="code-library.html">Code Library</a></td>
+              <td>Runtime, browser, and NUI environments have different APIs. Keep the target runtime explicit.</td>
+            </tr>
+            <tr data-entry data-tags="java language minecraft runelite desktop">
+              <th scope="row"><span class="route-kicker">LANGUAGE // JVM</span><strong>Java</strong><span class="route-status">Supported pattern</span></th>
+              <td>Minecraft plugins, RuneLite plugins, desktop applications, and general JVM projects.</td>
+              <td><span class="pill">Gradle</span><span class="pill">Maven</span><span class="pill">JVM</span></td>
+              <td><a href="resource-bench.html">Java starters</a><a href="docs.html">Java docs</a><a href="code-library.html">Code Library</a></td>
+              <td>Choose the Java version and API before building. A successful compile does not guarantee runtime compatibility.</td>
+            </tr>
+            <tr data-entry data-tags="sql language web desktop fivem">
+              <th scope="row"><span class="route-kicker">LANGUAGE // DATA</span><strong>SQL</strong><span class="route-status">Supported pattern</span></th>
+              <td>PostgreSQL, MySQL, SQLite, migrations, reports, filters, and data-backed application features.</td>
+              <td><span class="pill">PostgreSQL</span><span class="pill">MySQL</span><span class="pill">SQLite</span></td>
+              <td><a href="sql-builder.html">SQL Builder</a><a href="code-library.html">Code Library</a><a href="docs.html">SQL docs</a></td>
+              <td>Dialect, schema, RLS, indexes, and permissions are project-specific. Review destructive statements before running them.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="library-status" id="compat-empty" hidden>No route matched that filter. Try a platform, language, or tool name.</p>
+    </section>
+
+    <section class="section section-dark">
+      <div class="shell compatibility-next">
+        <div><p class="card-meta">A GOOD NEXT STEP</p><h2>Start with the smallest useful build.</h2><p>Pick the route that matches your real target, generate only the files you understand, then use the validator and docs before publishing.</p></div>
+        <div class="compatibility-next-actions"><a class="button button-primary" href="resource-bench.html">Generate a starter <span>&nearr;</span></a><a class="button button-ghost" href="project-submit.html">Submit a project <span>&nearr;</span></a></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer shell"><div class="footer-top"><a class="brand" href="index.html"><span class="brand-mark">GB</span><span>GANKBYTE</span></a><p>Gaming. Memes. Code.</p><p class="footer-motto">BUILD. PLAY. GANK.</p></div><div class="footer-bottom"><div class="social-links"><a href="https://x.com/GankByte" target="_blank" rel="noreferrer">X</a><a href="https://discord.gg/CpWjZkjtjJ" target="_blank" rel="noreferrer">Discord</a><a href="https://github.com/GankByteHQ" target="_blank" rel="noreferrer">GitHub</a></div><a href="mailto:contact@gankbyte.com">contact@gankbyte.com</a><span>&copy; 2026 GankByte</span></div></footer>
+  <script src="compatibility.js?v=1"></script>
+  <script src="footer-nav.js?v=10"></script>
+</body>
+</html>

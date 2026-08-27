@@ -38,6 +38,7 @@ This repository contains the public GankByte landing page. The site is a lightwe
 - `release-packager.html` - local release review and safer ZIP packaging helper
 - `docs.html` - platform and language documentation hub
 - `code-library.html` - searchable, copyable developer snippets
+- `compatibility.html` - platform, language, tool, starter, and limitation matrix
 - `changelog.html` - dated release notes for shipped changes
 
 ## Gameplay media
