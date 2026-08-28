@@ -4,7 +4,6 @@
 @media(max-width:800px){.shell{padding-left:20px;padding-right:20px}.site-header{height:70px}.site-nav{display:none}.hero{display:block;min-height:auto;padding-bottom:60px;padding-top:65px}.hero-art{margin-top:50px;min-height:330px}.hero-card{width:min(330px,82%)}.hero-orbit{height:340px;width:145px}.orbit-two{height:145px;width:340px}.section{padding-bottom:80px;padding-top:80px}.split-section,.section-heading,.cta-panel{display:block}.split-section>div+div,.section-heading .section-intro,.cta-panel>div+div{margin-top:30px}.card-grid.three,.roadmap-grid,.content-grid{grid-template-columns:1fr}.feature-card{min-height:280px}.footer-top,.footer-bottom{align-items:flex-start;flex-direction:column;gap:18px}.footer-top>p{margin-bottom:0}.footer-bottom{line-height:1.8}.social-links{gap:12px 18px}.page-hero{padding-bottom:70px;padding-top:65px}.page-hero h1{font-size:clamp(52px,15vw,80px)}.social-list{grid-template-columns:1fr}.arena-hud{grid-template-columns:repeat(2,1fr)}.arena-board{height:360px}.arena-controls{align-items:flex-start;flex-direction:column;gap:14px}.touch-controls{display:flex;flex-direction:column;gap:8px;align-items:center;margin:16px auto 0}.touch-controls>div{display:flex;gap:8px}.touch-controls button[data-dir="dash"]{color:var(--lime);font-size:9px;letter-spacing:.1em}}
 /* Keep the primary game controls consistent across every game page. */
 main .game-actions > .button,
-main .fighter-controls > #fighter-help-button,
 main .cb-actions > .cb-button {
   align-items:center;
   box-sizing:border-box;
@@ -25,7 +24,6 @@ main .cb-actions {
 }
 @media(max-width:800px){
   main .game-actions > .button,
-  main .fighter-controls > #fighter-help-button,
   main .cb-actions > .cb-button {
     flex:1 1 148px;
     min-width:0;
