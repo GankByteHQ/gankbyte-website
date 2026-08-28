@@ -3,7 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FiveM Vehicle Handling Editor</title>
+<meta name="description" content="Tune FiveM vehicle handling, behaviour flags, and carcols settings, then export readable handling.meta, Lua, and carcols files in GankByte's browser-based developer tool.">
+<link rel="canonical" href="https://gankbyte.com/fivem-tools.html">
+<meta property="og:title" content="FiveM Vehicle Handling Editor // GankByte">
+<meta property="og:description" content="Tune FiveM vehicle handling, behaviour flags, and carcols settings, then export readable files locally in your browser.">
+<meta property="og:url" content="https://gankbyte.com/fivem-tools.html">
+<meta property="og:site_name" content="GankByte">
+<meta property="og:image" content="https://gankbyte.com/gankbyte-og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FiveM Vehicle Handling Editor // GankByte">
+<meta name="twitter:description" content="Tune FiveM vehicle handling and export readable files locally in your browser.">
+<meta name="twitter:image" content="https://gankbyte.com/gankbyte-og.png">
+<title>FiveM Vehicle Handling Editor // GankByte</title>
 <link rel="icon" href="gb-logo.png">
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="site-spacing.css">
@@ -38,9 +49,9 @@ input[type=range]{width:100%;height:5px;appearance:none;background:#252b27;borde
 
 <div class="tool-workspace shell">
 <div class="tabs">
-<button class="tab active" data-tab="handling">Handling (Physics)</button>
-<button class="tab" data-tab="flags">Behaviour Flags</button>
-<button class="tab" data-tab="carcols">Carcols (Mod Kit)</button>
+<button type="button" class="tab active" data-tab="handling">Handling (Physics)</button>
+<button type="button" class="tab" data-tab="flags">Behaviour Flags</button>
+<button type="button" class="tab" data-tab="carcols">Carcols (Mod Kit)</button>
 </div>
 
 <div class="grid">
@@ -82,7 +93,7 @@ input[type=range]{width:100%;height:5px;appearance:none;background:#252b27;borde
 <div class="panel sticky">
 <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
 <div id="outputTabs" class="output-tabs"></div>
-<div class="actions"><button id="loadFileButton" class="btn" type="button">Load file</button><input id="loadFile" type="file" accept=".meta,.xml,.txt" hidden><button id="copy" class="btn">Copy</button><button id="download" class="btn primary">Download</button></div>
+<div class="actions"><button id="loadFileButton" class="btn" type="button">Load file</button><input id="loadFile" type="file" accept=".meta,.xml,.txt" hidden><button id="copy" class="btn" type="button">Copy</button><button id="download" class="btn primary" type="button">Download</button></div>
 </div>
 <div id="loadStatus" class="load-status" aria-live="polite"></div>
 <pre id="output" class="code"></pre>
@@ -307,11 +318,11 @@ function build(){
 function refresh(){profile();build()}
 function renderOutputTabs(){
  const arr=[["handling","handling.meta"],["lua","Lua override"],["carcols","carcols.meta"]];
- $("outputTabs").innerHTML=arr.map(a=>`<button class="outtab ${a[0]===outputType?"active":""}" data-out="${a[0]}">${a[1]}</button>`).join("");
+ $("outputTabs").innerHTML=arr.map(a=>`<button type="button" class="outtab ${a[0]===outputType?"active":""}" data-out="${a[0]}">${a[1]}</button>`).join("");
  document.querySelectorAll("[data-out]").forEach(b=>b.onclick=()=>{outputType=b.dataset.out;renderOutputTabs();build()});
 }
 function renderPresets(){
- $("presets").innerHTML=Object.keys(presets).map(p=>`<button class="preset" data-preset="${p}">${p}</button>`).join("");
+ $("presets").innerHTML=Object.keys(presets).map(p=>`<button type="button" class="preset" data-preset="${p}">${p}</button>`).join("");
  document.querySelectorAll("[data-preset]").forEach(b=>b.onclick=()=>{
   Object.entries(presets[b.dataset.preset]).forEach(([k,v])=>state[k]=v);
   renderFields();refresh();

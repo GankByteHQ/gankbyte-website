@@ -1180,10 +1180,10 @@
                 <div class="cb-stat"><span>Rank</span><strong>${rank.current.name}</strong></div>
               </div>
               <div class="cb-actions" style="margin-top:16px">
-                <button class="cb-button primary" data-action="goto" data-screen="leaderboard">Leaderboards</button>
-                <button class="cb-button" data-action="goto" data-screen="profile">Profile</button>
-                <button class="cb-button" data-action="goto" data-screen="achievements">Achievements</button>
-                <button class="cb-button" data-action="goto" data-screen="howto">How to play</button>
+                <button type="button" class="cb-button primary" data-action="goto" data-screen="leaderboard">Leaderboards</button>
+                <button type="button" class="cb-button" data-action="goto" data-screen="profile">Profile</button>
+                <button type="button" class="cb-button" data-action="goto" data-screen="achievements">Achievements</button>
+                <button type="button" class="cb-button" data-action="goto" data-screen="howto">How to play</button>
               </div>
           </div>
         </div>
@@ -1227,8 +1227,8 @@
             <p class="cb-note">Choose a breach mode, read the target, and solve each challenge before trace reaches 100%.</p>
           </div>
           <div class="cb-actions">
-            <button class="cb-button" data-action="goto" data-screen="menu">Back to menu</button>
-            <button class="cb-button primary" data-action="start-campaign">Start campaign</button>
+            <button type="button" class="cb-button" data-action="goto" data-screen="menu">Back to menu</button>
+            <button type="button" class="cb-button primary" data-action="start-campaign">Start campaign</button>
           </div>
         </div>
         <div class="cb-grid-2">
@@ -1247,7 +1247,7 @@
       const status = i < progress ? "completed" : i === progress ? "active" : i > progress ? "locked" : "completed";
       const boss = [9, 19, 29].includes(i);
       return `
-        <button class="cb-node ${status} ${boss ? "boss" : ""}" data-action="level" data-level="${i}" ${i > progress ? "disabled" : ""}>
+        <button type="button" class="cb-node ${status} ${boss ? "boss" : ""}" data-action="level" data-level="${i}" ${i > progress ? "disabled" : ""}>
           <strong>${String(i + 1).padStart(2, "0")}</strong>
           <span>${name}</span>
           <span>${boss ? "Boss" : status === "completed" ? "Completed" : status === "active" ? "Active" : "Locked"}</span>
@@ -1263,7 +1263,7 @@
             <p class="cb-note">Each node is a system. Bosses appear at systems 10, 20, and 30.</p>
           </div>
           <div class="cb-actions">
-            <button class="cb-button" data-action="goto" data-screen="menu">Main menu</button>
+          <button type="button" class="cb-button" data-action="goto" data-screen="menu">Main menu</button>
             <button type="button" class="cb-button primary" data-action="start-campaign">Enter system</button>
           </div>
         </div>
@@ -1310,7 +1310,7 @@
             </div>
         </div>
         <div class="cb-actions">
-          <button class="cb-button" data-action="goto" data-screen="campaign">Back to map</button>
+          <button type="button" class="cb-button" data-action="goto" data-screen="campaign">Back to map</button>
           <button type="button" class="cb-button primary" data-action="start-level">Start hack</button>
         </div>
       </section>
@@ -1419,7 +1419,7 @@
       return `
         <div class="cb-input-row">
           <input class="cb-input" id="cb-answer" value="${escapeAttr(state.inputValue)}" placeholder="Type the key" autocomplete="off" />
-          <button class="cb-button primary" data-action="submit-input">Submit</button>
+          <button type="button" class="cb-button primary" data-action="submit-input">Submit</button>
         </div>
       `;
     }
@@ -1428,7 +1428,7 @@
         <div class="cb-order">
           <div class="cb-order-pool">
             ${(challenge.lines || []).map((line) => `
-              <button class="cb-choice cb-order-line" data-action="order-pick" data-line="${escapeAttr(line)}" ${state.orderSelection.includes(line) ? "disabled" : ""}>${escapeHtml(line)}</button>
+              <button type="button" class="cb-choice cb-order-line" data-action="order-pick" data-line="${escapeAttr(line)}" ${state.orderSelection.includes(line) ? "disabled" : ""}>${escapeHtml(line)}</button>
             `).join("")}
           </div>
           <div class="cb-order-picked">
@@ -1437,23 +1437,23 @@
               : '<span class="cb-order-empty">Click the lines in order.</span>'}
           </div>
           <div class="cb-actions">
-            <button class="cb-button primary" data-action="order-submit">Submit order</button>
-            <button class="cb-button" data-action="order-clear">Clear</button>
+            <button type="button" class="cb-button primary" data-action="order-submit">Submit order</button>
+            <button type="button" class="cb-button" data-action="order-clear">Clear</button>
           </div>
         </div>
       `;
     }
     if (challenge.type === "reaction") {
       const opts = ["RED", "BLUE", "GREEN", "PURPLE", "NONE"];
-      return `<div class="cb-choices">${opts.map((opt) => `<button class="cb-choice" data-action="reaction" data-value="${opt}">${opt}</button>`).join("")}</div>`;
+      return `<div class="cb-choices">${opts.map((opt) => `<button type="button" class="cb-choice" data-action="reaction" data-value="${opt}">${opt}</button>`).join("")}</div>`;
     }
     if (challenge.options && challenge.options.length) {
-      return `<div class="cb-choices">${challenge.options.map((opt) => `<button class="cb-choice" data-action="answer" data-value="${escapeAttr(opt)}">${opt}</button>`).join("")}</div>`;
+      return `<div class="cb-choices">${challenge.options.map((opt) => `<button type="button" class="cb-choice" data-action="answer" data-value="${escapeAttr(opt)}">${opt}</button>`).join("")}</div>`;
     }
     return `
       <div class="cb-input-row">
         <input class="cb-input" id="cb-answer" value="${escapeAttr(state.inputValue)}" placeholder="Type answer" autocomplete="off" />
-        <button class="cb-button primary" data-action="submit-input">Submit</button>
+        <button type="button" class="cb-button primary" data-action="submit-input">Submit</button>
       </div>
     `;
   }
@@ -1465,7 +1465,7 @@
           <strong>${item.label}</strong>
           <span>${item.desc}</span>
         </div>
-        <button class="cb-button" data-action="powerup" data-key="${key}" ${item.uses <= 0 ? "disabled" : ""}>${item.uses}</button>
+            <button type="button" class="cb-button" data-action="powerup" data-key="${key}" ${item.uses <= 0 ? "disabled" : ""}>${item.uses}</button>
       </div>
     `;
   }
@@ -1490,10 +1490,10 @@
             <div class="cb-stat"><span>Rank</span><strong>${rank.current.name}</strong></div>
           </div>
           <div class="cb-actions">
-            <button class="cb-button primary" data-action="next-level">${state.mode === "campaign" && state.selectedLevel < 29 ? "Next system" : "Play again"}</button>
-            <button class="cb-button" data-action="goto" data-screen="leaderboard">Leaderboards</button>
-            <button class="cb-button" data-action="goto" data-screen="profile">Profile</button>
-            <button class="cb-button" data-action="goto" data-screen="menu">Main menu</button>
+            <button type="button" class="cb-button primary" data-action="next-level">${state.mode === "campaign" && state.selectedLevel < 29 ? "Next system" : "Play again"}</button>
+            <button type="button" class="cb-button" data-action="goto" data-screen="leaderboard">Leaderboards</button>
+            <button type="button" class="cb-button" data-action="goto" data-screen="profile">Profile</button>
+            <button type="button" class="cb-button" data-action="goto" data-screen="menu">Main menu</button>
           </div>
         </section>
     `;
@@ -1519,10 +1519,10 @@
             <div class="cb-stat"><span>Rank</span><strong>${rank.current.name}</strong></div>
           </div>
           <div class="cb-actions">
-            <button class="cb-button primary" data-action="restart">Try again</button>
-            <button class="cb-button" data-action="goto" data-screen="leaderboard">Submit score</button>
-            <button class="cb-button" data-action="goto" data-screen="profile">Profile</button>
-            <button class="cb-button" data-action="goto" data-screen="menu">Main menu</button>
+            <button type="button" class="cb-button primary" data-action="restart">Try again</button>
+            <button type="button" class="cb-button" data-action="goto" data-screen="leaderboard">Submit score</button>
+            <button type="button" class="cb-button" data-action="goto" data-screen="profile">Profile</button>
+            <button type="button" class="cb-button" data-action="goto" data-screen="menu">Main menu</button>
           </div>
         </section>
     `;
@@ -1561,12 +1561,12 @@
             <p class="cb-note">${boardState}</p>
           </div>
           <div class="cb-actions">
-            <button class="cb-button" data-action="goto" data-screen="menu">Main menu</button>
-            <button class="cb-button primary" data-action="goto" data-screen="campaign">Play campaign</button>
+            <button type="button" class="cb-button" data-action="goto" data-screen="menu">Main menu</button>
+            <button type="button" class="cb-button primary" data-action="goto" data-screen="campaign">Play campaign</button>
           </div>
         </div>
         <div class="cb-board-tabs">
-          ${["global", "daily", "weekly"].map((tab) => `<button class="cb-tab ${state.leaderboardTab === tab ? "active" : ""}" data-action="leaderboard-tab" data-tab="${tab}">${tab.toUpperCase()}</button>`).join("")}
+          ${["global", "daily", "weekly"].map((tab) => `<button type="button" class="cb-tab ${state.leaderboardTab === tab ? "active" : ""}" data-action="leaderboard-tab" data-tab="${tab}">${tab.toUpperCase()}</button>`).join("")}
         </div>
         <div class="cb-board-table">
           <table>
@@ -1589,8 +1589,8 @@
         <div class="cb-page-controls">
           <p class="cb-small">${rangeLabel}</p>
           <div class="cb-pagination">
-            <button class="cb-page-button" data-action="leaderboard-page" data-dir="-1">Previous</button>
-            <button class="cb-page-button" data-action="leaderboard-page" data-dir="1">Next</button>
+            <button type="button" class="cb-page-button" data-action="leaderboard-page" data-dir="-1">Previous</button>
+            <button type="button" class="cb-page-button" data-action="leaderboard-page" data-dir="1">Next</button>
           </div>
         </div>
       </section>
@@ -1642,9 +1642,9 @@
               <p class="cb-kicker">PERSISTENCE</p>
               <p class="cb-small">Best score, XP, rank, streak, last played timestamp, run history, and achievements are stored in localStorage for this browser session.</p>
               <div class="cb-actions" style="margin-top:16px">
-                <button class="cb-button" data-action="goto" data-screen="leaderboard">Leaderboards</button>
-                <button class="cb-button" data-action="goto" data-screen="achievements">Achievements</button>
-                <button class="cb-button primary" data-action="goto" data-screen="campaign">Campaign map</button>
+                <button type="button" class="cb-button" data-action="goto" data-screen="leaderboard">Leaderboards</button>
+                <button type="button" class="cb-button" data-action="goto" data-screen="achievements">Achievements</button>
+                <button type="button" class="cb-button primary" data-action="goto" data-screen="campaign">Campaign map</button>
             </div>
           </div>
         </div>
@@ -1679,7 +1679,7 @@
         <h3>${value ? "Enabled" : "Disabled"}</h3>
         <p>${desc}</p>
         <div class="cb-actions">
-          <button class="cb-button primary" data-action="toggle-setting" data-key="${key}">${value ? "Turn off" : "Turn on"}</button>
+          <button type="button" class="cb-button primary" data-action="toggle-setting" data-key="${key}">${value ? "Turn off" : "Turn on"}</button>
         </div>
       </div>
     `;
