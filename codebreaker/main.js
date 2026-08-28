@@ -1126,6 +1126,7 @@
       profile: renderProfile,
       settings: renderSettings,
       achievements: renderAchievements,
+      howto: renderHowTo,
       daily: () => renderInfoScreen("Daily Hack", "Fixed seed for everyone.", "daily"),
       quick: () => renderInfoScreen("Quick Hack", "Random rush of five challenges.", "quick"),
       endless: () => renderInfoScreen("Endless", "Keep going until you fail.", "endless"),
@@ -1182,6 +1183,7 @@
                 <button class="cb-button primary" data-action="goto" data-screen="leaderboard">Leaderboards</button>
                 <button class="cb-button" data-action="goto" data-screen="profile">Profile</button>
                 <button class="cb-button" data-action="goto" data-screen="achievements">Achievements</button>
+                <button class="cb-button" data-action="goto" data-screen="howto">How to play</button>
               </div>
           </div>
         </div>
@@ -1213,6 +1215,30 @@
 
   function menuButton(key, title, desc) {
     return `<button type="button" class="cb-button block" data-action="menu" data-mode="${key}"><span>${title}</span><span>${desc}</span></button>`;
+  }
+
+  function renderHowTo() {
+    return `
+      <section class="cb-screen">
+        <div class="cb-screen-head">
+          <div>
+            <p class="cb-kicker">FIELD GUIDE // CODEBREAKER</p>
+            <h2>Read the clue.<br /><span>Break the code.</span></h2>
+            <p class="cb-note">Choose a breach mode, read the target, and solve each challenge before trace reaches 100%.</p>
+          </div>
+          <div class="cb-actions">
+            <button class="cb-button" data-action="goto" data-screen="menu">Back to menu</button>
+            <button class="cb-button primary" data-action="start-campaign">Start campaign</button>
+          </div>
+        </div>
+        <div class="cb-grid-2">
+          <div class="cb-card"><p class="cb-kicker">THE RUN</p><h3>Choose a mode</h3><p>Campaign moves through the systems in order. Daily Hack uses the same seeded challenge for everyone. Quick Hack, Endless, and Speedrun change the pressure.</p></div>
+          <div class="cb-card"><p class="cb-kicker">THE OBJECTIVE</p><h3>Solve before trace peaks</h3><p>Read the clue, use the available answer format, and keep your lives intact. Wrong answers raise trace and can break your run.</p></div>
+          <div class="cb-card"><p class="cb-kicker">CHALLENGES</p><h3>Use the right response</h3><p>Type answers, pick options, order lines, decode binary, find bugs, solve logic, remember sequences, and react quickly.</p></div>
+          <div class="cb-card"><p class="cb-kicker">POWERUPS</p><h3>Use them when needed</h3><p>Freeze the timer, reveal a clue, skip a challenge, arm a shield, or wipe trace. Charges are limited, so save the best tool for the hardest breach.</p></div>
+        </div>
+      </section>
+    `;
   }
 
   function renderCampaign() {
