@@ -2,3 +2,32 @@
  .arena-hero{padding-bottom:70px}.arena-wrap{margin:0 auto;max-width:900px}.arena-hud{display:grid;gap:12px;grid-template-columns:repeat(4,1fr);margin-bottom:14px}.arena-hud>div{background:var(--surface);border:1px solid var(--line);padding:18px 20px}.hud-label{color:#77787c;display:block;font-size:9px;letter-spacing:.16em;margin-bottom:9px}.arena-hud strong{color:var(--lime);font-size:30px;letter-spacing:-.06em}.arena-board{background:radial-gradient(circle at 50% 40%,rgba(154,123,255,.17),transparent 45%),#0e1014;border:1px solid rgba(198,255,61,.28);height:440px;overflow:hidden;position:relative}.arena-board:before{background-image:linear-gradient(rgba(244,242,234,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(244,242,234,.04) 1px,transparent 1px);background-size:40px 40px;content:"";inset:0;position:absolute}.arena-message{align-items:center;display:flex;flex-direction:column;gap:12px;justify-content:center;inset:0;position:absolute;text-align:center;z-index:1}.arena-message strong{color:var(--lime);font-size:clamp(32px,6vw,62px);letter-spacing:-.08em}.arena-message span{color:var(--muted);font-size:14px}.arena-message[hidden]{display:none}.byte{border:0;border-radius:50%;cursor:pointer;font-size:10px;font-weight:800;height:54px;letter-spacing:.08em;position:absolute;transform:translate(-50%,-50%);transition:transform .12s ease;width:54px;z-index:2}.byte:hover,.byte:focus-visible{outline:3px solid var(--text);outline-offset:4px;transform:translate(-50%,-50%) scale(1.12)}.byte.good{background:var(--lime);box-shadow:0 0 28px rgba(198,255,61,.55);color:#0a0b0f}.byte.glitch{background:var(--purple);box-shadow:0 0 28px rgba(154,123,255,.55);color:#0a0b0f}.arena-controls{align-items:center;display:flex;gap:24px;justify-content:space-between;margin-top:18px}.arena-controls p{color:var(--muted);font-size:12px;margin:0}.arena-controls .button{cursor:pointer}.game-actions{align-items:center;display:flex;flex-wrap:wrap;gap:10px}.game-submit-button[hidden]{display:none!important}.glitch-dash-controls .button{border:0;cursor:pointer}
  .arena-board canvas{display:block;height:100%;touch-action:none;width:100%}.touch-controls{display:none}.touch-controls button{background:#191b20;border:1px solid var(--line);color:var(--text);cursor:pointer;font-size:13px;font-weight:800;min-height:42px;min-width:52px}.touch-controls button:active{background:var(--lime);color:#0a0b0f}.arena-controls strong{color:var(--text)}.power-status{color:#797a7e;font-size:10px;letter-spacing:.14em;margin:15px 0 0;text-transform:uppercase}.power-status strong{color:var(--lime)}.perk-list{list-style:none;margin:24px 0 0;padding:0}.perk-list li{border-bottom:1px solid var(--line);color:var(--muted);font-size:14px;line-height:1.55;padding:12px 0}.perk-list li:first-child{border-top:1px solid var(--line)}.perk-list strong{color:var(--text)}
 @media(max-width:800px){.shell{padding-left:20px;padding-right:20px}.site-header{height:70px}.site-nav{display:none}.hero{display:block;min-height:auto;padding-bottom:60px;padding-top:65px}.hero-art{margin-top:50px;min-height:330px}.hero-card{width:min(330px,82%)}.hero-orbit{height:340px;width:145px}.orbit-two{height:145px;width:340px}.section{padding-bottom:80px;padding-top:80px}.split-section,.section-heading,.cta-panel{display:block}.split-section>div+div,.section-heading .section-intro,.cta-panel>div+div{margin-top:30px}.card-grid.three,.roadmap-grid,.content-grid{grid-template-columns:1fr}.feature-card{min-height:280px}.footer-top,.footer-bottom{align-items:flex-start;flex-direction:column;gap:18px}.footer-top>p{margin-bottom:0}.footer-bottom{line-height:1.8}.social-links{gap:12px 18px}.page-hero{padding-bottom:70px;padding-top:65px}.page-hero h1{font-size:clamp(52px,15vw,80px)}.social-list{grid-template-columns:1fr}.arena-hud{grid-template-columns:repeat(2,1fr)}.arena-board{height:360px}.arena-controls{align-items:flex-start;flex-direction:column;gap:14px}.touch-controls{display:flex;flex-direction:column;gap:8px;align-items:center;margin:16px auto 0}.touch-controls>div{display:flex;gap:8px}.touch-controls button[data-dir="dash"]{color:var(--lime);font-size:9px;letter-spacing:.1em}}
+/* Keep the primary game controls consistent across every game page. */
+main .game-actions > .button,
+main .fighter-controls > #fighter-help-button,
+main .cb-actions > .cb-button {
+  align-items:center;
+  box-sizing:border-box;
+  display:inline-flex;
+  height:44px;
+  justify-content:center;
+  min-height:44px;
+  min-width:148px;
+  padding:12px 16px;
+  white-space:nowrap;
+}
+main .game-actions,
+main .cb-actions {
+  align-items:center;
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+@media(max-width:800px){
+  main .game-actions > .button,
+  main .fighter-controls > #fighter-help-button,
+  main .cb-actions > .cb-button {
+    flex:1 1 148px;
+    min-width:0;
+  }
+}
