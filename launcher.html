@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a0b0f" />
+    <meta name="description" content="GankByte launcher and script library." />
+    <link rel="icon" href="gb-logo.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="site-spacing.css" />
+    <link rel="stylesheet" href="site-shell.css?v=10" />
+    <link rel="stylesheet" href="site-auth.css?v=4" />
+    <link rel="stylesheet" href="launcher.css?v=1" />
+    <title>Launcher // GankByte</title>
+  </head>
+  <body>
+    <header class="site-header shell">
+      <a class="brand" href="index.html" aria-label="GankByte home"><span class="brand-mark">GB</span><span>GANKBYTE</span></a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a href="games.html">Games</a>
+        <a href="developers.html">Developers</a>
+        <a href="community.html">Community</a>
+        <a href="launcher.html" aria-current="page">Launcher</a>
+      </nav>
+      <a class="header-cta" href="account.html">Sign in with Discord <span>&nearr;</span></a>
+    </header>
+
+    <main>
+      <section class="page-hero shell launcher-hero">
+        <p class="eyebrow"><span class="status-dot"></span> GANKBYTE // CLIENT LAUNCHER</p>
+        <h1>Pick a script.<br /><em>Start playing.</em></h1>
+        <p class="hero-lede">Sign in with Discord to view the scripts available to your account and launch them through the GankByte client.</p>
+      </section>
+
+      <section class="section shell launcher-section">
+        <div class="launcher-toolbar">
+          <div><p class="eyebrow">SCRIPT LIBRARY</p><h2>Available <em>scripts.</em></h2></div>
+          <p id="launcher-status" class="section-intro">Checking your GankByte session...</p>
+        </div>
+        <div id="launcher-login" class="launcher-panel" hidden>
+          <span class="status-badge">Authentication required</span>
+          <h3>Sign in to continue.</h3>
+          <p>Use the Discord sign-in control in the header, then return here to view your available scripts.</p>
+          <a class="button button-primary" href="account.html">Open account <span>&nearr;</span></a>
+        </div>
+        <div id="launcher-scripts" class="script-grid" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <footer class="site-footer shell">
+      <div class="footer-top"><a class="brand" href="index.html"><span class="brand-mark">GB</span><span>GANKBYTE</span></a><p class="footer-motto">BUILD. PLAY. GANK.</p></div>
+      <div class="footer-bottom"><span>Launcher // GankByte</span><span>(c) 2026 GankByte</span></div>
+    </footer>
+
+    <script src="xp-config.js"></script>
+    <script src="site-auth.js?v=4"></script>
+    <script src="launcher.js?v=1"></script>
+  </body>
+</html>

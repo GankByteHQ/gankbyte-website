@@ -1,0 +1,22 @@
+:root { --launcher-bg:#0a0b0f; --launcher-surface:#121419; --launcher-text:#f4f2ea; --launcher-muted:#98979b; --launcher-line:rgba(244,242,234,.14); --launcher-lime:#c6ff3d; --launcher-purple:#9a7bff; }
+.launcher-hero { border-bottom:1px solid var(--launcher-line); }
+.launcher-hero h1 { max-width:850px; }
+.launcher-hero h1 em,.launcher-toolbar h2 em { color:var(--launcher-lime); font-style:normal; }
+.launcher-section { min-height:480px; }
+.launcher-toolbar { align-items:end; display:flex; gap:40px; justify-content:space-between; margin-bottom:42px; }
+.launcher-toolbar h2 { margin:0; }
+.launcher-toolbar .section-intro { margin:0 0 4px; }
+.launcher-panel { background:var(--launcher-surface); border:1px solid var(--launcher-line); padding:32px; }
+.launcher-panel h3 { font-size:30px; letter-spacing:-.05em; margin:18px 0 10px; }
+.launcher-panel p { color:var(--launcher-muted); line-height:1.6; max-width:560px; }
+.launcher-panel .button { margin-top:15px; }
+.script-grid { display:grid; gap:14px; grid-template-columns:repeat(3,minmax(0,1fr)); }
+.script-card { background:var(--launcher-surface); border:1px solid var(--launcher-line); display:flex; flex-direction:column; min-height:260px; padding:26px; transition:border-color .2s ease,transform .2s ease; }
+.script-card:hover { border-color:var(--launcher-lime); transform:translateY(-4px); }
+.script-card h3 { font-size:28px; letter-spacing:-.05em; margin:18px 0 12px; }
+.script-card p { color:var(--launcher-muted); line-height:1.6; margin:0; }
+.script-card .script-meta { color:#6f7073; font-size:10px; letter-spacing:.14em; margin-top:auto; padding-top:24px; text-transform:uppercase; }
+.script-card .button { margin-top:18px; width:max-content; }
+.script-empty { border-left:2px solid var(--launcher-purple); color:var(--launcher-muted); padding:8px 0 8px 22px; }
+.script-empty strong { color:var(--launcher-text); display:block; margin-bottom:8px; }
+@media (max-width:800px) { .launcher-toolbar { align-items:start; flex-direction:column; gap:18px; } .script-grid { grid-template-columns:1fr; } }
