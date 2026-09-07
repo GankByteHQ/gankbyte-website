@@ -13,7 +13,11 @@
   }
   async function loadScripts(client) {
     const result = await client.from("launcher_scripts").select("name,description,version,game,status,download_url").eq("is_published", true).order("created_at", { ascending:false });
-    if (result.error) { showEmpty("The launcher database is not connected yet."); status.textContent = "Launcher setup in progress."; return; }
+    if (result.error) {
+      showEmpty("Supabase returned an error. Check the status message above.");
+      status.textContent = `Supabase error: ${result.error.message}`;
+      return;
+    }
     renderScripts(result.data || []); status.textContent = `${(result.data || []).length} published script(s)`;
   }
   async function update(state) {
