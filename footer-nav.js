@@ -161,7 +161,7 @@
       ["contact.html", "Give Feedback"],
       ["rules.html", "Rules"]
     ], ["community.html", "reviews.html", "reviews-submit.html", "contact.html", "rules.html"]);
-    [["store.html", "Store"], ["profile.html", "Profile"], ["account.html", "Account"], ["challenges.html", "Challenges"]].forEach(([href, label]) => {
+    [["store.html", "Store"], ["library.html", "Library"], ["profile.html", "Profile"], ["account.html", "Account"], ["challenges.html", "Challenges"]].forEach(([href, label]) => {
       if (mainNav.querySelector(`a[href="${href}"]`)) return;
       const link = document.createElement("a");
       link.className = "mobile-nav-extra";
@@ -250,6 +250,7 @@
 
   const links = [
     ["store.html", "Store"],
+    ["library.html", "Library"],
     ["profile.html", "Profile"],
     ["account.html", "Account"],
     ["challenges.html", "Challenges"],

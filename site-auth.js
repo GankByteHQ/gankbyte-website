@@ -28,6 +28,8 @@
         <a role="menuitem" href="xp.html">XP</a>
         <a role="menuitem" href="challenges.html">Challenges</a>
         <a role="menuitem" href="account.html">Account</a>
+        <a role="menuitem" href="store.html">Store</a>
+        <a role="menuitem" href="library.html">Library</a>
         <a role="menuitem" href="xp-admin.html" id="site-account-admin" hidden>Admin Dashboard</a>
       </div>
       <button class="site-account-item site-account-signout" id="site-account-signout" type="button" role="menuitem">Sign out</button>
