@@ -30,6 +30,7 @@
         <a role="menuitem" href="account.html">Account</a>
         <a role="menuitem" href="store.html">Store</a>
         <a role="menuitem" href="library.html">Library</a>
+        <a role="menuitem" href="store-admin.html" id="site-account-store-admin" hidden>Store Admin</a>
         <a role="menuitem" href="xp-admin.html" id="site-account-admin" hidden>Admin Dashboard</a>
       </div>
       <button class="site-account-item site-account-signout" id="site-account-signout" type="button" role="menuitem">Sign out</button>
@@ -44,6 +45,7 @@
   const accountName = document.querySelector("#site-account-name");
   const accountSubtitle = document.querySelector("#site-account-subtitle");
   const adminLink = document.querySelector("#site-account-admin");
+  const storeAdminLink = document.querySelector("#site-account-store-admin");
   const signout = document.querySelector("#site-account-signout");
   const mobileAuth = document.querySelector("#mobile-nav-auth");
   [
@@ -128,6 +130,7 @@
       accountName.textContent = "GankByte account";
       accountSubtitle.textContent = "Discord account";
       adminLink.hidden = true;
+      storeAdminLink.hidden = true;
       if (mobileAuth) mobileAuth.textContent = "Sign in with Discord";
       closeMenu();
     } else {
@@ -139,6 +142,7 @@
       accountName.textContent = name;
       accountSubtitle.textContent = currentUser.email || "Discord account";
       adminLink.hidden = !currentProfile?.is_admin;
+      storeAdminLink.hidden = !currentProfile?.is_admin;
       if (mobileAuth) mobileAuth.textContent = "Sign out";
     }
     publishAuthState();
