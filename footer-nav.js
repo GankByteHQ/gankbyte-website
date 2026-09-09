@@ -66,6 +66,13 @@
       dropdown.append(summary, panel);
       reviewNavLink.replaceWith(dropdown);
     }
+    if (!mainNav.querySelector('a[href$="store.html"]')) {
+      const storeLink = document.createElement("a");
+      storeLink.href = navPath("store.html");
+      storeLink.textContent = "Store";
+      if (activePage === "store.html") storeLink.setAttribute("aria-current", "page");
+      mainNav.insertBefore(storeLink, mainNav.querySelector('a[href$="xp.html"], .site-nav-dropdown') || null);
+    }
     const xpLink = mainNav.querySelector('a[href$="xp.html"]');
     if (xpLink && !xpLink.parentElement.classList.contains("site-nav-dropdown")) {
       const baseHref = xpLink.getAttribute("href");
@@ -154,7 +161,7 @@
       ["contact.html", "Give Feedback"],
       ["rules.html", "Rules"]
     ], ["community.html", "reviews.html", "reviews-submit.html", "contact.html", "rules.html"]);
-    [["profile.html", "Profile"], ["account.html", "Account"], ["challenges.html", "Challenges"]].forEach(([href, label]) => {
+    [["store.html", "Store"], ["profile.html", "Profile"], ["account.html", "Account"], ["challenges.html", "Challenges"]].forEach(([href, label]) => {
       if (mainNav.querySelector(`a[href="${href}"]`)) return;
       const link = document.createElement("a");
       link.className = "mobile-nav-extra";
@@ -242,6 +249,7 @@
   }
 
   const links = [
+    ["store.html", "Store"],
     ["profile.html", "Profile"],
     ["account.html", "Account"],
     ["challenges.html", "Challenges"],
